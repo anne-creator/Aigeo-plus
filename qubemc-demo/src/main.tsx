@@ -72,10 +72,10 @@ function App() {
     catch { setSaved(false); }
   }, [state, live]);
   useEffect(() => () => controller.current?.abort(), []);
-  // Read-only discovery for a separately installed local model service.
+  // Read-only discovery for the NemoClaw backend harness.
   useEffect(() => {
     const abort = new AbortController();
-    fetch('/api/model/status', { signal: abort.signal }).then(r => r.ok ? r.json() : null).then(data => {
+    fetch('/api/board/status', { signal: abort.signal }).then(r => r.ok ? r.json() : null).then(data => {
       configureRuntime(Boolean(data?.configured)); updateRuntimeStatus(n => n + 1);
     }).catch(() => {});
     return () => abort.abort();

@@ -5,7 +5,7 @@ export type BoardTask = {
 };
 export type BoardEvent = { id: string; runId: string } & (
   { type: 'progress'; label: string } | { type: 'planned'; tasks: BoardTask[] } |
-  { type: 'task.updated'; task: BoardTask } | { type: 'failed'; message: string }
+  { type: 'task.updated'; task: BoardTask } | { type: 'notice'; message: string } | { type: 'failed'; message: string }
 );
 export type BoardState = {
   version: 2; runId: string; phase: 'idle' | 'planning' | 'active';
@@ -67,6 +67,7 @@ export function boardReducer(s: BoardState, a: BoardAction): BoardState {
     switch (e.type) {
       case 'progress': return s.phase === 'planning' && typeof e.label === 'string' ? { ...next, label: e.label } : s;
       case 'failed': return typeof e.message === 'string' ? { ...next, error: e.message, activity: [...s.activity, e.message] } : s;
+      case 'notice': return typeof e.message === 'string' && s.phase === 'active' ? { ...next, activity: [...s.activity, e.message] } : s;
       case 'planned': {
         if (s.phase !== 'planning') return s;
         validateTasks(e.tasks, a.employeeIds); validateIntake(e.tasks);

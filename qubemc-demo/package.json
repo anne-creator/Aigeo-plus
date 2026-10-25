@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
-    "test": "node --experimental-strip-types --test src/state.test.ts src/data.test.ts server/model.test.mjs",
+    "test": "node --import tsx --test src/state.test.ts src/data.test.ts server/model.test.mjs server/board.test.mjs",
     "start": "node server/start.mjs",
     "test:model": "node scripts/test_model_flow.mjs",
-    "test:board": "node --experimental-strip-types --test src/board-state.test.ts && node scripts/test_board_contract.mjs"
+    "test:board": "node --import tsx --test src/board-state.test.ts && node scripts/test_board_contract.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -19,6 +19,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.23.15",
     "typescript": "~5.7.2",
     "vite": "^6.1.0"
   }

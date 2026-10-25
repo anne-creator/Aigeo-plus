@@ -2,6 +2,7 @@ import * as legacy from './agent';
 import type { CompanyInput } from './state';
 import type { DocumentProject } from './redbull-project';
 import type { BoardEvent, BoardTask } from './board-state';
+import { boardModelAgent } from './board-model-agent';
 
 export type IntakeInput = { project: DocumentProject; company: CompanyInput; runId: string };
 export interface BoardAdapter {
@@ -13,8 +14,9 @@ declare global { interface Window { cofloorBoardAgent?: BoardAdapter } }
 // Optional hooks preserve a separately supplied local-model integration without
 // making that service part of this frontend feature or requiring it to exist.
 const hooks = legacy as typeof legacy & { setModelConfigured?: (configured: boolean) => void };
-export function configureRuntime(configured: boolean) { hooks.setModelConfigured?.(configured); }
-export const hasRuntime = () => window.cofloorBoardAgent?.mode === 'live' || legacy.hasLiveAdapter();
+let localModelConfigured = false;
+export function configureRuntime(configured: boolean) { localModelConfigured = configured; hooks.setModelConfigured?.(configured); }
+export const hasRuntime = () => window.cofloorBoardAgent?.mode === 'live' || Boolean(window.cofloorAgent?.mode === 'live' || window.qubemcAgent?.mode === 'live') || localModelConfigured;
 export const referenceTasks: BoardTask[] = [
   { id: 'RB-01', title: 'Launch outline', ownerId: 'EMP-0254', due: '10:00 AM', status: 'ready',
     requirements: 'Write a one-page outline for the Red Bull Citrus Edition X launch: objective, audience, main message, visual direction, locked image headline, CTA and deliverables.',
@@ -43,8 +45,7 @@ export function getBoardAdapter(live: boolean): BoardAdapter {
     if (window.cofloorBoardAgent.mode !== 'live') throw new Error('A live board agent is not connected.');
     return window.cofloorBoardAgent;
   }
-  if (!legacy.hasLiveAdapter()) throw new Error('Local Agent is not connected. Install a live adapter before starting.');
-  // The live integration must implement the documented Red Bull event contract.
-  // Older three-workstream plans are rejected by the board's intake validation.
-  return legacy.getAdapter(true) as unknown as BoardAdapter;
+  if (window.cofloorAgent || window.qubemcAgent) return legacy.getAdapter(true) as unknown as BoardAdapter;
+  if (localModelConfigured) return boardModelAgent;
+  throw new Error('Local Agent is not connected. Install a live adapter before starting.');
 }
