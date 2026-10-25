@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "deterministicSeeking": true,
+  "replay": true,
+  "pause": true,
+  "seek": true,
+  "soundToggle": true,
+  "endEventOnce": true,
+  "mobileNoOverflow": true,
+  "reducedMotion": true,
+  "externalRequests": [],
+  "errors": [],
+  "stats": {
+    "pieces": 59,
+    "particles": 3400,
+    "faceVertices": 1665,
+    "duration": 5,
+    "renderer": {
+      "frame": 39,
+      "calls": 148,
+      "triangles": 26258,
+      "points": 240,
+      "lines": 802
+    }
+  },
+  "video": {
+    "decode": "passed",
+    "duration": 5,
+    "frames": 150,
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "audio": "AAC stereo; 3.6x tempo; pitch preserved"
+  }
+}
