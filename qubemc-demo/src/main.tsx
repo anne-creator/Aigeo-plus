@@ -11,6 +11,8 @@ import { NightCity } from './NightCity';
 const employeeIds = new Set(company.people.map(p => p.id));
 const storageKey = `cofloor-board-v3-live:${company.source?.datasetId}:${project.workflowId}`;
 const modeKey = `${storageKey}:mode`;
+const requestedRun = new URLSearchParams(window.location.search).get('run') || '';
+const sharedRun = /^[-\w]{1,100}$/.test(requestedRun) ? requestedRun : '';
 const businessDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: project.timezone }).format(new Date(`${project.businessDate}T12:00:00-07:00`));
 type IconName = 'grid' | 'arrow' | 'file' | 'clock' | 'activity' | 'close' | 'chevron' | 'home' | 'users' | 'chart' | 'settings' | 'collapse' | 'check';
 function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
@@ -61,7 +63,7 @@ function Drawer({ titleId, children, onClose }: { titleId: string; children: Rea
   }}><button className="drawer-close icon-button" aria-label="Close details" onClick={onClose}><Icon name="close"/></button>{children}</dialog>;
 }
 function App() {
-  const [state, dispatch] = useReducer(boardReducer, initialBoard);
+  const [state, dispatch] = useReducer(boardReducer, sharedRun ? {...initialBoard,runId:sharedRun,phase:'active' as const} : initialBoard);
   const live = true;
   const [runtimeReady, setRuntimeReady] = useState(false);
   const [hydratedRun, setHydratedRun] = useState('');
@@ -72,7 +74,7 @@ function App() {
   const [activity, setActivity] = useState(false);
   const [teamOpen, setTeamOpen] = useState(false);
   const [scenePlaying, setScenePlaying] = useState(true);
-  const [dashboardOpen, setDashboardOpen] = useState(false);
+  const [dashboardOpen, setDashboardOpen] = useState(Boolean(sharedRun));
   const boardRef = useRef<HTMLElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [documentOpen, setDocumentOpen] = useState(false);
@@ -124,6 +126,11 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [started, hydratedRun, state.runId, state.operation, state.injection?.status, state.injection?.dueAt, state.error]);
+  useEffect(() => {
+    if (!started || hydratedRun !== state.runId) return;
+    const timer = setInterval(() => { if (!running.current) void operation('state'); }, 5000);
+    return () => clearInterval(timer);
+  }, [started, hydratedRun, state.runId]);
   async function start(force = false) {
     if (!runtimeReady || (running.current && !force)) return;
     if (force) { controller.current?.abort(); controller.current = null; running.current = false; }
@@ -134,7 +141,7 @@ function App() {
       let receivedResult = false;
       for await (const event of getBoardAdapter().start({ project, company, runId }, abort.signal)) {
         if (abort.signal.aborted) break;
-        if (event.type === 'snapshot') { receivedResult = true; setHydratedRun(runId); }
+        if (event.type === 'snapshot') { receivedResult = true; setHydratedRun(runId); const url = new URL(window.location.href); url.searchParams.set('run',runId); window.history.replaceState(null,'',url); }
         emit(event);
       }
       if (!receivedResult && !abort.signal.aborted) throw new Error('Agent finished without returning a project allocation.');
@@ -183,7 +190,7 @@ function App() {
       </div>
     </main>
     {activity && <Drawer titleId="activity-title" onClose={() => setActivity(false)}><div className="section-eyebrow">{live ? 'Live agent' : 'Reference'}</div><h2 id="activity-title">Project activity<span className="drawer-count">{state.activity.length}</span></h2>{state.activity.length ? <ol className="activity-list">{state.activity.map((item, i) => <li key={i}>{labels.text(item)}</li>)}</ol> : <span className="drawer-zero">0</span>}</Drawer>}
-    {decisionOpen && <Drawer titleId="decision-title" onClose={() => setDecisionOpen(false)}><div className="section-eyebrow">Discord test channel · simulated delivery</div><h2 id="decision-title">{labels.text(state.issue?.title ?? 'Project update')}</h2><p>Decision owner: {company.people.find(p => p.id === state.projectOwnerId)?.name}</p><p>{labels.text(state.issue?.detail ?? '')}</p>{state.injection?.fact && <p className="test-fact-label">Injected test fact · {company.people.find(p => p.id === state.injection?.fact?.employeeId)?.name} reported sick leave.</p>}<div className="decision-messages" aria-live="polite">{state.messages.map(m => <article key={m.id}><strong>{m.author === 'agent' ? 'CoFloor' : company.people.find(p => p.id === m.actorId)?.name}<small>{m.delivery === 'injected_fact' ? 'Injected test fact' : m.delivery === 'test_input' ? 'Test reply' : 'Not sent to Discord'}</small></strong><p>{labels.text(m.text)}</p></article>)}</div>{state.nextCheckIn && <p>Next check-in: {labels.text(state.nextCheckIn)}</p>}{state.error && <p role="alert">{labels.text(state.error)}</p>}{state.issue?.status === 'awaiting' && <form onSubmit={e => { e.preventDefault(); if (replyText.trim()) void operation('decision', { actorId: state.projectOwnerId, text: replyText.trim(), decisionId: crypto.randomUUID() }); }}><label htmlFor="manager-reply">Project manager decision</label><textarea id="manager-reply" value={replyText} onChange={e => setReplyText(e.target.value)} placeholder="Enter the project manager’s decision…" rows={4} disabled={state.operation !== 'idle'}/><button className="primary-button" type="submit" disabled={!replyText.trim() || state.operation !== 'idle'}>{state.operation === 'deciding' ? 'Interpreting decision…' : 'Submit test reply'}</button></form>}</Drawer>}
+    {decisionOpen && <Drawer titleId="decision-title" onClose={() => setDecisionOpen(false)}><div className="section-eyebrow">{state.transport === 'discord' ? 'Discord · NemoClaw' : 'Discord test channel · simulated delivery'}</div><h2 id="decision-title">{labels.text(state.issue?.title ?? 'Project update')}</h2><p>Decision owner: {company.people.find(p => p.id === state.projectOwnerId)?.name}</p><p>{labels.text(state.issue?.detail ?? '')}</p>{state.injection?.fact && <p className="test-fact-label">Injected test fact · {company.people.find(p => p.id === state.injection?.fact?.employeeId)?.name} reported sick leave.</p>}<div className="decision-messages" aria-live="polite">{state.messages.map(m => <article key={m.id}><strong>{m.author === 'agent' ? 'CoFloor' : company.people.find(p => p.id === m.actorId)?.name}<small>{m.delivery === 'sent' ? 'Sent to Discord' : m.delivery === 'received' ? 'Received from Discord' : m.delivery === 'sending' ? 'Delivery pending verification' : m.delivery === 'injected_fact' ? 'Injected test fact' : m.delivery === 'test_input' ? 'Test reply' : 'Not sent to Discord'}</small></strong><p>{labels.text(m.text)}</p></article>)}</div>{state.nextCheckIn && <p>Next check-in: {labels.text(state.nextCheckIn)}</p>}{state.error && <p role="alert">{labels.text(state.error)}</p>}{state.discordError && <p role="alert">{state.discordError}</p>}{state.transport === 'discord' && state.issue?.status === 'awaiting' && <p>Reply directly to CoFloor’s message in Discord. Your decision will appear here automatically.</p>}{state.transport !== 'discord' && state.issue?.status === 'awaiting' && <form onSubmit={e => { e.preventDefault(); if (replyText.trim()) void operation('decision', { actorId: state.projectOwnerId, text: replyText.trim(), decisionId: crypto.randomUUID() }); }}><label htmlFor="manager-reply">Project manager decision</label><textarea id="manager-reply" value={replyText} onChange={e => setReplyText(e.target.value)} placeholder="Enter the project manager’s decision…" rows={4} disabled={state.operation !== 'idle'}/><button className="primary-button" type="submit" disabled={!replyText.trim() || state.operation !== 'idle'}>{state.operation === 'deciding' ? 'Interpreting decision…' : 'Submit test reply'}</button></form>}</Drawer>}
     {teamOpen && <Drawer titleId="team-title-drawer" onClose={() => setTeamOpen(false)}><h2 id="team-title-drawer">Team</h2><dl className="task-facts"><div><dt>Employees</dt><dd>{company.people.length.toLocaleString()}</dd></div><div><dt>Departments</dt><dd>{company.departments.length}</dd></div><div><dt>Assigned</dt><dd>{owners.length}</dd></div></dl>{owners.map(id => { const person = company.people.find(p => p.id === id); return <div key={id} className="detail-person"><Avatar id={id}/><div><strong>{person?.name ?? 'Team member'}</strong><span>{person?.role}</span></div></div>; })}</Drawer>}
     {selected && <Drawer titleId="task-detail-title" onClose={() => setSelectedId(null)}><div className="section-eyebrow">TASK DETAILS</div><h2 id="task-detail-title">{labels.text(selected.title)}</h2><span className="detail-status">{columns.find(c => c.status === selected.status)?.label}</span><div className="detail-person"><Avatar id={selected.ownerId}/><div><strong>{company.people.find(p => p.id === selected.ownerId)?.name}</strong><span>{company.people.find(p => p.id === selected.ownerId)?.role}</span></div></div><dl className="task-facts"><div><dt>Deadline</dt><dd>{businessDate} · {selected.due} PT</dd></div><div><dt>Assigned to</dt><dd>{labels.person(selected.ownerId)}</dd></div></dl><h3>Requirements</h3><p>{labels.text(selected.requirements)}</p><h3>Inputs</h3><ul>{selected.inputs?.map(input => <li key={input}>{labels.text(input)}</li>)}</ul><h3>Deliverables</h3><ul>{selected.outputs.map(output => <li key={output}>{labels.text(output)}</li>)}</ul><h3>Dependencies</h3>{selected.dependencies.length ? <ul>{selected.dependencies.map(id => <li key={id}>{labels.task(id)} — {state.tasks.find(t => t.id === id)?.status === 'done' ? 'Complete' : 'Waiting'}</li>)}</ul> : <p>No dependencies. Ready to start.</p>}{selected.blockedReason && <p className="blocked-tag">Blocked · {labels.text(selected.blockedReason)}</p>}<button className="secondary-button drawer-document" onClick={() => { setSelectedId(null); setDocumentOpen(true); }}>View project requirements<Icon name="file" size={16}/></button></Drawer>}
     {documentOpen && <Drawer titleId="document-title" onClose={() => setDocumentOpen(false)}><div className="section-eyebrow">ORIGINAL DOCUMENT</div><h2 id="document-title">Project requirements</h2><p className="document-filename">{project.file}</p><a className="secondary-button download-link" download={project.file} href={`data:text/markdown;charset=utf-8,${encodeURIComponent(project.document.content)}`}>Download Markdown<Icon name="file" size={16}/></a><pre className="document-content">{labels.text(project.document.content)}</pre></Drawer>}

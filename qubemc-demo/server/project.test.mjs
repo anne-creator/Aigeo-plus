@@ -12,7 +12,7 @@ function fixture(){const storeDir=mkdtempSync(join(tmpdir(),'cofloor-test-'));le
   if(prompt.includes('Read the complete brief')){counts.draft++;assert.ok(payload.document.includes('Red Bull'));return {tasks:structuredClone(drafts)};}
   if(prompt.includes('Choose one project manager')){counts.assign++;return {projectOwnerId:payload.managers[0].id,assignments:payload.pools.map(p=>({taskId:p.taskId,ownerId:p.candidates.find(c=>c.id!==payload.managers[0].id).id}))};}
   if(prompt.includes('Assess this sick-leave')){counts.check++;const t=payload.tasks.find(t=>t.status==='attention');return {hasIssue:true,issue:{taskId:t.id,title:'Sick leave',detail:'Image delivery blocked.',question:'How should we cover this work?'},message:'Please decide how to cover the image task.'};}
-  counts.decision++;
+  counts.decision++;counts.lastReply=payload.reply;
   if(payload.alternatives.some(p=>!p.candidates.length))return {accepted:false,note:'No feasible replacement. A new timing decision is required.'};
   if(payload.reply==='Noted')return {accepted:false,note:'Please provide a staffing or timing decision.'};
   const updates=payload.alternatives.map(p=>{const c=p.candidates[0];return {taskId:p.taskId,ownerId:c.id,start:c.start,end:c.end};});
@@ -53,3 +53,14 @@ test('no available alternative leaves task blocked without fabricated assignment
  const next=await f.service.analyze('decision',{runId:'no-staff',actorId:p.projectOwnerId,decisionId:'no-alt',text:'Replace'},signal());
  assert.equal(next.issue.status,'awaiting');assert.equal(next.tasks.find(t=>t.id===task.id).ownerId,task.ownerId);assert.equal(next.tasks.find(t=>t.id===task.id).assignmentVersion,1);
 }finally{f.close();}});
+
+test('short reassign command uses pending issue context and preserves original reply',async()=>{
+ const f=fixture();try{
+  const run=await f.service.analyze('plan',input('short-command'),signal());f.advance();
+  await f.service.analyze('check',{runId:run.runId},signal());
+  const result=await f.service.analyze('decision',{runId:run.runId,actorId:run.projectOwnerId,text:'reassign',decisionId:'discord-short'},signal());
+  assert.equal(result.issue.status,'resolved');
+  assert.match(f.counts.lastReply,/reassign all affected work/);
+  assert.equal(result.messages.find(m=>m.id==='discord-short').text,'reassign');
+ }finally{f.close();}
+});

@@ -1,3 +1,4 @@
+import { allowedRequest } from './origin.mjs';
 import { candidatePools, parseModelJson } from './model.mjs';
 import { nemoclawSettings } from './config.mjs';
 import { runNemoClawAgent, probeNemoClaw } from './nemoclaw-discord.mjs';
@@ -52,8 +53,7 @@ export function boardMiddleware(req, res, next) {
   if (!req.url?.startsWith('/api/board/')) return next();
   const send = (code, body) => { if (!res.destroyed) { res.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(body)); } };
   if (req.method === 'GET' && req.url === '/api/board/status') { void probeNemoClaw().then(configured => send(200, { configured, harness: 'nemoclaw', discord: configured && nemoclawSettings().configured ? 'nemoclaw' : 'unconfigured' })); return; }
-  if (!/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(req.headers.host ?? '')) return send(403, { error: 'Origin not allowed.' });
-  if (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`) return send(403, { error: 'Origin not allowed.' });
+  if (!allowedRequest(req)) return send(403, { error: 'Origin not allowed.' });
   if (req.method !== 'POST' || req.url !== '/api/board/plan') return send(404, { error: 'Unknown board operation.' });
   if (!req.headers['content-type']?.startsWith('application/json')) return send(415, { error: 'JSON is required.' });
   const abort = new AbortController();

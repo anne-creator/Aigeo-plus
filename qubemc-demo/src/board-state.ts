@@ -6,10 +6,10 @@ export type BoardTask = {
 };
 export type Reservation = {taskId:string;employeeId:string;start:string;end:string;status:'reserved'|'released';assignmentVersion:number};
 export type BoardRun = {
-  version:3;runId:string;source:'live';phase:'in_project';projectOwnerId:string;tasks:BoardTask[];
+  transport?:'discord';discordError?:string;version:3;runId:string;source:'live';phase:'in_project';projectOwnerId:string;tasks:BoardTask[];
   enteredAt:number;injection:{status:'scheduled'|'injected'|'analyzed';dueAt:number;fact?:{employeeId:string;taskId:string;start:string;end:string}};
   reservations:Reservation[];leave:{employeeId:string;start:string;end:string}[];
-  messages:{id:string;author:'agent'|'manager'|'employee';actorId:string;text:string;delivery:'simulated'|'test_input'|'injected_fact'}[];
+  messages:{id:string;author:'agent'|'manager'|'employee';actorId:string;text:string;delivery:'simulated'|'test_input'|'injected_fact'|'sending'|'sent'|'received'}[];
   activity:string[];issue?:{taskId:string;title:string;detail:string;question:string;recipientId:string;status:'awaiting'|'resolved'};nextCheckIn?:string;
 };
 export type BoardState = Omit<Partial<BoardRun>,'phase'> & {version:3;runId:string;phase:'idle'|'planning'|'active';tasks:BoardTask[];activity:string[];messages:BoardRun['messages'];seen:string[];label:string;error?:string;operation:'idle'|'setup'|'checking'|'deciding'};

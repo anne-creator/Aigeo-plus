@@ -1,5 +1,21 @@
 # CoFloor
 
+## First Spark deployment
+
+Public UI: **https://cofloor.qubemc.com**. Frontend, backend, NemoClaw and model
+inference run on the Spark. Start a project in the dashboard; the sick-leave test
+asks the configured manager in real Discord. Reply directly to that message;
+the backend validates the decision and updates the open board automatically.
+Share the resulting `?run=...` URL to open the same run on another device. The
+base URL stays idle until Start project is clicked; an explicit run link resumes
+that run without creating a new allocation.
+The sick-leave fact and company directory remain fictional test data.
+
+Deployment settings, services, persistence and limitations are documented in
+[the Spark deployment guide](deploy/spark/README.md#first-public-deployment).
+These deployment notes supersede the historical simulated-Discord descriptions below.
+
+
 The Dashboard panel starts collapsed on every page load. Click the header Dashboard button or navigation to open it; expanded state is not restored after refresh.
 
 Startup is click-gated: opening or refreshing the Dashboard begins idle and does not restore/start an active run or inject facts. Only **Start project** initiates allocation. Once clicked, automatic execution and the five-second injection work normally. Explicit **Reset project** still starts a new allocation. Saved server runs remain audit history. This supersedes earlier auto-resume-on-refresh notes.

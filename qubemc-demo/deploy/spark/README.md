@@ -33,3 +33,58 @@ The script loads the file through Node's environment-file parser, registers Disc
 The bot must be invited to the server, have Message Content Intent enabled, and have View Channels, Send Messages, and Read Message History permissions. Mention the bot in the target channel after rebuilding to verify inbound and outbound chat. Bot connectivity does not establish employee mappings or wire real Discord delivery into the current dashboard's simulated decision drawer.
 
 The three Python model test scripts also accept `MODEL_API_AUTH` from a `.env` file beside the script or in its next three parent directories. An exported environment value takes precedence, followed by the nearest nonempty file value and the legacy local credential file. These files are never uploaded by the scripts.
+
+## First public deployment
+
+The Spark runs the built frontend and Node backend together at
+`127.0.0.1:5173`, under `cofloor-app.service`. Cloudflare tunnel `builderbase`
+routes `cofloor.qubemc.com` to that listener; the existing model routes remain intact.
+
+Deployment layout:
+
+- `~/cofloor/current`: symlink to the active release (initial release: `releases/phase1`).
+- `~/cofloor/app.env`: private service settings, mode 600.
+- `current/.cofloor-runs/`: authoritative persisted run data and Discord receipts.
+  Preserve this directory when changing releases; it is never committed.
+- `~/.config/systemd/user/cofloor-app.service`: service installed from this directory.
+
+Service settings (no bot token belongs in the app):
+
+```dotenv
+PORT=5173
+COFLOOR_INFERENCE=nemoclaw
+COFLOOR_DISCORD=live
+COFLOOR_PUBLIC_ORIGIN=https://cofloor.qubemc.com
+NEMOCLAW_SANDBOX=cofloor
+NEMOCLAW_PLANNER_CONFIG=/sandbox/.openclaw/cofloor-planner.json
+NEMOCLAW_DISCORD_CHANNEL_ID=<channel ID>
+COFLOOR_DISCORD_MANAGER_ID=<numeric Discord user ID>
+```
+
+Run `configure-planner.cjs` with `nemoclaw cofloor exec -- node` inside the
+sandbox to create the dedicated planner configuration. It derives provider
+settings from the existing OpenClaw config, disables tools for structured planning,
+and sends `enable_thinking:false` to the local model. It does not modify the
+Discord gateway's configuration. Repeat after a sandbox rebuild if necessary.
+The complete project brief remains input; candidate lists sent to the model are
+bounded to 12 per task, and all output is checked against the full feasibility pool.
+
+For this first round, one real Discord account represents the model-selected
+fictional project manager. Reply directly to the bot question. Only that account's
+non-bot replies to recorded messages are accepted. Web decision submissions are
+disabled in live mode. The server polls pending runs even with no browser open;
+the open UI refreshes its run every five seconds. Delivery receipts survive app
+restarts. A receipt stuck at `sending` requires inspecting Discord before any
+manual resend, to avoid duplicating an ambiguously delivered message.
+
+Inspect/restart only the app:
+
+```sh
+systemctl --user status cofloor-app
+journalctl --user -u cofloor-app -n 50
+systemctl --user restart cofloor-app
+```
+
+Do not terminate desktop sessions or reboot the Spark for app deployment.
+The public UI has no login in this initial deployment; only the configured
+Discord manager can approve staffing changes through the live workflow.

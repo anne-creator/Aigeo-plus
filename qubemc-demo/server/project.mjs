@@ -1,3 +1,4 @@
+import { syncDiscord, liveDiscord } from './project-discord.mjs';
 // Authoritative per-run demo coordinator. Original company records are read-only.
 import { readFileSync, existsSync, mkdirSync, writeFileSync, renameSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -78,11 +79,11 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
         const repaired=await call(`${policy} Repair the previous task proposal to satisfy the validation error. Return the SAME tasks JSON schema with id,title,requirements,outputs,dependencies,skill,level,hours,start,end. Skill must exactly match an existing skill_id. level is a JSON integer 3..5; hours is a JSON number 0.25..4. Windows use HH:mm from 09:00 to 16:00 on the business date. Remove any approval/review/publishing/archive tasks. Include copy and launch-image production; the image task window must be within 13:00–15:00 PT.`,{previousProposal:draft,validationError:error.message,skills,feasibleProductionWindows},signal);
         specs=specsFrom(repaired);
       }
-      const run={version:3,runId,source:'live',projectOwnerId:'',tasks:[],specs,reservations:[],assignmentHistory:[],leave:[],messages:[],activity:[],injection:{status:'scheduled'},decisionIds:[]};
+      const run={...(liveDiscord()?{transport:'discord'}:{}),version:3,runId,source:'live',projectOwnerId:'',tasks:[],specs,reservations:[],assignmentHistory:[],leave:[],messages:[],activity:[],injection:{status:'scheduled'},decisionIds:[]};
       const managerSpec={id:'project-owner',skill:'project_management',level:3,permission:'project.dispatch',start:stamp('09:00'),end:stamp('16:00'),hours:0.5};
       const managers=pool(managerSpec,run);const pools=specs.map(s=>({taskId:s.id,candidates:pool(s,run)}));
       if(!managers.length||pools.some(p=>!p.candidates.length))throw new Error('No feasible employee for one or more tasks.');
-      const chosen=await call(`${policy} Choose one project manager and one owner per task from the supplied eligible candidates. Prefer distinct execution owners; the manager must not own the image task. Return {"projectOwnerId":"eligible manager ID","assignments":[{"taskId":"exact task ID","ownerId":"eligible candidate ID"}]}. No rankings or explanations.`,{tasks:specs,managers,pools},signal);
+      const chosen=await call(`${policy} Choose one project manager and one owner per task from the supplied eligible candidates. Prefer distinct execution owners; the manager must not own the image task. Return {"projectOwnerId":"eligible manager ID","assignments":[{"taskId":"exact task ID","ownerId":"eligible candidate ID"}]}. No rankings or explanations.`,{tasks:specs,managers:managers.slice(0,12),pools:pools.map(p=>({...p,candidates:p.candidates.slice(0,12)}))},signal);
       const manager=managers.find(p=>p.id===chosen.projectOwnerId);if(!manager)throw new Error('Model selected an ineligible project manager.');
       run.projectOwnerId=manager.id;run.reservations.push(reservation(managerSpec,manager.id,manager));
       if(!Array.isArray(chosen.assignments)||chosen.assignments.length!==specs.length||new Set(chosen.assignments.map(a=>a.taskId)).size!==specs.length)throw new Error('Model returned incomplete assignments.');
@@ -128,9 +129,13 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
       if(run.decisionIds.includes(decisionId))return publicRun(run);
       if(!run.issue||run.issue.status!=='awaiting')throw new Error('No pending project-manager decision.');
       const reply=text(input.text,'manager reply',4000);
+      // A short imperative refers to the pending issue; preserve the original in the audit log.
+      const modelReply = /^reassign[.!]?$/i.test(reply)
+        ? 'Find a qualified available replacement and reassign all affected work. Keep the same deliverables and deadlines.'
+        : reply;
       const affected=run.tasks.filter(t=>t.status==='attention');
       const alternatives=affected.map(task=>({taskId:task.id,candidates:pool(effectiveSpec(run.specs.find(s=>s.id===task.id),run),run,task.id),rescheduleCandidates:pool({...effectiveSpec(run.specs.find(s=>s.id===task.id),run),end:stamp('16:00')},run,task.id)}));
-      const result=await call(`${policy} Interpret the project manager reply as a DECISION, not a proposal. There is NO approval or confirmation stage. ONLY IF the actual reply explicitly commands reassignment (for example "find a replacement and reassign the work"), choose an eligible replacement and return accepted:true with concrete updates. This example is NOT the actual reply. When the actual reply merely says thanks/noted/okay, return accepted:false and do not choose a replacement. Never ask for a second approval, explicit acceptance, or confirmation of that command. Acknowledgement alone is unresolved. A request to find/reassign a feasible replacement authorizes selecting one from alternatives. Never assign someone on sick leave. Return {"accepted":false,"note":"what still needs a decision"} or {"accepted":true,"commitment":"specific next action","updates":[{"taskId":"affected ID","ownerId":"eligible ID","start":"ISO timestamp","end":"ISO timestamp"}],"nextCheckIn":"only if explicitly provided"}. Include an update for every affected task. For rescheduling, time may extend to 16:00 PT on the same day only when the manager explicitly changes the timing; use rescheduleCandidates and preserve downstream deadlines; otherwise return accepted:false. Do not invent completion or decisions.`,{projectManagerId:run.projectOwnerId,reply,issue:run.issue,tasks:run.tasks,leave:run.leave,alternatives},signal);
+      const result=await call(`${policy} Resolve the pending staffing issue using the actual manager reply. A command to reassign authorizes choosing a qualified available replacement immediately; no further approval is needed. Acknowledgements alone do not authorize changes. The affectedTasks array is the complete set of tasks requiring updates; leave all other work unchanged. Choose exactly one candidate from each affected task's candidates list, preserving its provided start/end window. Use rescheduleCandidates only if the manager explicitly changes timing. Return {"accepted":true,"commitment":"brief action using employee names","updates":[{"taskId":"exact affected task ID","ownerId":"candidate ID","start":"candidate start","end":"candidate end"}]}. Return {"accepted":false,"note":"specific reason"} only for an acknowledgement, unclear instruction, or no feasible candidates. Do not claim work is completed.`,{projectManagerId:run.projectOwnerId,reply:modelReply,issue:run.issue,affectedTasks:affected,leave:run.leave,alternatives:alternatives.map(p=>({...p,candidates:p.candidates.slice(0,12),rescheduleCandidates:p.rescheduleCandidates.slice(0,12)}))},signal);
       const reject=note=>{run.decisionIds.push(decisionId);run.messages.push({id:decisionId,author:'manager',actorId:run.projectOwnerId,text:reply,delivery:'test_input'});run.messages.push({id:`${decisionId}-answer`,author:'agent',actorId:run.projectOwnerId,text:note,delivery:'simulated'});return publicRun(save(run,signal));};
       if(/^(\s*(thanks?|thank you|noted|ok(?:ay)?|yes|got it|understood|收到|好的|知道了|了解|谢谢)[\s,，.!！。]*)+$/i.test(reply))return reject('Acknowledged. Please provide a staffing or timing decision; the affected task remains blocked.');
       if(result.accepted===false)return reject(text(result.note,'unresolved decision'));
@@ -154,12 +159,16 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
       next.decisionIds.push(decisionId);next.messages.push({id:decisionId,author:'manager',actorId:next.projectOwnerId,text:reply,delivery:'test_input'},{id:`${decisionId}-answer`,author:'agent',actorId:next.projectOwnerId,text:text(result.commitment,'decision commitment'),delivery:'simulated'});
       next.activity.push(`Project manager decision applied. ${result.commitment}`);return publicRun(save(next,signal));
     }
-    if(action==='state')return publicRun(run);
+    if(action==='state') {
+      if (liveDiscord()) await syncDiscord(run, {save:r=>save(r,signal),decide:async data=>{await perform('decision',data,signal);return load(runId);}});
+      return publicRun(load(runId));
+    }
     throw new Error('Unknown project operation.');
   }
   return {pool,load,async analyze(action,input,signal){
     const id=cleanId(input.runId);const key=`${id}:${action}`;
-    if(action==='state')return perform(action,input,signal);
+    if(action==='state' && [...pending.keys()].some(k=>k.startsWith(`${id}:`)))return publicRun(load(id));
+
     const existing=pending.get(key);
     if(existing){
       if(!existing.signal.aborted)return existing.promise;
