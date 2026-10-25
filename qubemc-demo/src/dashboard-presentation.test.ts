@@ -70,3 +70,16 @@ test('all changed cards highlight even when the feed keeps only five entries', (
   assert.equal(changed.changedTaskIds.length,8);
   assert.deepEqual(observeBoard(changed,updated,3000).changedTaskIds,[]);
 });
+
+
+test('shared run hydration waits for tasks, exposes load failure and creates no empty team event', () => {
+  const loading=active([],'shared');
+  assert.equal(dashboardStage(loading,''),'assigning');
+  assert.equal(dashboardStage({...loading,error:'Run not found'},''),'setup-error');
+  const observation=observeBoard(emptyObservation,loading,1000);
+  assert.deepEqual(observation.entries,[]);
+  assert.equal(observation.syncedAt,0);
+  const loaded=active([task('a')],'shared');
+  assert.equal(canRevealProject(loaded,'shared',''),true);
+  assert.equal(observeBoard(observation,loaded,2000).entries[0].count,1);
+});

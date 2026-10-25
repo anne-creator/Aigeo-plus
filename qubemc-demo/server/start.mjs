@@ -11,7 +11,7 @@ const server = createServer((req,res)=>modelMiddleware(req,res,()=>boardMiddlewa
   if (!['GET','HEAD'].includes(req.method)) {res.writeHead(405);return res.end();}
   try {
     const path = resolve(dist,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));
-    if (!path.startsWith(dist)) {res.writeHead(403);return res.end();}
+    if (path !== resolve(dist) && !path.startsWith(resolve(dist) + '/')) {res.writeHead(403);return res.end();}
     let file=path;try{if(!(await stat(file)).isFile())file=resolve(dist,'index.html');}catch{file=resolve(dist,'index.html');}
     const data=await readFile(file);res.writeHead(200,{'Content-Type':types[extname(file)]||'application/octet-stream'});res.end(req.method==='HEAD'?undefined:data);
   }catch{res.writeHead(404);res.end('Build the frontend first: npm run build');}

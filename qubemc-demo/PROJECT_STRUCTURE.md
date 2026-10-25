@@ -169,3 +169,11 @@ CoFloor rename validation: all six existing tests and strict TypeScript / produc
 
 - 2026-10-25: Implemented work-focused global/project dashboards, separate allocation and arrival stages, snapshot-based latest changes and inline attention. Integrated Anne’s original silent scan/drop animation unchanged; no push or live model/Discord verification.
 - Final validation for the dashboard update: all 52 offline tests, the board contract check and strict TypeScript/production build passed. Local browser fixtures verified a 45-second wait with repeated 12-second video loops, pause/static fallback, hidden allocation/entry panels, failure/retry, instant success, pending proposals without automatic dialogs, changed-card highlight and 390px panel order/internal board scrolling. No live allocation or Discord request was used.
+
+## Remote integration merge (2026-10-25)
+
+Merged the Spark/NemoClaw Discord deployment and project-announcement updates from origin/main with the work-focused dashboard. Preserved authenticated Discord event handling, manager confirmation in Discord, delivery status, configured origin checks and server deployment helpers. The project toolbar retains a Project group entry; pending issues still require a click rather than opening a dialog automatically.
+
+A plain URL still starts with the Dashboard hidden. An explicit `?run=` link restores that server run, shows a loading/error screen until valid tasks arrive, and opens the project once. Retry on a shared-run loading failure fetches that run instead of launching another allocation. Empty hydration snapshots create no team-ready events. Successful runs retain the remote shareable URL behavior and five-second state refresh; repeated snapshots neither duplicate changes nor reopen a manually hidden Dashboard. These shared-run and transport behaviors supersede the earlier click-only/manual-refresh notes above.
+
+Validation after merge: 60 offline tests, the board adapter contract check and the production build pass. Added shared-run hydration/error coverage and retained both dashboard-presentation and deployment test suites. No live Discord message or real allocation was triggered during merge verification.

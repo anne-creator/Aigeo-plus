@@ -30,7 +30,7 @@ test('status never returns credentials; foreign requests are rejected',()=>{
   let status,body;
   const res={destroyed:false,writeHead(s){status=s},end(text){body=JSON.parse(text)}};
   modelMiddleware({url:'/api/model/status',method:'GET'},res,()=>{});
-  assert.equal(status,200);assert.deepEqual(Object.keys(body).sort(),['configured','discord','model']);
+  assert.equal(status,200);assert.deepEqual(Object.keys(body).sort(),['configured','discord','harness','model']);
   modelMiddleware({url:'/api/model/plan',method:'POST',headers:{host:'127.0.0.1:5173',origin:'https://unrelated.example'}},res,()=>{});
   assert.equal(status,403);
 });

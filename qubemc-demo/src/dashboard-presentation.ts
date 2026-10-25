@@ -2,7 +2,7 @@ import type { BoardState, BoardTask } from './board-state';
 
 export type DashboardStage = 'global' | 'assigning' | 'setup-error' | 'entering' | 'project';
 export function dashboardStage(state: BoardState, readyRun: string): DashboardStage {
-  if (state.phase === 'planning') return state.error ? 'setup-error' : 'assigning';
+  if (state.phase === 'planning' || (state.phase === 'active' && !state.tasks.length)) return state.error ? 'setup-error' : 'assigning';
   if (state.phase === 'active') return readyRun === state.runId ? 'project' : 'entering';
   return 'global';
 }
@@ -17,7 +17,7 @@ export type TaskChange = {
 export type BoardObservation = {runId: string; tasks: BoardTask[]; entries: TaskChange[]; syncedAt: number; revision: number; changedTaskIds: string[]};
 export const emptyObservation: BoardObservation = {runId: '', tasks: [], entries: [], syncedAt: 0, revision: 0, changedTaskIds: []};
 export function observeBoard(previous: BoardObservation, state: BoardState, observedAt: number): BoardObservation {
-  if (state.phase !== 'active') return {...emptyObservation, runId: state.runId};
+  if (state.phase !== 'active' || !state.tasks.length) return {...emptyObservation, runId: state.runId};
   const first = previous.runId !== state.runId || !previous.tasks.length;
   const revision = first ? 1 : previous.revision + 1;
   const changes: TaskChange[] = [];
