@@ -1,5 +1,7 @@
 # CoFloor
 
+For the persistent NemoClaw inference proxies and Discord setup from the Spark's local `.env`, see [Spark runtime helpers](deploy/spark/README.md).
+
 Task cards, dependencies, details, activity and model messages display task text and employee names. Internal IDs remain in state/API/audit data; presentation resolves saved model text too. The original Markdown download remains unchanged.
 
 ## Current demo: live setup and sick-leave decision
