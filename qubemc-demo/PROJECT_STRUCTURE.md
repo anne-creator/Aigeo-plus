@@ -1,5 +1,13 @@
 # CoFloor Project Structure
 
+## Face recognition frame-to-animation workflow (2026-10-25)
+
+- `public/face-demo.js` stops scanning and releases the camera after exactly one recognized face. The submitted canvas frame and its match box remain frozen for one second; unknown or multiple faces keep scanning. The same success sequence applies to photo uploads.
+- `public/face-demo.html` provides a viewport overlay containing a temporary canvas copy of the recognized frame. It expands from the original frame's position and dimensions to the full viewport over 700 ms, then crossfades into the existing five-second silent Avatar Forge video when playback starts. The temporary copy stays in browser memory. The recognized name and a manual Return to main page link remain available during playback.
+- The video's `ended` event automatically replaces the recognition page with `/` in browser history. Reduced motion skips playback after the freeze. Media errors, rejected playback and a 12-second loading/playback timeout also return automatically. Reset/unload cancels timers and expansion; cancelled recognition responses remain ignored. No recognition API, model, enrollment data or dependencies changed.
+- `scripts/test_face_animation.cjs` exercises controlled recognition responses, exact frozen pixels and expansion origin, crossfade, camera release, full desktop/mobile viewport, actual video completion and navigation, unknown/group rejection, stale responses, reduced motion, failed/rejected/stalled playback and photo upload.
+- Validation: all 77 offline tests, the TypeScript/production build and the expanded browser regression passed. Inspected the full-screen playback screenshot. Browser checks used fixture recognition responses and blocked other API calls; live biometric matching and remote deployment were not exercised.
+
 ## Hidden Dashboard by default (2026-10-25)
 
 This supersedes the visible-startup and visible-reset presentation below.
@@ -28,15 +36,11 @@ This section supersedes earlier hidden-startup and immediate-reset-allocation no
 - Dashboard and face-recognition page favicons share this asset. No API, workflow or company-data changes.
 - Validation: TypeScript/production build passed; XML parsing and byte comparisons confirm the source and built SVG match Anne's original, and both built pages reference the icon.
 
-## Expanded launch asset brief (2026-10-25)
+## Original single-post brief restored (2026-10-25)
 
-This section supersedes earlier descriptions of the source document as a single-post or fixed eight-node brief. The current brief requests one fictional X launch package: messaging/direction, teaser/launch/follow-up copy, three template-based visuals and editable sources, image-specific alt text, FAQ/reply drafts and a manifest-based handoff. Each category has inputs and acceptance criteria; dependency and timing guidance retains the 4 p.m. deadline and 1–3 p.m. primary-image window. The Alex scenario describes explicit manager confirmation of a versioned proposal, with no predetermined replacement.
+Anne requested restoring the earlier small-task demo after reporting request timeouts with the expanded package. Restored the source Markdown and project metadata exactly to their versions before commit `49dc197`; the launch card again describes copy, image and alt text. The added teaser/follow-up posts, image adaptations, community material and 8–20-task guidance are withdrawn. AI still chooses the breakdown with the original planner, staffing validation and task limits; this restores the previous scope rather than enforcing an exact count of three or four.
 
-- `data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md` is the shared source: frontend raw import and server filesystem read resolve to this same file. The server reads it at module initialization, so restart/reload the backend before a future allocation; persisted runs remain unchanged.
-- `src/redbull-project.ts` synchronizes the summary, supplied inputs and deliverable list; the launch card describes the expanded package. Company data and identifiers are unchanged.
-- Desired decomposition is 8–20 meaningful tasks, preferably around 12, chosen by the model. No task cards or execution owners are hardcoded by the brief. Runtime limits remain unchanged (server 2–12, frontend maximum 12); the existing planner prompts may still return fewer tasks. Supporting 13–20 tasks and verifying model quality remain follow-up work in `NEXT_STEPS.md`.
-- This update changes content only: no recommendation panel, demo-progress controls, automatic transitions, additional approvals, model calls, Discord delivery or deployment. Existing concurrent narration/transport work is outside this change.
-- Validation: five existing board-state tests, the document/adapter contract check and TypeScript/production build passed. An intercepted server planner call confirmed its document payload exactly matches the same Markdown source; the stub stopped before inference or persistence. Real model decomposition and scheduling remain unverified.
+The frontend raw import and backend module-initialization read use the same restored Markdown. Restart/reload the backend before a new allocation. Existing saved runs remain unchanged. Narration, face recognition, dashboard behavior and the current manager-confirmation workflow are preserved. No live inference, Discord messages or deployment are part of this rollback; eliminating request timeouts has not been verified against the live service. Five board-state tests, the document/adapter contract check and the TypeScript/production build passed. The restored source brief and metadata match their pre-expansion versions byte-for-byte.
 
 
 ## Project voice narration (2026-10-25)

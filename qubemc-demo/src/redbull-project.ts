@@ -10,12 +10,12 @@ export type DocumentProject = ProjectInput & {
 export const project: DocumentProject = {
   id: 'P-DEMO-001', workflowId: 'RED-BULL-X-LAUNCH-V1',
   title: 'Red Bull Citrus Edition',
-  brief: 'Prepare a coordinated X launch asset package for Red Bull Citrus Edition: teaser, launch and follow-up posts with matching visuals, editable sources, alt text, community-response material and a delivery manifest. Use supplied product facts, packshot, brand template and approved link. Deliver by 4 PM for a simulated 5 PM main launch.',
+  brief: 'Create one X post announcing Red Bull Citrus Edition, with short post copy, one launch image, image alt text and the approved product-page link. Prepare for a simulated 5 PM launch.',
   deadline: '4:00 PM', file: 'RED_BULL_X_LAUNCH_DEMO.md',
-  assets: ['Product facts', 'Packshot', 'Brand template', 'Approved destination link'],
+  assets: ['Product facts', 'Packshot', 'Brand template'],
   businessDate: '2026-10-26', timezone: 'America/Los_Angeles', clientId: 'CL-001',
   releaseTime: '5:00 PM', closeoutTime: '5:30 PM',
   document: { filename: 'RED_BULL_X_LAUNCH_DEMO.md', content: documentText, mediaType: 'text/markdown' },
-  deliverables: ['Product-message sheet', 'Creative direction', 'Teaser, launch and follow-up X copy', '3 matching 1600 × 900 PNGs', 'Editable design sources', 'Alt text for each final image', 'FAQ and comment-reply drafts', 'Asset package with versions and link manifest'],
+  deliverables: ['1 X post', '1600 × 900 PNG', 'Editable design source', 'Image alt text', 'Approved destination link', 'Approval record', 'Simulated release receipt'],
 };
 export const company: CompanyInput = importedCompany;
