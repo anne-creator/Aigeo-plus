@@ -1,5 +1,7 @@
 # CoFloor
 
+The current Red Bull brief requests a small X launch asset package: teaser, launch and follow-up posts with matching visuals, editable sources, alt text, FAQ/reply drafts and a handoff manifest. The AI chooses the breakdown, aiming for about 12 meaningful tasks (desired range 8–20). This is brief-level guidance; runtime validation still allows only 2–12 tasks. See [the source brief](data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md) and [follow-up work](NEXT_STEPS.md). Existing runs are unchanged; restart/reload the backend before a new allocation to load the revised brief.
+
 ## English project voice updates
 
 Start project enables automatic English narration with the local Qwen Ryan voice. The independent **Voice on/off** control and current transcript remain visible when Dashboard is collapsed. **Enable audio** appears if the browser needs a user gesture; **Retry voice** retries a failed announcement without rerunning project work. Muting stops playback and discards pending announcements while text continues updating. Unmuting listens for new events. Refreshing or opening a shared run shows the latest transcript without replaying its history.

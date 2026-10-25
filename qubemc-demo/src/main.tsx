@@ -238,7 +238,7 @@ function App() {
       {stage === 'global' && <section className="glass-card launch-card">
         <div className="launch-heading"><span className="project-emblem">RB</span><span>NEW PROJECT</span><button className="toolbar-button" onClick={() => setDocumentOpen(true)}><Icon name="file" size={15}/>Brief</button></div>
         <h1>{project.title}</h1>
-        <p className="launch-deliverable">X launch · Copy + image + alt text</p>
+        <p className="launch-deliverable">X launch package · 3 posts + visuals + community replies</p>
         <div className="launch-footer"><div className="launch-deadline"><span>Deliver by</span><strong>{project.deadline} <small>PT</small></strong><span>{businessDate}</span></div><button className="primary-button launch-start" onClick={() => void start()} disabled={!runtimeReady || !hasRuntime()}>Start project<Icon name="arrow"/></button></div>
         <div className="company-context"><span><strong>{company.people.length.toLocaleString()}</strong> People</span><span><strong>{company.departments.length}</strong> Departments</span>{runtimeReady && !hasRuntime() && <span role="status">Model disconnected</span>}</div>
       </section>}

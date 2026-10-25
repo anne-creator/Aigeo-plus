@@ -1,5 +1,16 @@
 # CoFloor Project Structure
 
+## Expanded launch asset brief (2026-10-25)
+
+This section supersedes earlier descriptions of the source document as a single-post or fixed eight-node brief. The current brief requests one fictional X launch package: messaging/direction, teaser/launch/follow-up copy, three template-based visuals and editable sources, image-specific alt text, FAQ/reply drafts and a manifest-based handoff. Each category has inputs and acceptance criteria; dependency and timing guidance retains the 4 p.m. deadline and 1–3 p.m. primary-image window. The Alex scenario describes explicit manager confirmation of a versioned proposal, with no predetermined replacement.
+
+- `data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md` is the shared source: frontend raw import and server filesystem read resolve to this same file. The server reads it at module initialization, so restart/reload the backend before a future allocation; persisted runs remain unchanged.
+- `src/redbull-project.ts` synchronizes the summary, supplied inputs and deliverable list; the launch card describes the expanded package. Company data and identifiers are unchanged.
+- Desired decomposition is 8–20 meaningful tasks, preferably around 12, chosen by the model. No task cards or execution owners are hardcoded by the brief. Runtime limits remain unchanged (server 2–12, frontend maximum 12); the existing planner prompts may still return fewer tasks. Supporting 13–20 tasks and verifying model quality remain follow-up work in `NEXT_STEPS.md`.
+- This update changes content only: no recommendation panel, demo-progress controls, automatic transitions, additional approvals, model calls, Discord delivery or deployment. Existing concurrent narration/transport work is outside this change.
+- Validation: five existing board-state tests, the document/adapter contract check and TypeScript/production build passed. An intercepted server planner call confirmed its document payload exactly matches the same Markdown source; the stub stopped before inference or persistence. Real model decomposition and scheduling remain unverified.
+
+
 ## Project voice narration (2026-10-25)
 
 - **Workflow:** Start project initializes browser audio; persisted allocation, received Alex leave, validated proposal and verified delivery events form an ordered narration timeline. Authenticated confirmation and successful reassignment emit confirmation then recovery. Test confirmations retain explicit test wording. A proposal never changes owners or claims that work resumed.
