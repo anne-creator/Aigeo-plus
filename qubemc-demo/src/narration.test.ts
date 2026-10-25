@@ -58,6 +58,25 @@ test('reset cancels synthesis and ignores a late old response', async () => {
   assert.equal(f.spoken.includes('old'),false); assert.equal(f.spoken.length,1);
 });
 
+test('returning to the start panel cancels narration and waits for another start', async () => {
+  let release!: (audio: ArrayBuffer) => void; let signal: AbortSignal | undefined;
+  const f = fixture({synthesize(_text, currentSignal) {
+    signal = currentSignal;
+    return new Promise(resolve => release = resolve);
+  }});
+  f.queue.start('run'); await tick();
+  f.queue.observe(snapshot([event('allocated',1)]));
+  f.queue.reset();
+  assert.equal(signal?.aborted,true);
+  assert.deepEqual(f.views.at(-1),{text:'',status:'idle',muted:false,retryAvailable:false});
+  release(new TextEncoder().encode('old').buffer); await tick();
+  f.queue.retry(); await f.queue.enable(); await tick();
+  assert.deepEqual(f.spoken,[]);
+  f.queue.start('new'); await tick();
+  release(new TextEncoder().encode('new project').buffer); await tick();
+  assert.deepEqual(f.spoken,['new project']);
+});
+
 test('confirmation during synthesis replaces waiting prose with a retrospective plan', async () => {
   let release!: (audio: ArrayBuffer) => void;
   const f = fixture({async synthesize(text) {

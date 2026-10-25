@@ -65,6 +65,7 @@ export class NarrationQueue {
     this.enqueue(event);
     if (!this.view.muted) void this.enable();
   }
+  reset() { this.switchRun(''); }
   observe(state: BoardState) {
     const baseline = this.runId !== state.runId;
     if (baseline) this.switchRun(state.runId);

@@ -54,11 +54,11 @@ Deployment settings, services, persistence and limitations are documented in
 These deployment notes supersede the historical simulated-Discord descriptions below.
 
 
-A plain page URL starts with Dashboard collapsed. Click the header Dashboard button or navigation to open it. An explicit `?run=` link restores the shared server project and opens its panel after valid tasks load; later refresh polling does not reopen a manually collapsed panel.
+A plain page URL opens the project launch panel with the brief, deliverables, deadline and **Start project** button. It stays idle until that button is clicked. The header Dashboard button or navigation can hide or show the panel. An explicit `?run=` link restores the shared server project and opens its panel after valid tasks load; later refresh polling does not reopen a manually collapsed panel.
 
 Scroll on the background to show/hide Dashboard: positive vertical wheel delta shows it, negative hides it (physical swipe direction follows your system scroll setting). Trackpads and mouse wheels both work; each gesture needs 60px and rearms after 250ms idle. Scrolling inside Dashboard, navigation, settings and dialogs keeps its usual behavior. Horizontal scrolling and pinch zoom are ignored.
 
-Startup is click-gated: opening or refreshing the Dashboard begins idle and does not restore/start an active run or inject facts. Only **Start project** initiates allocation. Once clicked, allocation starts; sick leave waits for an explicit Alex group event. There is no automatic leave timer. Explicit **Reset project** still starts a new allocation. Saved server runs remain audit history. This supersedes earlier auto-resume-on-refresh notes.
+Startup is click-gated: opening or refreshing the base URL shows the idle launch panel; explicit shared-run links load the existing project. Only **Start project** initiates allocation. Once clicked, allocation starts; sick leave waits for an explicit Alex group event. There is no automatic leave timer. Explicit **Reset project** returns to the launch panel and waits for **Start project**. Saved server runs remain audit history. This supersedes earlier auto-resume-on-refresh notes.
 
 For the persistent NemoClaw inference proxies and Discord setup from the Spark's local `.env`, see [Spark runtime helpers](deploy/spark/README.md).
 
@@ -68,7 +68,7 @@ The backdrop now follows the project: headquarters before setup, a single office
 
 ## Dashboard flow
 
-**Start project → Assigning your team → headquarters/F90 entry → Project Dashboard.** The initial dashboard is hidden; opening it before allocation shows one project launch card. During allocation, Anne's original 12-second scan/drop animation loops silently with its original text and names. Its duration does not determine allocation completion. An actual validated assignment result starts the F90 entry, then reveals the task board once. Failed allocation stays on the waiting screen with Retry. Pause, reduced motion or rendering failure use static fallback and do not block project entry.
+**Launch panel → Start project → Assigning your team → headquarters/F90 entry → Project Dashboard.** The launch panel appears automatically; clicking Start project hides it and begins allocation. During allocation, Anne's original 12-second scan/drop animation loops silently with its original text and names. Its duration does not determine allocation completion. An actual validated assignment result starts the F90 entry, then reveals the task board once. Failed allocation stays on the waiting screen with Retry. Pause, reduced motion or rendering failure use static fallback and do not block project entry.
 
 The project panel emphasizes the four-column task board, current owners, deadlines and dependencies. Its side panel holds unresolved issues and the latest five observed changes, with Refresh and Activity. Pending proposals remain pending until applied; reviewing one requires a click. Duplicate snapshots do not repeat notifications. Change labels say **Observed on sync** when no event timestamp exists. Task cards briefly highlight real changes. On mobile, attention comes first, then the horizontally scrolling board and latest changes.
 
@@ -84,7 +84,7 @@ Alex, CoFloor and the manager share one project group. On receipt, the live mode
 
 **Real Discord transport runs through NemoClaw.** `COFLOOR_DISCORD_ALEX_ID` identifies the person playing Alex and `COFLOOR_DISCORD_MANAGER_ID` identifies the manager. Only Alex's direct reply to the recorded team-assignment message can create the leave event. Only the manager's direct reply to the current proposal can confirm it. Public HTTP callers cannot inject employee events or manager decisions in live mode. Both roles use the same configured project channel. The UI shows real delivery state and updates automatically.
 
-**Reset project** aborts the old request and starts a fresh allocation. Opening or refreshing the page starts idle. Saved server runs remain audit history; old timed-injection runs cannot be resumed under this workflow. Board columns remain To do / In progress / Needs attention / Done.
+**Reset project** aborts the old browser request, clears its run link and narration, and returns to the launch panel. Click **Start project** to begin a fresh allocation. The base URL opens idle; an explicit shared-run URL restores that project. Saved server runs remain audit history; old timed-injection runs cannot be resumed under this workflow. Board columns remain To do / In progress / Needs attention / Done.
 
 The server keeps authoritative per-run state and reservation history in ignored `.cofloor-runs/`; original company records remain unchanged. Do not commit this runtime directory. Restarting the server preserves saved runs. Failed setup can be reset; a fact persisted before failed analysis is reused on retry. Model task drafts get at most one schema-repair request before failure.
 
@@ -199,7 +199,7 @@ The remote NemoClaw routes and Discord bridge remain available alongside the cur
 
 # CoFloor
 
-Startup is click-gated: opening or refreshing the Dashboard begins idle and does not restore/start an active run or inject facts. Only **Start project** initiates allocation. Once clicked, allocation starts; sick leave waits for an explicit Alex group event. There is no automatic leave timer. Explicit **Reset project** still starts a new allocation. Saved server runs remain audit history. This supersedes earlier auto-resume-on-refresh notes.
+Startup is click-gated: opening or refreshing the base URL shows the idle launch panel; explicit shared-run links load the existing project. Only **Start project** initiates allocation. Once clicked, allocation starts; sick leave waits for an explicit Alex group event. There is no automatic leave timer. Explicit **Reset project** returns to the launch panel and waits for **Start project**. Saved server runs remain audit history. This supersedes earlier auto-resume-on-refresh notes.
 
 Task cards, dependencies, details, activity and model messages display task text and employee names. Internal IDs remain in state/API/audit data; presentation resolves saved model text too. The original Markdown download remains unchanged.
 

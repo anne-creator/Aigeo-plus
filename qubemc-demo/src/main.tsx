@@ -101,7 +101,7 @@ function App() {
   const [teamOpen, setTeamOpen] = useState(false);
   const [scenePlaying, setScenePlaying] = useState(true);
   const [ambientScene, setAmbientScene] = useState(false);
-  const [dashboardOpen, setDashboardOpen] = useState(Boolean(sharedRun));
+  const [dashboardOpen, setDashboardOpen] = useState(true);
   const [readyRun, setReadyRun] = useState('');
   const [entryRun, setEntryRun] = useState('');
   const revealedRun = useRef('');
@@ -178,9 +178,8 @@ function App() {
     const timer = setInterval(() => { if (!running.current) void operation('state'); }, 5000);
     return () => clearInterval(timer);
   }, [started, hydratedRun, state.runId]);
-  async function start(force = false) {
-    if (!runtimeReady || (running.current && !force)) return;
-    if (force) { controller.current?.abort(); controller.current = null; running.current = false; }
+  async function start() {
+    if (!runtimeReady || running.current) return;
     const runId = crypto.randomUUID(), abort = new AbortController();
     running.current = true; controller.current = abort; setControls(false); setSelectedId(null); setActivity(false); setDecisionOpen(false); setReplyText(''); setHydratedRun('');
     setDashboardOpen(false); setReadyRun(''); setEntryRun(runId); setDocumentOpen(false); setTeamOpen(false);
@@ -198,7 +197,16 @@ function App() {
       if (!abort.signal.aborted) emit({ id: crypto.randomUUID(), runId, type: 'failed', message: error instanceof Error ? error.message : 'Agent request failed.' });
     } finally { if (controller.current === abort) { running.current = false; controller.current = null; } }
   }
-  function reset() { void start(true); }
+  function reset() {
+    controller.current?.abort(); controller.current = null; running.current = false;
+    voice.reset();
+    setControls(false); setSelectedId(null); setActivity(false); setDecisionOpen(false); setReplyText('');
+    setHydratedRun(''); setReadyRun(''); setEntryRun(''); revealedRun.current = '';
+    setDocumentOpen(false); setTeamOpen(false); setDashboardOpen(true);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('run'); window.history.replaceState(null, '', url);
+    dispatch({ type: 'reset' });
+  }
   const done = state.tasks.filter(t => t.status === 'done').length;
   const owners = [...new Set(state.tasks.map(t => t.ownerId))];
   const counts = columns.map(column => ({ ...column, count: state.tasks.filter(t => t.status === column.status).length }));
@@ -233,7 +241,7 @@ function App() {
       <div className="assignment-content" role={state.error ? 'alert' : 'status'} aria-live="polite">
         <span className="allocation-eyebrow">{project.title}</span>
         <h1>{restoring ? (state.error ? 'Project unavailable' : 'Opening project') : state.error ? 'Assignment paused' : 'Assigning your team'}</h1>
-        {state.error ? <><p className="allocation-error">{labels.text(state.error)}</p><button className="primary-button" disabled={state.operation !== 'idle'} onClick={() => restoring ? void operation('state') : reset()}>Retry<Icon name="arrow"/></button></> : <><p>{restoring ? 'Loading tasks · Syncing updates' : 'Generating tasks · Matching owners'}</p><span className="allocation-loading"><span className="spinner"/>{restoring ? 'Syncing project' : 'Agent working'}</span></>}
+        {state.error ? <><p className="allocation-error">{labels.text(state.error)}</p><button className="primary-button" disabled={state.operation !== 'idle'} onClick={() => restoring ? void operation('state') : void start()}>Retry<Icon name="arrow"/></button></> : <><p>{restoring ? 'Loading tasks · Syncing updates' : 'Generating tasks · Matching owners'}</p><span className="allocation-loading"><span className="spinner"/>{restoring ? 'Syncing project' : 'Agent working'}</span></>}
       </div>
     </section>}
     <main className={`dashboard focus-dashboard ${started ? 'project-dashboard' : 'global-dashboard'}`} id="dashboard-panel" hidden={!dashboardVisible} aria-label={started ? 'Project dashboard' : 'Global dashboard'}>

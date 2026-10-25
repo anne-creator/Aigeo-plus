@@ -1,5 +1,14 @@
 # CoFloor Project Structure
 
+## Visible start panel and explicit allocation (2026-10-25)
+
+This section supersedes earlier hidden-startup and immediate-reset-allocation notes.
+
+- `src/main.tsx` opens the existing glass launch panel by default, with the project brief, deliverables, deadline and **Start project** action. The base URL stays idle until that action is clicked; then the panel hides and the existing allocation animation and F90 arrival run. Explicit `?run=` links continue loading their saved project without creating a new allocation.
+- **Reset project** aborts the current browser request, clears presentation/dialog state and the run query parameter, stops narration and returns to the launch panel. Another allocation requires **Start project**. A failed allocation's explicit Retry action still starts another attempt; shared-run Retry still fetches the same run.
+- `src/narration.ts` adds a silent reset that clears queued/failed announcements and the transcript, rejecting late audio responses. Saved server runs and company data remain unchanged; no API or dependency changes.
+- Validation: 77 offline tests, board contract and TypeScript/production build passed. A local browser fixture verified visible idle startup, zero allocation/state/speech requests before Start, click-to-animation, completed project entry, Reset back to idle, refresh with the panel visible, failure/Retry and shared-run refresh without another allocation. No real inference or Discord delivery was triggered.
+
 ## CoFloor brand icon (2026-10-25)
 
 - `public/logo_cofloor-app-icon.svg` is Anne's supplied SVG, copied unchanged from `logo_cofloor-app-icon.svg`. The header displays it at the existing responsive logo dimensions; the previous green circle/grid styling is removed so the SVG retains its own shape and colors.
@@ -28,13 +37,13 @@ This section supersedes earlier descriptions of the source document as a single-
 - **Runtime limit:** The real Spark Qwen smoke request timed out connecting to `100.89.121.112:8004`; no WAV was produced, so actual voice quality and generation latency are not certified. Live Alex/manager replies and deployment remain follow-up validation. No online publication or live Discord message was performed.
 
 
-The Dashboard panel starts collapsed on every page load. Click the header Dashboard button or navigation to open it; expanded state is not restored after refresh.
+The base URL opens the Dashboard launch panel on every page load. The header Dashboard button or navigation can hide or show it; expanded state is not restored after refresh.
 
 Background wheel shortcut (`src/dashboard-gesture.ts`): standard trackpad/mouse wheel events drive the same `dashboardOpen` state. Positive vertical delta shows the panel and negative hides it after 60 normalized pixels (16px/line, viewport height/page); physical swipe direction follows system scrolling settings. One command per burst, rearmed after 250ms idle. Dashboard, board, header/navigation, settings, interactive controls and open dialogs retain native scrolling; horizontal/modified/pinch bursts cannot trigger or leak into the background. The app-shell effect removes its listener and idle timer on unmount. No backend or mobile touch gesture changes. `src/dashboard-gesture.test.ts` covers thresholds, units, direction, jitter, inertia, exclusions, idle reset and cleanup.
 
 Gesture validation: 9 focused tests plus the full 45-test suite and production build passed. Chrome and Safari background show/hide were checked with native wheel input. In-app browser checks also verified repeated directions, transparent dashboard top padding, horizontal board scrolling, native document-drawer scrolling and modal/settings exclusions. Edge is unavailable on this machine, so an Edge-specific browser run remains unverified.
 
-Startup is click-gated: opening or refreshing the Dashboard begins idle and does not restore/start an active run or inject facts. Only **Start project** initiates allocation. Once clicked, allocation starts; sick leave waits for an explicit Alex group event. There is no automatic leave timer. Explicit **Reset project** still starts a new allocation. Saved server runs remain audit history. This supersedes earlier auto-resume-on-refresh notes.
+Startup is click-gated: opening or refreshing the base URL shows the idle launch panel; explicit shared-run links load the existing project. Only **Start project** initiates allocation. Once clicked, allocation starts; sick leave waits for an explicit Alex group event. There is no automatic leave timer. Explicit **Reset project** returns to the launch panel and waits for **Start project**. Saved server runs remain audit history. This supersedes earlier auto-resume-on-refresh notes.
 
 Task cards, dependencies, details, activity and model messages display task text and employee names. Internal IDs remain in state/API/audit data; presentation resolves saved model text too. The original Markdown download remains unchanged.
 
