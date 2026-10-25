@@ -1,10 +1,22 @@
-# Red Bull Citrus Edition — X Launch Asset Package
+# Red Bull X Launch — AI CEO Demo
 
-> English-language project brief for a fictional hackathon demo using the existing Bridgewell Creative agency dataset. Red Bull Citrus Edition and this client engagement are fictional. This document describes requested work, not completed deliverables or actual approvals.
+> Implementation brief for the hackathon team. English-language mock project using the existing 1,000-person agency dataset. Red Bull Citrus Edition and this client engagement are fictional demo scenarios.
 
-## 1. Project and client request
+## 1. What we are building
 
-| Field | Requirement |
+A client requests one X post announcing a new product. The local AI assigns a strategist to write a launch outline. After a Creative Director approves it, the AI turns the outline into specific copy and design tasks and assigns suitable employees.
+
+The first-choice designer reports sick leave. The AI updates availability, rechecks the second-choice designer, transfers the task and its context, and keeps the copy work moving. When both outputs arrive, the project progresses through combined review, client approval, simulated publishing and archive.
+
+**The three main demo moments:**
+
+1. One approved outline becomes two concrete production tasks.
+2. The first-choice designer becomes unavailable; the second choice takes over.
+3. Two parallel outputs join at one review gate before the project proceeds.
+
+## 2. Project brief
+
+| Field | Value |
 |---|---|
 | Agency | Bridgewell Creative — fictional US marketing agency |
 | Client | Red Bull — simulated engagement |
@@ -12,151 +24,228 @@
 | Project ID | `P-DEMO-001` |
 | Workflow ID | `RED-BULL-X-LAUNCH-V1` |
 | Business date | October 26, 2026 |
-| Time zone | America/Los_Angeles — Pacific Time |
-| Asset-package deadline | 4:00 p.m. |
-| Main launch reference | 5:00 p.m., simulated; no actual publishing in this scope |
+| Time zone | `America/Los_Angeles` — Pacific Time |
+| Client approval deadline | 4:00 p.m. |
+| Simulated publishing time | 5:00 p.m. |
+| Internal closeout | 5:30 p.m. |
 
-**Client request**
+**Client request:**
 
-Prepare a small, coordinated X launch asset package for Red Bull Citrus Edition: a teaser post, a main launch post, a follow-up post, matching visuals, accessible image descriptions and community-response material. Use the supplied product facts, packshot, brand template and approved destination link. Deliver all assets together by 4 p.m. so the client can prepare a simulated 5 p.m. main launch.
+> Create one X post announcing Red Bull Citrus Edition. Use the supplied product facts, packshot and brand template. Include short post copy, one launch image, image alt text and the approved product-page link. Prepare it for a 5 p.m. launch today.
 
-The teaser builds interest, the main post announces the product, and the follow-up offers a distinct reason to revisit the product page. These are three content roles, not three projects. This scope prepares all three in advance; it does not send a teaser before the package is ready or schedule any public posts. Teaser and follow-up publication times remain for the client to choose.
+**Deliverables:** one publish-ready post, one 1600 × 900 PNG, editable design source, alt text, approved destination link, approval record and simulated release receipt. The image size is a mock client specification.
 
-## 2. Supplied inputs and boundaries
+**Starting assumptions:** Account Management has already collected the brief; the engagement covers this adaptation; approved product facts, image rights and templates are available; the client reserved a 3:30–4 p.m. review window. This is a template adaptation with supplied photography and first-pass approval in the demo. A change request requires a new capacity and timing check.
 
-- Approved product facts, brand packshot and reusable brand template. Existing rights and template access are scenario assumptions; no new photography, video, animation or original campaign identity is requested.
-- The approved product-page link. Use the supplied value consistently; do not invent a URL, discount, price, stock status or availability claim. If an input is absent from the actual handoff, flag it as missing rather than fabricate it.
-- Existing company employees, skills, permissions, calendars, bookings and client clearance. All additional tasks must fit those real dataset constraints; the larger brief does not create additional capacity.
-- The product name and citrus-edition positioning are fictional demo facts. Performance, health, nutrition, ingredient and sustainability claims require explicit support in the supplied facts.
-- Audience direction: adults interested in the brand's new product release. Do not invent research findings, customer statistics or endorsements.
+## 3. People from the existing dataset
 
-Prepare production assets only. Client approval, external publishing, release receipts and archive operations are outside this production scope. The existing project-manager confirmation for sick-leave reassignment remains a staffing decision, not an additional content-approval workflow.
+| Person | Employee/contact ID | Role in this project |
+|---|---|---|
+| Serenity Flores | `EMP-0254` | Brand Strategist; writes the launch outline |
+| Avery Bennett | `EMP-0308` | Creative Director; approves direction and the final package |
+| Elena Gonzales | `EMP-0350` | Copywriter; writes the X post and draft alt text |
+| Alex Morgan | `EMP-0329` | First-choice Graphic Designer; reports sick leave |
+| Jamie Chen | `EMP-0423` | Second-choice Brand Designer; takes over |
+| Riley Carter | `EMP-0368` | Next design alternate; no work booked unless needed |
+| Morgan Hayes | `EMP-0082` | Account Manager; coordinates client approval |
+| Madelyn Ellis | `EMP-0694` | Social Media Manager; checks and simulates publishing |
+| Jordan Brooks | `EMP-0218` | Project Manager; owns escalation and closeout |
+| Casey Williams | `EXT-CLIENT-001` | Simulated client approver; external to the agency |
 
-## 3. Deliverable requirements
+No task-acceptance message is required. People submit deliverables, report blockers or record approval decisions.
 
-The categories below specify outputs and acceptance criteria. They are not preassigned task cards; the AI should decide how to group or split the work.
+## 4. Workflow and schedule
 
-### Information and creative direction
+```mermaid
+flowchart TD
+    Brief[Client Brief] --> Outline[RB-01: Launch Outline — Serenity]
+    Outline --> Direction[RB-02: Direction Approval — Avery]
+    Direction --> Split[AI Creates Production Tasks]
+    Split --> Copy[RB-03: X Copy — Elena]
+    Split --> Design[RB-04: Image — Alex]
+    Design --> Leave[Sick Leave Report]
+    Leave --> Jamie[RB-04 Reassigned — Jamie]
+    Copy --> Review[RB-05: Combined Review — Avery]
+    Jamie --> Review
+    Review --> Client[RB-06: Client Approval — Morgan + Casey]
+    Client --> Publish[RB-07: Simulated Publishing — Madelyn]
+    Publish --> Archive[RB-08: Archive — Jordan]
+```
 
-**Purpose:** give writers and designers one consistent basis for all three content moments.
+All times below are simulated business time in Pacific Time.
 
-**Inputs:** this brief, supplied product facts, packshot and brand template.
+| Task | Work window | Owner | Output / completion gate |
+|---|---|---|---|
+| RB-01 — Launch outline | 9:00–10:00 a.m. | Serenity | Submit `outline_v1`; wait for direction approval |
+| RB-02 — Direction approval | 10:00–10:30 a.m. | Avery | Approve the outline and locked image headline |
+| RB-03 — X copy + alt text | 1:30–2:30 p.m. | Elena | Submit `copy_v1` and draft alt text |
+| RB-04 — Launch image | 1:00–3:00 p.m. | Alex → Jamie | Submit `image_v1.png` and editable source |
+| RB-05 — Combined review | 3:00–3:30 p.m. | Avery | Approve the exact copy/image package |
+| RB-06 — Client approval | 3:30–4:00 p.m. | Morgan + Casey | Casey approves the package and simulated release |
+| RB-07 — Simulated publishing | 4:30–5:00 p.m. | Madelyn | Return a labeled simulated release receipt |
+| RB-08 — Archive | 5:00–5:30 p.m. | Jordan | Archive files, approvals and assignment history |
 
-**Outputs:** a concise product-message sheet mapping proposed selling points to supplied facts, plus a creative-direction note covering audience, core message, tone, visual hierarchy, image headline and CTA approach.
+The production windows have been checked against existing bookings and the other projects' reference reservations, replacing the previous `P-DEMO-001` demo.
 
-**Acceptance:** factual claims are traceable to supplied information; unsupported claims are omitted or flagged; teaser, launch and follow-up have distinct purposes while sharing the same product positioning. The direction must be specific enough for template adaptation without requiring a new approval gate.
+### First create the outline, then create production tasks
 
-### X post copy
+At project intake, instantiate only `RB-01` and the pending `RB-02` approval task. Serenity submits a one-page outline containing:
 
-**Purpose:** provide three usable pieces of launch content rather than repeat the same announcement.
-
-**Inputs:** product-message sheet, creative direction and approved destination link.
-
-**Outputs:** separately labeled teaser, main launch and follow-up copy, each with its intended role, CTA, destination-link reference and any proposed hashtags. Include a concise image headline where needed by the visual layout.
-
-**Acceptance:** the teaser builds interest without an invented reveal date; the launch identifies the product and directs readers to its page; the follow-up uses a different supported angle without invented campaign results. Each post follows a conservative client limit of 280 characters, counting the supplied literal URL and hashtags. This is the demo's copy specification, not a claim about X's URL-counting behavior. CTAs and image headlines agree with the creative direction.
-
-### Visual assets and editable source
-
-**Purpose:** create a recognizable family of assets for the three post roles.
-
-**Inputs:** supplied packshot and brand template, shared creative direction and the corresponding image headlines.
-
-**Outputs:** a main launch visual, a teaser adaptation and a follow-up adaptation, each exported as a 1600 × 900 PNG, plus editable source with the three versions clearly labeled.
-
-**Acceptance:** preserve product appearance and brand-template elements; maintain readable headlines and a consistent visual hierarchy; distinguish the three assets through headline, crop or template layout rather than a new photoshoot or concept. File labels must identify which post uses each image. The main launch image is the primary image task for the Alex scenario.
-
-All design work must fit the existing 1–3 p.m. design window. The two adaptations can be prepared in parallel from the shared direction and supplied template; they do not need to wait for the final main-image export. Do not create a sequential chain of three full-length image productions. Actual staffing and duration feasibility must still be checked.
-
-### Accessible image descriptions
-
-**Purpose:** make each visual understandable without seeing it.
-
-**Inputs:** the final teaser, main and follow-up image versions and the product-message sheet.
-
-**Outputs:** one alt-text entry per final image, mapped to the exact filename and version.
-
-**Acceptance:** descriptions match what is actually visible, include meaningful image text, avoid promotional claims absent from the image or supplied facts, and avoid redundant hashtag/link stuffing. Drafts can begin from creative direction, but final descriptions depend on the final images.
-
-### Community-response material
-
-**Purpose:** prepare the client to answer predictable questions without inventing product information.
-
-**Inputs:** supplied facts, message sheet, approved destination link and launch copy.
-
-**Outputs:** a short FAQ with at least five likely questions, plus at least five reusable comment-reply drafts covering product interest, where to learn more, unavailable information, unsupported benefit claims and requests that need client follow-up.
-
-**Acceptance:** answers use only supplied facts. Unknown availability, nutrition or other product details are marked for client follow-up rather than guessed. Replies use the same tone and destination link as the posts. These are prepared text assets; no comments or messages are sent.
-
-### Final delivery package
-
-**Purpose:** make the outputs usable together without another person reconstructing their relationships.
-
-**Inputs:** final post copy, three PNGs, editable source, corresponding alt text, FAQ, reply drafts and approved link.
-
-**Outputs:** an organized asset package and a manifest mapping each post to its image filename/version, alt-text entry, CTA and destination link, with the shared direction and community material included.
-
-**Acceptance:** every required asset has a clear filename and version; each post has a matching image and description; links and product naming agree; editable sources are included. Missing inputs are explicitly listed and must not be represented as delivered. Packaging is production handoff, not an approval record, publishing action or archive workflow.
-
-## 4. AI task-decomposition guidance
-
-Aim for approximately **12 meaningful production tasks**, with a desired planning range of **8–20** for this expanded package. Choose the actual decomposition from the deliverables, skill requirements, dependencies and feasible work windows; do not instantiate a fixed list of task IDs or named owners from this document.
-
-- Each task should have a concrete, independently checkable output, a specific brief, required skills, inputs, dependencies and a feasible duration/deadline.
-- Split work when the deliverable, skill or handoff is meaningfully different. Combine tightly coupled work when splitting would merely duplicate the same deliverable or add administrative overhead.
-- Do not manufacture filler tasks, repeated copy variants, approvals, meetings, publishing or archive steps to hit a count. If a feasible decomposition cannot support the desired range, surface the limitation instead of inventing scope or capacity.
-- Use the supplied company dataset to select execution owners and a project manager. Alex's primary-image role is the existing scenario exception described below; other historical named assignments are not required.
-- Requirements and messages should use employee names and task titles; keep IDs in structured identifier fields.
-
-**Current application boundary:** 8–20 is brief-level planning guidance, not an implemented validator change. The current application still accepts 2–12 generated tasks. Prefer a feasible result near 12 within that current limit; plans with 13–20 tasks require a later coordinated server/client validation change. Updating this brief alone does not guarantee at least eight generated tasks.
-
-## 5. Dependencies and timing
-
-All times are simulated business time on October 26, 2026 PT. All requested content roles must be prepared by 4 p.m.; the release reference remains 5 p.m.
-
-| Window | Planning intent |
+| Outline field | Example |
 |---|---|
-| 9 a.m.–1 p.m. | Establish product messaging and creative direction; prepare feasible copy and community-material work using available staff. |
-| 1–3 p.m. | Produce the main launch visual and parallel template adaptations; copy work may continue where calendars allow. Keep the main-image task within this window. |
-| 3–3:30 p.m. | Finalize image-dependent accessibility descriptions and assemble the final content versions. |
-| 3:30–4 p.m. | Finish the package and manifest from completed inputs. |
+| Objective | Announce the new flavor and drive visits to the product page |
+| Audience | Adults interested in the brand's new product release |
+| Main message | Introducing Red Bull Citrus Edition |
+| Visual direction | Product-led layout, supplied packshot and citrus-colored accents |
+| Locked image headline | The short headline approved with the outline |
+| CTA and deliverables | Explore the new flavor; one X post, one image and alt text |
 
-These are planning windows, not verified reservations or task-completion events. The scheduler must check skills, permissions, bookings, dependencies and duration before assigning work. If staff cannot meet them, report the infeasibility; do not silently exceed the deadline.
+After Avery approves `outline_v1`, the local model reads that approved version and proposes `RB-03` through `RB-08` using a fixed task schema. Each task needs its inputs, outputs, dependencies, required skills, candidates and deadline. Application code validates the proposal and commits the tasks.
 
-Necessary dependencies:
+The outline must supply enough direction to produce specific briefs. Do not merely display a prewritten task list as if the model generated it. A fixed workflow template with model-filled briefs is sufficient for this MVP.
 
-- Product facts inform the message sheet; messaging and creative direction inform copy and visual production.
-- Visual production needs the shared direction and the relevant image headline, not every completed post or FAQ.
-- FAQ and reply preparation can proceed independently of image production once the product facts and messaging are available.
-- Final alt text depends on its corresponding final image. One completed image can unblock its own description without waiting for unrelated images.
-- Final package completion depends on all requested outputs. A missing main image cannot be hidden by marking the overall package complete.
+Both production tasks reference `outline_version: 1`. The designer can work from the locked image headline while Elena develops the full post body. Copy and design overlap from 1:30–2:30 p.m. If the headline changes, recheck its design impact and approval.
 
-Do not create dependency edges solely to force a single sequential chain. Conversely, do not remove real input dependencies to make a schedule appear feasible.
+## 5. Sick-leave reassignment — the main exception
 
-## 6. Existing sick-leave and confirmation scenario
+### Initial reference ranking
 
-The primary main-launch-image task starts assigned to Alex Morgan (`EMP-0329`), subject to the existing skill and availability validation, with work inside 1–3 p.m. The project manager is selected from eligible staff. No fixed replacement owner is specified by this brief.
+| Rank | Designer | Design skill | Available work slot | Initial whole-day free hours |
+|---|---|---|---|---|
+| 1 | Alex Morgan | 5/5 | 1–3 p.m. | 4 |
+| 2 | Jamie Chen | 4/5 | 1–3 p.m. | 6 |
+| 3 | Riley Carter | 4/5 | 1–3 p.m. | 3 |
 
-Alex's explicit group report says:
+These are reference-fixture rankings: skill first, then free capacity as a buffer. All candidates still need a continuous slot, client permission and compatible existing commitments. Whole-day free hours alone are insufficient.
+
+Show the live model's actual ranking and cited evidence when connected. Do not reuse HarborSip history as evidence of prior Red Bull work or present invented confidence percentages.
+
+### Timeline
+
+**10:31 a.m. — AI dispatches to Alex and reserves 1–3 p.m.**
+
+> **RB-04 / Assignment v1**  
+> Alex, create the Red Bull launch image using approved outline_v1, the locked headline, packshot and brand template. Submit PNG and editable source by 3 p.m. Avery reviews next.
+
+**10:32 a.m. — Alex reports new afternoon sick leave.**
 
 > I'm taking sick leave from 1–6 p.m. today and can't do this task. Please reassign it.
 
-The scenario uses a 10:32 a.m. report time and a 1–6 p.m. leave interval. The event must be supplied explicitly; this brief does not trigger it automatically.
+The absence was not yet in the calendar when Alex was selected. Previously known leave must exclude a person before assignment.
 
-On receipt, existing coordination records the leave, blocks affected tasks and releases their reservations. The AI proposes feasible replacements using current availability and sends the proposal for project-manager confirmation. A proposal alone does not change owners, reserve replacements or resume the blocked work.
+**10:33 a.m. — AI rechecks candidates and reassigns to Jamie.**
 
-Only the project's authorized manager explicitly confirming the current proposal version permits the validated reassignment to apply. Preserve task requirements, inputs, outputs and assignment history. An acknowledgement or a request for revision is not confirmation. If no replacement is feasible, keep the work blocked and report the scheduling limitation.
+1. Mark `RB-04` blocked with reason `sick_leave`.
+2. Release Alex's reservation for this task.
+3. Apply a 1–6 p.m. unavailability overlay across his work; preserve booking history.
+4. Recheck Jamie's slot, skills, permissions and existing commitments.
+5. Assign Jamie, reserve 1–3 p.m. and increment `assignment_version` to `2`.
+6. Transfer the approved outline, headline, source assets, scope and deadline.
+7. Keep Elena's copy task running and recheck the downstream approval windows.
 
-Unaffected copy and community work need not wait for that staffing decision. Real downstream dependencies still apply: a missing main image delays its final alt text and the complete handoff package. This is a description of required work relationships, not an implementation of new task-progress controls.
+> **RB-04 / Assignment v2**  
+> Jamie, you are now assigned to the Red Bull launch image. Use approved outline_v1, headline, packshot and template. Submit PNG and editable source by 3 p.m. Elena is preparing the X copy; Avery reviews the combined package.
 
-Other projects remain background availability constraints. Do not create additional project cards or coordinate unrelated incidents from their bookings.
+Expected screen change:
 
-## 7. Acceptance and implementation boundary
+```text
+Alex Morgan     #1 -> Unavailable
+Jamie Chen      #2 -> #1 -> Assigned
+Riley Carter    #3 -> #2 -> Backup
 
-- The launch package covers teaser, launch and follow-up content, matching visuals, accessible descriptions, community-response material and an organized handoff.
-- Every deliverable has stated inputs and checkable acceptance criteria. No claim, URL, research finding, approval or completion is invented.
-- The AI determines task grouping and eligible owners; the brief supplies scope and desired granularity rather than a hardcoded board.
-- Preserve the project/client/workflow IDs, business date, 4 p.m. package deadline, primary-image scenario and original company data.
-- No new recommendations panel, manual demo progress controls, automatic status transitions or additional approval workflow is included in this brief update.
-- No real publishing, public comments, model execution or Discord delivery is implied by the existence of this document.
-- Verify actual decomposition count, output quality and staffing feasibility in a later live-model trial. Offline document checks cannot establish that the model will return eight or more tasks.
+Copy task: continues unchanged
+Client approval: 4 p.m.
+Simulated launch: 5 p.m.
+```
+
+Alex also has booking `BK-010038` on project `P-007` from 5–6 p.m. Flag it for its owner to replan. Resolving this launch task does not resolve that separate conflict.
+
+## 6. Joining the work and completing the project
+
+**2:30 p.m.: Elena submits copy.** Set `RB-03` to `awaiting_review`. Keep combined review locked because the image is still missing.
+
+**3:00 p.m.: Jamie submits the image and source.** Set `RB-04` to `awaiting_review`. Both branches are now ready, so activate `RB-05`.
+
+**3:30 p.m.: Avery approves the combined package.** Check message consistency, product facts, export dimensions, destination link and alt text against the actual image. Record exact asset versions. Approval completes `RB-03`, `RB-04` and `RB-05` together.
+
+**4:00 p.m.: Casey approves through Morgan's client-review step.** Morgan coordinates the review; Casey is the approver. Record both the exact package approval and authorization for the simulated 5 p.m. release.
+
+> Approved package_v1 for the simulated 5 p.m. X launch. — Casey Williams
+
+**5:00 p.m.: Madelyn completes the publishing check and simulated release.** Verify account, text, image, alt text, link and scheduled time. Return a visibly simulated receipt; do not post to a real Red Bull account.
+
+**5:30 p.m.: Jordan closes the project.** Archive the outline, final package, approvals, release receipt and reassignment history. Keep the separate `P-007` issue flagged.
+
+## 7. Platform behavior to implement
+
+| Area | Required behavior |
+|---|---|
+| Local AI | Read brief and company data; turn an approved outline into concrete tasks; rank feasible candidates; reconsider after a blocker |
+| Scheduler | Enforce working windows, existing reservations and leave; reserve only the selected person's time |
+| Workflow | Enforce approval gates and the two-branch join; send only eligible tasks |
+| Discord | Send briefs and collect authenticated submissions, blockers and approvals; no acceptance handshake |
+| Audit log | Store actor, task, timestamp, assignment version, artifact versions and decision evidence |
+| Publishing | Simulate release only after client approval and release authorization |
+
+Suggested normalized blocker event:
+
+```json
+{
+  "event_id": "RB-SICK-001",
+  "type": "task.blocked",
+  "project_id": "P-DEMO-001",
+  "task_id": "RB-04",
+  "assignment_version": 1,
+  "timestamp": "2026-10-26T10:32:00-07:00",
+  "payload": {
+    "actor_id": "EMP-0329",
+    "reason_code": "sick_leave",
+    "unavailable_start": "2026-10-26T13:00:00-07:00",
+    "unavailable_end": "2026-10-26T18:00:00-07:00"
+  }
+}
+```
+
+Derive the allowed actor from the authenticated Discord identity. Deduplicate events by `event_id`. Ignore returns from Alex's superseded assignment version. Assignment version and artifact version are separate fields.
+
+The code controls valid state transitions. A model explanation does not override a failed dependency, permission or capacity check.
+
+If a review rejects an asset, keep downstream steps blocked, request revision and recheck capacity. If no designer fits, escalate to Jordan. The demo can follow first-pass approval without implementing a full rescheduling engine.
+
+## 8. Four-minute presentation
+
+| Demo time | Show |
+|---|---|
+| 0:00–0:30 | Company view: 1,000 employees; introduce the Red Bull brief |
+| 0:30–1:15 | Strategist submits outline; Avery approves; AI creates copy/design tasks |
+| 1:15–2:15 | Display candidates; dispatch to Alex; sick-leave message; reassign to Jamie |
+| 2:15–3:00 | Copy arrives first; review waits; image arrives; combined review activates |
+| 3:00–4:00 | Creative approval, client approval, simulated release and closeout |
+
+Use a clearly labeled simulated business clock. Prepare example outline, copy and design files before presenting; humans return them through Discord. Label any fixture replay and simulated client response. If one operator plays multiple fictional roles, keep those roles visible and scoped in the demo adapter.
+
+## 9. Acceptance checklist
+
+- [ ] Names and employee IDs match the supplied company dataset.
+- [ ] Only the outline and its approval task exist at intake; production tasks are created after direction approval.
+- [ ] Generated task briefs reference the approved outline and specify concrete outputs.
+- [ ] Candidate cards show rank, skills, continuous availability and evidence.
+- [ ] Alex's sick-leave report removes him from afternoon staffing and releases this reservation.
+- [ ] Jamie is rechecked before assignment v2; the full brief transfers with the task.
+- [ ] Elena's copy work continues; neither acceptance acknowledgment nor a new strategy task is required.
+- [ ] Combined review waits for both copy and image submissions.
+- [ ] Review and client approval identify exact versions; stale/duplicate events cannot advance the wrong work.
+- [ ] Client approval and release authorization are required before simulated publishing.
+- [ ] Final archive contains approvals, assets, release receipt and reassignment history.
+- [ ] The unrelated `P-007` conflict remains visibly flagged until its owner resolves it.
+
+## 10. Data handoff and current status
+
+Use the existing `ai-ceo-us-agency-1000-en.zip` for `platform_seed.json`, employees, skills, calendars and bookings. Companion files in this folder:
+
+- `red_bull_x_launch_workflow.json` — eight-task scenario definition and employee references.
+- `calendar_validation.json` — successful checks for skills, permissions, timing and dependencies.
+
+Apply Red Bull as a scenario-only display override for client `CL-001`. Preserve the original seed and do not infer actual Red Bull work history. Replace the earlier `P-DEMO-001` demo tasks; do not book both scenarios concurrently. Other projects' reference reservations were retained during calendar checking.
+
+**Current status:** the specification and calendar checks are complete. The previous six-node `run_demo.py` does not execute this new eight-task workflow unchanged. The team still needs to implement task creation from the outline, the parallel join, local-model calls and platform/Discord integration. No actual model invocation, Discord delivery or public posting has been performed for this scenario.

@@ -1,6 +1,6 @@
 # CoFloor
 
-The current Red Bull brief requests a small X launch asset package: teaser, launch and follow-up posts with matching visuals, editable sources, alt text, FAQ/reply drafts and a handoff manifest. The AI chooses the breakdown, aiming for about 12 meaningful tasks (desired range 8–20). This is brief-level guidance; runtime validation still allows only 2–12 tasks. See [the source brief](data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md) and [follow-up work](NEXT_STEPS.md). Existing runs are unchanged; restart/reload the backend before a new allocation to load the revised brief.
+The Red Bull demo uses the original single-post brief: one X post, one launch image, editable source, alt text and the approved product-page link. The expanded three-post package and its 8–20-task target have been withdrawn. AI selects the compact production breakdown using the original planner and validation rules. Restart/reload the backend before a new allocation; saved runs keep their existing tasks. See [next steps](NEXT_STEPS.md).
 
 ## English project voice updates
 
