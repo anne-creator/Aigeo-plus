@@ -5,7 +5,7 @@ export type IntakeInput={project:DocumentProject;company:CompanyInput;runId:stri
 export interface BoardAdapter {
   mode:'live';
   start(input:IntakeInput,signal:AbortSignal):AsyncIterable<BoardEvent>;
-  request(action:'state'|'check'|'decision',input:Record<string,unknown>,signal:AbortSignal):Promise<BoardRun>;
+  request(action:'state'|'check'|'decision'|'event',input:Record<string,unknown>,signal:AbortSignal):Promise<BoardRun>;
 }
 declare global{interface Window{cofloorBoardAgent?:BoardAdapter}}
 let configured=false;

@@ -161,7 +161,7 @@ export function modelMiddleware(req, res, next) {
   if (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`) return send(403, { error: 'Origin not allowed.' });
   if (!req.headers['content-type']?.startsWith('application/json')) return send(415, { error: 'JSON is required.' });
   const action = req.url.slice('/api/model/'.length);
-  if (!['plan','check','decision','state'].includes(action)) return send(404, { error: 'Unknown operation.' });
+  if (!['plan','check','decision','state','event'].includes(action)) return send(404, { error: 'Unknown operation.' });
   const abort = new AbortController();
   res.on('close', () => { if (!res.writableEnded) abort.abort(); });
   let body = '', size = 0;
