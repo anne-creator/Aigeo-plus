@@ -1,6 +1,6 @@
 import React, { useEffect, useReducer, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { boardReducer, columns, restoreBoard, waitingFor } from './board-state';
+import { boardReducer, columns, initialBoard, waitingFor } from './board-state';
 import type { BoardEvent, BoardTask } from './board-state';
 import { createDisplayLabels } from './display';
 import { company, project } from './redbull-project';
@@ -63,7 +63,7 @@ function Drawer({ titleId, children, onClose }: { titleId: string; children: Rea
   }}><button className="drawer-close icon-button" aria-label="Close details" onClick={onClose}><Icon name="close"/></button>{children}</dialog>;
 }
 function App() {
-  const [state, dispatch] = useReducer(boardReducer, undefined, () => restoreBoard(read(storageKey), employeeIds));
+  const [state, dispatch] = useReducer(boardReducer, initialBoard);
   const live = true;
   const [runtimeReady, setRuntimeReady] = useState(false);
   const [hydratedRun, setHydratedRun] = useState('');
