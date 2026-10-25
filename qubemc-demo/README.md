@@ -30,6 +30,12 @@ replies directly to that message with the leave text below. NemoClaw proposes
 specific replacements and @mentions the manager, who must reply `confirm`
 directly to the current proposal before any replacement is applied.
 
+Face recognition demo: **https://cofloor.qubemc.com/face-demo.html**. The browser
+can use its own camera or upload a photo; detection and recognition run on the
+Spark. Cloudflare forwards the page and same-origin `/api/face/*` requests to
+CoFloor, which proxies to the loopback-only face service. See the
+[face demo guide](face/README.md) for enrollment and held-out evaluation.
+
 > I'm taking sick leave from 1–6 p.m. today and can't do this task. Please reassign it.
 
 The configured Alex and manager Discord accounts must be different. The supplied
