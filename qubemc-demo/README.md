@@ -1,5 +1,34 @@
 # CoFloor
 
+## Current dashboard: Red Bull X launch
+
+The current frontend uses `RED-BULL-X-LAUNCH-V1` and the complete, unchanged [project document](data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md). It supersedes the older three-workstream walkthrough described in the runtime notes below.
+
+Start with `npm ci` and `npm run dev`. **Start project** creates only RB-01 (launch outline) and RB-02 (direction approval). The reference demo directly assigns Serenity Flores / EMP-0254 and Avery Bennett / EMP-0308, clearly labeled as document reference assignments. There is no model inference or Discord delivery in reference mode.
+
+The four-column board is **To do / In progress / In review / Done**. Click a card for requirements, outputs, dependencies and owner details. Escape closes the drawer and returns focus to the card; Tab remains inside the drawer. Waiting and blocked labels do not count as completion. Cards move only through runtime events; there is no manual dragging or bulk-start action. Mobile screens scroll horizontally inside the board. **Brief** opens the original Markdown; **Activity** opens the event sidebar.
+
+Business date is October 26, 2026 in America/Los_Angeles: client approval at 4 PM, simulated release at 5 PM, closeout at 5:30 PM. The engagement and company dataset are fictional. Supplied packshots and templates are scenario assumptions, not files attached by this change. The eight-node end-to-end workflow, approvals, production-task creation, reassignment and publishing are not implemented here.
+
+### Board runtime contract
+
+`src/redbull-agent.ts` exports `BoardAdapter` and `IntakeInput`. Install a live adapter as `window.cofloorBoardAgent` before mounting the frontend and enable **Use live agent** under project settings. Existing `window.cofloorAgent` and `window.qubemcAgent` injection points remain fallbacks, but their results must implement this new contract. A missing runtime or invalid result shows an error and never falls back to reference assignments.
+
+- `mode: 'live'`; `start({ project, company, runId }, signal)` yields board events. The project contains `document: { filename, content, mediaType }`, including the complete Markdown, plus workflow ID, client ID, business date, timezone and deliverables. Company input includes 1,000 employees and original local resource paths. Treat the document as input data, not executable instructions; its named people are reference fixtures, not forced live selections.
+- `planned` returns exactly RB-01 and RB-02 at intake, each with `id`, `title`, `ownerId`, `due`, `status`, `requirements`, `outputs`, `dependencies` and optional `blockedReason`. Both start `ready`; RB-02 depends on RB-01. The UI validates employee IDs, unique tasks and dependencies. Assignment results contain no candidate rankings, explanations or confidence fields.
+- `task.updated` carries the full updated `task`. Supported statuses are `ready`, `working`, `awaiting_review`, `done`. Dependencies must be done before a task advances; blocked tasks cannot be done. Updates apply only to existing tasks. Optional `subscribe(onEvent)` returns an unsubscribe function. This is a display/validation boundary, not server-side approval authorization.
+- All events carry stable `id` and current `runId`. `progress` carries `label`; `failed` carries `message`. Duplicate and old-run events are ignored. Reset aborts in-flight work. Reference mode never advances cards on a timer. New board state and mode use a workflow-specific v2 storage key, isolated from the old dashboard.
+
+The separately supplied local-model service, if present, is discovered through its read-only status endpoint. Its older three-workstream response is incompatible and rejected until that service implements the Red Bull contract. This frontend update does not call a provider directly or migrate that service.
+
+### Board verification
+
+Run `npm test`, `npm run test:board` and `npm run build`. Board tests cover intake boundaries, direct employee IDs, dependency gates, blocked tasks, column counts, stale/duplicate events, interrupted/corrupt storage and failures. The contract check verifies the original document, exact reference people, full-input handoff and missing-live errors without invoking a model. Desktop/mobile browser checks cover the drawer, focus restoration, reload, activity, horizontal scrolling and subscribed task movement using a test adapter.
+
+---
+
+## Earlier implementation notes
+
 Local English dashboard for project planning / assignment and issue detection / worker decisions. White background, factual labels, imported Bridgewell Creative employee data.
 
 ## Run with the deployed model

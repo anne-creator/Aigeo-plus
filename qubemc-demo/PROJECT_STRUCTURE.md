@@ -1,5 +1,37 @@
 # CoFloor Project Structure
 
+## Current feature: Red Bull document and Kanban board (2026-10-25)
+
+This section describes the current UI and supersedes the earlier dashboard workflow notes below. Existing local-model integration notes are preserved for their separate implementation.
+
+### Structure and data flow
+
+- `src/main.tsx` and `src/kanban.css`: compact white/cyan project dashboard; four status columns; direct assigned owners; original-document and task-detail dialogs; collapsible activity; mobile board scrolling.
+- `src/redbull-project.ts` and `data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md`: project metadata and the unchanged source document, bundled as raw text and passed in full to the runtime. Document instructions are data, not executed commands.
+- `src/redbull-agent.ts`: reference intake plus the typed BoardAdapter boundary; preferred `window.cofloorBoardAgent`, compatible legacy injection points, and optional read-only discovery hooks for a separately installed model service.
+- `src/board-state.ts`: isolated v2 snapshot, four statuses, event-driven card updates, ID/dependency validation, duplicate/stale protection and interrupted-run recovery. Earlier `src/state.ts` remains available to the separate legacy service.
+- `src/board-state.test.ts` and `scripts/test_board_contract.mjs`: state/gate tests and full-document/adapter contract checks. `src/vite-env.d.ts` supplies raw-import types.
+
+Document + project metadata + company input → BoardAdapter → validated planned/task.updated events → board reducer → Kanban cards and activity. Assignments expose owners directly; no rankings, matching explanations or confidence fields. `task.updated` replaces a complete existing task. Unknown legacy event kinds are ignored.
+
+### Behavior and scope
+
+Intake creates only RB-01 and RB-02. Reference people are Serenity Flores / EMP-0254 and Avery Bennett / EMP-0308; live results can choose different valid employee IDs. RB-02 waits for RB-01. Both start in To do; only agent events move them. Blocked tasks cannot complete; unmet dependencies prevent advancement. Empty columns remain visible. There is no global start, manual dragging, photography-delay injection or invented completion.
+
+Full approved-outline decomposition, production workflow, server approval authorization, reassignment, Discord and simulated release remain future integration work. The supplied older three-workstream backend is preserved separately and its plan is rejected by the new intake validator until adapted. No genuine inference is claimed for reference assignments or test adapters.
+
+Company data is unchanged: 1,000 employees, 17 departments, 72 roles, 99 teams and all original source hashes. Added project ID P-DEMO-001 / workflow RED-BULL-X-LAUNCH-V1 uses the October 26, 2026 simulated business date in America/Los_Angeles. UI storage is separate from all earlier snapshots.
+
+### Validation and maintenance
+
+`npm test`, `npm run test:board`, `npm run build`; document/contract tests perform no real inference. Browser checks verify desktop and 390 px mobile layouts, original-text display, direct employee cards, dependency tags, dialog focus containment/restoration, refresh, activity, missing-runtime errors and automatic movement using an injected test adapter.
+
+- 2026-10-25: Added original Red Bull document, direct reference assignments and full-document live handoff; replaced the current task panel with an event-driven four-column Kanban board and accessible drawers. Unrelated local-model files and other projects are excluded from this feature commit.
+
+---
+
+## Earlier implementation notes
+
 ## Project Structure
 
 Single local React + TypeScript + Vite project with a built-in Node model service. The deployed coo-llm model is now connected; Discord remains simulated.

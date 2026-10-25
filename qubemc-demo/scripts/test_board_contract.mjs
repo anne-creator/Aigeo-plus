@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { createServer } from 'vite';
+import { createServer as createHttpServer } from 'node:http';
+const vite = await createServer({ configFile: false, root: fileURLToPath(new URL('..', import.meta.url)), server: { middlewareMode: true, watch: null, hmr: { server: createHttpServer() } }, optimizeDeps: { noDiscovery: true, include: [] }, appType: 'custom' });
+try {
+  const { project, company } = await vite.ssrLoadModule('/src/redbull-project.ts');
+  const { referenceAgent, getBoardAdapter } = await vite.ssrLoadModule('/src/redbull-agent.ts');
+  const original = await readFile(new URL('../data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md', import.meta.url), 'utf8');
+  assert.equal(project.document.content, original);
+  assert.equal(project.document.filename, project.file);
+  assert.equal(project.businessDate, '2026-10-26');
+  assert.equal(project.timezone, 'America/Los_Angeles');
+  const input = { project, company, runId: 'contract' };
+  globalThis.window = {};
+  assert.throws(() => getBoardAdapter(true), /not connected/i);
+  const reference = [];
+  for await (const e of referenceAgent.start(input, new AbortController().signal)) reference.push(e);
+  const plan = reference.find(e => e.type === 'planned');
+  assert.deepEqual(plan.tasks.map(t => t.id), ['RB-01', 'RB-02']);
+  assert.deepEqual(plan.tasks.map(t => company.people.find(p => p.id === t.ownerId).name), ['Serenity Flores', 'Avery Bennett']);
+  assert.ok(plan.tasks.every(t => !('ranking' in t) && !('evidence' in t) && !('confidence' in t)));
+  let received;
+  window.cofloorAgent = { mode: 'live', async *start(value) { received = value; yield { id: 'live-result', runId: value.runId, type: 'planned', tasks: plan.tasks }; } };
+  for await (const e of getBoardAdapter(true).start(input, new AbortController().signal)) assert.equal(e.id, 'live-result');
+  assert.equal(received.project.document.content, original);
+  assert.equal(received.company.people.length, 1000);
+  window.cofloorBoardAgent = { mode: 'live', start: window.cofloorAgent.start };
+  assert.equal(getBoardAdapter(true), window.cofloorBoardAgent);
+  window.cofloorBoardAgent = { mode: 'development' };
+  assert.throws(() => getBoardAdapter(true), /not connected/i);
+  console.log('Board contract passed: original document, metadata, direct assignments, live handoff, disconnected error.');
+} finally { delete globalThis.window; await vite.close(); }
