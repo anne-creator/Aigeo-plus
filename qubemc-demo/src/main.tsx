@@ -1,3 +1,6 @@
+import { NarrationQueue, browserVoiceDriver } from './narration';
+import type { VoiceView } from './narration';
+import { VoiceNarration } from './VoiceNarration';
 import React, { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { boardReducer, columns, initialBoard, waitingFor } from './board-state';
@@ -70,6 +73,23 @@ function Drawer({ titleId, children, onClose }: { titleId: string; children: Rea
 }
 function App() {
   const [state, dispatch] = useReducer(boardReducer, sharedRun ? {...initialBoard,runId:sharedRun,phase:'active' as const} : initialBoard);
+  const [voiceView, setVoiceView] = useState<VoiceView>(() => {
+    let muted = false;
+    try { muted = localStorage.getItem('cofloor-voice-muted') === 'true'; } catch { /* Storage is optional. */ }
+    return {text:'', status:muted?'muted':'idle', muted};
+  });
+  const voiceRef = useRef<NarrationQueue | null>(null);
+  if (!voiceRef.current) voiceRef.current = new NarrationQueue(browserVoiceDriver(), setVoiceView, voiceView.muted);
+  const voice = voiceRef.current;
+  useEffect(() => {
+    if (state.phase === 'active' && state.tasks.length) voice.observe(state);
+  }, [voice, state]);
+  useEffect(() => () => voice.stop(), [voice]);
+  function toggleVoice() {
+    const muted = !voiceView.muted;
+    try { localStorage.setItem('cofloor-voice-muted', String(muted)); } catch { /* Storage is optional. */ }
+    voice.mute(muted);
+  }
   const live = true;
   const [runtimeReady, setRuntimeReady] = useState(false);
   const [hydratedRun, setHydratedRun] = useState('');
@@ -164,6 +184,7 @@ function App() {
     const runId = crypto.randomUUID(), abort = new AbortController();
     running.current = true; controller.current = abort; setControls(false); setSelectedId(null); setActivity(false); setDecisionOpen(false); setReplyText(''); setHydratedRun('');
     setDashboardOpen(false); setReadyRun(''); setEntryRun(runId); setDocumentOpen(false); setTeamOpen(false);
+    voice.start(runId);
     dispatch({ type: 'start', runId });
     try {
       let receivedResult = false;
@@ -196,6 +217,7 @@ function App() {
       <a href="#" className="brand" aria-label="CoFloor home" onClick={e => { e.preventDefault(); if(!locked)setDashboardOpen(true); }}><span className="brand-symbol"><Icon name="grid" size={23}/></span><span>CoFloor<small>Dashboard</small></span></a>
       <div className="topbar-actions"><button className="scene-toggle" aria-label={scenePlaying ? 'Pause background animation' : 'Play background animation'} title={scenePlaying ? 'Pause animation' : 'Play animation'} aria-pressed={!scenePlaying} onClick={() => setScenePlaying(!scenePlaying)}>{scenePlaying ? <span aria-hidden="true">Ⅱ</span> : <Icon name="arrow" size={14}/>}</button><span className={`runtime-pill ${live ? 'live' : ''}`}><span className="status-dot"/>{live ? (hasRuntime() ? 'Live mode' : 'Disconnected') : 'Reference'}</span><span className="workspace-name">Bridgewell Creative</span><button disabled={locked} className={`dashboard-toggle ${dashboardVisible ? 'is-open' : ''}`} aria-label={dashboardVisible ? 'Hide dashboard' : 'Show dashboard'} aria-expanded={dashboardVisible} aria-controls="dashboard-panel" onClick={() => setDashboardOpen(!dashboardOpen)}><Icon name="grid" size={16}/><span>Dashboard</span><Icon name="collapse" size={14}/></button></div>
     </header>
+    <VoiceNarration view={voiceView} onMute={toggleVoice} onEnable={() => void voice.enable()} onRetry={() => voice.retry()}/>
     <nav className="side-rail" aria-label="Workspace">
       <button disabled={locked} className={`nav-circle ${dashboardVisible ? 'on' : ''}`} aria-label="Show dashboard" aria-controls="dashboard-panel" onClick={() => setDashboardOpen(true)} title="Dashboard"><Icon name="home"/></button>
       <button disabled={locked} className="nav-circle" aria-label="Task board" onClick={revealBoard} title="Task board"><Icon name="grid"/></button>
@@ -218,7 +240,7 @@ function App() {
       {stage === 'global' && <section className="glass-card launch-card">
         <div className="launch-heading"><span className="project-emblem">RB</span><span>NEW PROJECT</span><button className="toolbar-button" onClick={() => setDocumentOpen(true)}><Icon name="file" size={15}/>Brief</button></div>
         <h1>{project.title}</h1>
-        <p className="launch-deliverable">X launch · Copy + image + alt text</p>
+        <p className="launch-deliverable">X launch package · 3 posts + visuals + community replies</p>
         <div className="launch-footer"><div className="launch-deadline"><span>Deliver by</span><strong>{project.deadline} <small>PT</small></strong><span>{businessDate}</span></div><button className="primary-button launch-start" onClick={() => void start()} disabled={!runtimeReady || !hasRuntime()}>Start project<Icon name="arrow"/></button></div>
         <div className="company-context"><span><strong>{company.people.length.toLocaleString()}</strong> People</span><span><strong>{company.departments.length}</strong> Departments</span>{runtimeReady && !hasRuntime() && <span role="status">Model disconnected</span>}</div>
       </section>}

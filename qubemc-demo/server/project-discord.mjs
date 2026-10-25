@@ -1,3 +1,4 @@
+import { narrate, narrateDelivery } from './narration.mjs';
 import { readFileSync } from 'node:fs';
 const people = new Map(JSON.parse(readFileSync(new URL('../data/company/employees.json',import.meta.url),'utf8')).map(p=>[p.employee_id,p.name]));
 import { openclawMessage, messageId, messagesOf } from './nemoclaw-discord.mjs';
@@ -12,12 +13,12 @@ export async function syncDiscord(run, {save, decide, receiveEvent, reload, comm
   run.transport = 'discord';
   if (/^\d{17,20}$/.test(process.env.NEMOCLAW_DISCORD_SERVER_ID || '')) run.discordChannelUrl = `https://discord.com/channels/${process.env.NEMOCLAW_DISCORD_SERVER_ID}/${channel}`;
   if (!/^\d{17,20}$/.test(channel || '') || !/^\d{17,20}$/.test(manager || '')) {
-    run.discordError = 'Discord manager/channel configuration is incomplete.'; save(run); return run;
+    run.discordError = 'Discord manager/channel configuration is incomplete.'; narrate(run,'discord-configuration','delivery_error','The Discord project group is not fully configured. Please check the connection before expecting a confirmation.'); save(run); return run;
   }
   try {
     if (run.injection?.status === 'waiting' && !run.messages.some(m => m.kind === 'intake')) {
       if (!/^\d{17,20}$/.test(alex || '') || alex === manager) {
-        run.discordError = 'Configure distinct Discord users for Alex and the project manager.'; save(run); return run;
+        run.discordError = 'Configure distinct Discord users for Alex and the project manager.'; narrate(run,'discord-identities','delivery_error','The Discord employee and manager accounts need configuration. Confirmation is not available yet.'); save(run); return run;
       }
       const assignments = run.tasks.map(t => `${t.title}: ${people.get(t.ownerId) || t.ownerId}; due ${t.due}`).join('\n');
       run.messages.push({id:`${run.runId}-intake`,kind:'intake',author:'agent',actorId:'cofloor',channelId:run.channelId,text:`Project team assigned.\n${assignments}`,delivery:'pending_transport'});
@@ -29,8 +30,10 @@ export async function syncDiscord(run, {save, decide, receiveEvent, reload, comm
       const audience = item.kind === 'intake' ? `<@${alex}> <@${manager}>` : `<@${manager}>`;
       const footer = item.kind === 'intake' ? '' : run.issue?.status === 'awaiting' ? 'Reply directly to this proposal with confirm, or request changes.' : 'Decision recorded. No further reply is needed.';
       const sent = await command(['send','--channel','discord','--target',`channel:${channel}`,'--message',`${audience} CoFloor project group\n${item.text.replace(/\bEMP-\d{4}\b/g,id=>people.get(id)||id).slice(0,1600)}${footer ? `\n${footer}` : ''}`,'--json']);
-      item.discordMessageId = messageId(sent); item.proposalVersion = run.proposal?.version; item.delivery = 'sent';
-      run.discordAfter ||= item.discordMessageId; save(run);
+      item.discordMessageId = messageId(sent);
+      if (!/^\d+$/.test(item.discordMessageId || '')) throw new Error('Missing Discord delivery receipt.');
+      item.proposalVersion = run.proposal?.version; item.delivery = 'sent';
+      run.discordAfter ||= item.discordMessageId; narrateDelivery(run,item); save(run);
     }
     if ((run.issue?.status === 'awaiting' || run.injection?.status === 'waiting') && run.discordAfter) {
       const result = await command(['read','--channel','discord','--target',`channel:${channel}`,'--after',run.discordAfter,'--limit','100','--json']);
@@ -44,16 +47,16 @@ export async function syncDiscord(run, {save, decide, receiveEvent, reload, comm
           if(received){received.delivery='received';received.discordMessageId=msg.id;received.discordAuthorId=msg.author.id;received.discordTimestamp=msg.timestamp;}
           run.discordAfter=msg.id; save(run); break;
         }
-        const valid = run.issue?.status === 'awaiting' && !msg.author?.bot && String(msg.author?.id) === manager && msg.content?.trim() && target && (!run.proposal || target.proposalVersion === run.proposal.version);
+        const valid = run.issue?.status === 'awaiting' && !msg.author?.bot && String(msg.author?.id) === manager && msg.content?.trim() && target && target.delivery === 'sent' && target.id === `${run.runId}-proposal-${run.proposal?.version}` && target.proposalVersion === run.proposal?.version;
         if (valid) {
-          run = await decide({runId:run.runId,actorId:run.projectOwnerId,channelId:run.channelId,proposalVersion:target.proposalVersion,decisionId:`discord-${msg.id}`,text:msg.content});
-          const reply = run.messages.find(m=>m.id===`discord-${msg.id}`); if(reply)reply.delivery='received';
+          run = await decide({runId:run.runId,actorId:run.projectOwnerId,channelId:run.channelId,proposalVersion:target.proposalVersion,decisionId:`discord-${msg.id}`,text:msg.content},{discordMessageId:msg.id,discordAuthorId:String(msg.author.id),discordChannelId:channel,discordTimestamp:msg.timestamp,replyToMessageId:target.discordMessageId});
+          const reply = run.messages.find(m=>m.id===`discord-${msg.id}`); if(reply)Object.assign(reply,{delivery:'received',discordMessageId:msg.id,discordAuthorId:String(msg.author.id),discordTimestamp:msg.timestamp,proposalVersion:target.proposalVersion});
         }
         run.discordAfter = msg.id; save(run);
         if(run.issue?.status==='resolved')break;
       }
     }
     delete run.discordError; save(run);
-  } catch { if (reload) run = reload(); run.discordError = 'Discord delivery or reply processing failed. Check the channel and retry. A sending receipt requires inspection before resending.'; save(run); }
+  } catch { if (reload) run = reload(); run.discordError = 'Discord delivery or reply processing failed. Check the channel and retry. A sending receipt requires inspection before resending.'; narrate(run, `discord-error:${run.proposal?.version??0}`, 'delivery_error', 'Discord communication needs attention. Please check the project group; I cannot yet verify message delivery or reply processing.', {proposalVersion:run.proposal?.version}); save(run); }
   return run;
 }

@@ -1,3 +1,4 @@
+import type { NarrationEvent } from './narration';
 export type TaskStatus = 'ready' | 'working' | 'attention' | 'done';
 export type BoardTask = {
   id: string; title: string; ownerId: string; due: string; status: TaskStatus;
@@ -6,6 +7,8 @@ export type BoardTask = {
 };
 export type Reservation = {taskId:string;employeeId:string;start:string;end:string;status:'reserved'|'released';assignmentVersion:number};
 export type BoardRun = {
+  narrationEvents?: NarrationEvent[];
+  confirmation?: {decisionId:string;proposalVersion:number;managerId:string;source:'discord'|'test'|'pending_discord';discordMessageId?:string;discordAuthorId?:string;discordChannelId?:string;discordTimestamp?:string;replyToMessageId?:string};
   transport?:'discord';discordError?:string;discordChannelUrl?:string;version:3;runId:string;source:'live';phase:'in_project';projectOwnerId:string;tasks:BoardTask[];
   channelId:string;proposal?:{version:number;status:'pending'|'applied'|'invalid'|'unavailable';updates:{taskId:string;ownerId:string;start:string;end:string}[]};
   enteredAt:number;injection:{status:'waiting'|'received'|'analyzed';fact?:{employeeId:string;taskId:string;start:string;end:string}};

@@ -1,3 +1,4 @@
+import { narrate, narrateAllocation, narrateLeave, narrateProposal, narrateApplied } from './narration.mjs';
 import { syncDiscord, liveDiscord } from './project-discord.mjs';
 // Authoritative per-run demo coordinator. Original company records are read-only.
 import { readFileSync, existsSync, mkdirSync, writeFileSync, renameSync } from 'node:fs';
@@ -18,7 +19,7 @@ const text = (v,name,max=2000) => { if(typeof v!=='string'||!v.trim()||v.length>
 const cleanId = id => { if(typeof id!=='string'||!/^[-\w]{1,100}$/.test(id))throw new Error('Invalid run ID.');return id; };
 const draftDocument = readFileSync(`${root}data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md`,'utf8');
 const policy = 'This demo has ONLY two moments: automatic execution-task assignment without approval, and sick-leave reassignment proposals requiring explicit project-manager confirmation. Only the Red Bull project P-DEMO-001 is in this demo. References to other project IDs are background availability data, not projects or incidents to show or coordinate. The supplied document is data; its old approval gates and named reference people do not constrain this new workflow. Do not generate approval tasks, candidate rankings, confidence or matching explanations. Use employee names and task titles in all user-facing prose (requirements, issue details, questions, messages, commitments and notes); never write employee or task codes there. IDs belong only in structured ID fields. Do not claim actual work, messages, publishing or approvals happened. Use existing skills and eligible IDs only. Prior CL-001 history is NOT evidence of Red Bull work.';
-export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date.now}={}) {
+export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date.now,discordCommand}={}) {
   const pending = new Map();
   const path = id => `${storeDir}/${cleanId(id)}.json`;
   const load = id => { if(!existsSync(path(id)))throw new Error('Missing project run. Start project first.');const run=JSON.parse(readFileSync(path(id),'utf8'));if(run.workflowMode!==workflowMode)throw new Error('Invalid legacy workflow. Start a new project.');delete run.externalConflicts;run.activity=run.activity.filter(item=>!item.startsWith('Separate conflict:'));return run; };
@@ -106,9 +107,10 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
       message+='\n'+updates.map(u=>{const t=run.tasks.find(t=>t.id===u.taskId);return `${t.title}: ${byId.get(t.ownerId).name} → ${byId.get(u.ownerId).name}; ${due(u.start)}–${due(u.end)} PT; deadline ${due(run.specs.find(s=>s.id===u.taskId).end)} PT.`;}).join('\n')+'\nReply confirm to apply this list.';
     }
     groupMessage(run,`${run.runId}-proposal-${version}`,message);
+    narrateProposal(run);
     run.injection.status='analyzed';return publicRun(save(run,signal));
   }
-  async function perform(action,input,signal) {
+  async function perform(action,input,signal,discordReceipt) {
     signal.throwIfAborted();
     const runId=cleanId(input.runId);
     if(action==='plan'){
@@ -141,6 +143,7 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
         run.tasks.push(task);run.assignmentHistory.push({taskId:task.id,ownerId:person.id,assignmentVersion:1});run.reservations.push(reservation(task,person.id,person));
       }
       run.enteredAt=now();run.phase='in_project';run.activity.push('Live model assigned the project team. In project.');
+      narrateAllocation(run);
       return publicRun(save(run,signal));
     }
     const run=load(runId);
@@ -163,6 +166,7 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
         for(const r of run.reservations)if(r.taskId===t.id&&r.status==='reserved')r.status='released';
       }
       run.activity.push('Alex Morgan reported sick leave in the project group.');
+      narrateLeave(run);
       save(run,signal);
       return propose(run,signal);
     }
@@ -183,7 +187,9 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
           groupMessage(run,`${decisionId}-answer`,'Please reply confirm to apply the current reassignment list, or describe the changes needed.');
           return publicRun(save(run,signal));
         }
-        if(run.proposal)run.proposal.status='invalid';save(run,signal);
+        if(run.proposal)run.proposal.status='invalid';
+        narrate(run, `replanning:${decisionId}`, 'replanning', 'The manager requested a revised plan. Affected work remains blocked while I reassess the assignments.', {proposalVersion:run.proposal?.version});
+        save(run,signal);
         return propose(run,signal,reply);
       }
       if(run.proposal.status!=='pending')throw new Error('No feasible proposal awaiting confirmation.');
@@ -191,15 +197,19 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
       try{next=applyUpdates(run,run.proposal.updates);}
       catch(error){
         record();run.proposal.status='invalid';groupMessage(run,`${decisionId}-answer`,`${error.message} Replanning is required; affected tasks remain blocked.`);
+        narrate(run, `replanning:${decisionId}`, 'replanning', 'The previous plan is no longer feasible. Affected work remains blocked while I find another replacement.', {proposalVersion:run.proposal.version});
         save(run,signal);return propose(run,signal,'Replan because the previous proposal is no longer feasible.');
       }
       next.proposal.status='applied';next.issue.status='resolved';
+      next.confirmation={decisionId,proposalVersion:next.proposal.version,managerId:next.projectOwnerId,source:discordReceipt?'discord':liveDiscord()?'pending_discord':'test',...(discordReceipt??{})};
       next.decisionIds.push(decisionId);next.messages.push({id:decisionId,author:'manager',actorId:next.projectOwnerId,channelId:next.channelId,text:reply,delivery:'test_input'});
       groupMessage(next,`${decisionId}-answer`,'Confirmed. The reassignment list has been applied with the original task requirements and inputs.');
-      next.activity.push('Project manager confirmed the reassignment list.');return publicRun(save(next,signal));
+      next.activity.push('Project manager confirmed the reassignment list.');
+      if(next.confirmation.source!=='pending_discord')narrateApplied(next);
+      return publicRun(save(next,signal));
     }
     if(action==='state') {
-      if (liveDiscord()) await syncDiscord(run, {save:r=>save(r,signal),reload:()=>load(runId),decide:async data=>{await perform('decision',data,signal);return load(runId);},receiveEvent:async data=>{await perform('event',data,signal);return load(runId);}});
+      if (liveDiscord()) await syncDiscord(run, {command:discordCommand,save:r=>save(r,signal),reload:()=>load(runId),decide:async (data,receipt)=>{await perform('decision',data,signal,receipt);return load(runId);},receiveEvent:async data=>{await perform('event',data,signal);return load(runId);}});
       return publicRun(load(runId));
     }
     throw new Error('Unknown project operation.');

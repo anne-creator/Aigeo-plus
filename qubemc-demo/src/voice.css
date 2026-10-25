@@ -1,0 +1,5 @@
+.voice-narration{position:fixed;top:78px;left:50%;transform:translateX(-50%);z-index:35;display:flex;align-items:center;gap:12px;width:min(760px,calc(100vw - 120px));padding:10px 14px;border:1px solid #ffffff24;border-radius:14px;background:rgba(13,21,34,.94);color:#edf5ff;box-shadow:0 8px 24px #0003;pointer-events:auto}
+.voice-narration button{flex-shrink:0;padding:8px 10px;border:1px solid #ffffff35;border-radius:8px;background:#ffffff10;color:inherit;cursor:pointer;font:inherit;font-size:12px}
+.voice-narration button:focus-visible{outline:2px solid #97d5ff;outline-offset:3px}
+.voice-copy{min-width:0;flex:1}.voice-copy small{font-size:11px;color:#a4bdd2}.voice-copy p{margin:3px 0 0;font-size:13px;line-height:1.4;max-height:3.9em;overflow:auto}
+@media(max-width:600px){.voice-narration{top:72px;width:calc(100vw - 24px);gap:8px;padding:8px;box-sizing:border-box}.voice-copy p{font-size:12px;max-height:4.2em}.voice-narration button{padding:7px;font-size:11px}}
