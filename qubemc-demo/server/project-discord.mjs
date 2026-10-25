@@ -20,15 +20,15 @@ export async function syncDiscord(run, {save, decide, receiveEvent, reload, comm
         run.discordError = 'Configure distinct Discord users for Alex and the project manager.'; save(run); return run;
       }
       const assignments = run.tasks.map(t => `${t.title}: ${people.get(t.ownerId) || t.ownerId}; due ${t.due}`).join('\n');
-      run.messages.push({id:`${run.runId}-intake`,kind:'intake',author:'agent',actorId:'cofloor',channelId:run.channelId,text:`Project team assigned.\n${assignments}\nAlex: reply directly to this message when reporting sick leave:\n${ALEX_LEAVE_TEXT}`,delivery:'pending_transport'});
+      run.messages.push({id:`${run.runId}-intake`,kind:'intake',author:'agent',actorId:'cofloor',channelId:run.channelId,text:`Project team assigned.\n${assignments}`,delivery:'pending_transport'});
       save(run);
     }
     for (const item of run.messages.filter(m => m.author === 'agent' && ['simulated','pending_transport'].includes(m.delivery))) {
       // Mark before sending: an ambiguous crash must not silently duplicate a notification.
       item.delivery = 'sending'; save(run);
       const audience = item.kind === 'intake' ? `<@${alex}> <@${manager}>` : `<@${manager}>`;
-      const footer = item.kind === 'intake' ? 'Waiting for Alex’s real leave message.' : run.issue?.status === 'awaiting' ? 'Reply directly to this proposal with confirm, or request changes.' : 'Decision recorded. No further reply is needed.';
-      const sent = await command(['send','--channel','discord','--target',`channel:${channel}`,'--message',`${audience} CoFloor project group\n${item.text.replace(/\bEMP-\d{4}\b/g,id=>people.get(id)||id).slice(0,1600)}\n${footer}`,'--json']);
+      const footer = item.kind === 'intake' ? '' : run.issue?.status === 'awaiting' ? 'Reply directly to this proposal with confirm, or request changes.' : 'Decision recorded. No further reply is needed.';
+      const sent = await command(['send','--channel','discord','--target',`channel:${channel}`,'--message',`${audience} CoFloor project group\n${item.text.replace(/\bEMP-\d{4}\b/g,id=>people.get(id)||id).slice(0,1600)}${footer ? `\n${footer}` : ''}`,'--json']);
       item.discordMessageId = messageId(sent); item.proposalVersion = run.proposal?.version; item.delivery = 'sent';
       run.discordAfter ||= item.discordMessageId; save(run);
     }
