@@ -43,6 +43,23 @@ By default, `*_right.jpg` images are held out of enrollment and used for
 evaluation. Enrollment writes `private-data/embeddings.json` with mode 0600.
 The service loads embeddings at startup; restart it after re-enrolling.
 
+## Keep a laptop copy
+
+Copy `models/`, `private-data/`, and `face_service.py` to a directory outside
+the Git checkout. The service uses the directory containing `face_service.py`
+by default, so the same embeddings and weights can be evaluated on another
+machine. Create a new Python virtual environment there; the Spark's ARM virtual
+environment is not portable to an x86 laptop:
+
+```sh
+python3 -m venv .venv
+.venv/bin/pip install opencv-python-headless numpy
+.venv/bin/python face_service.py evaluate --dataset private-data/dataset
+```
+
+The photos and embeddings are biometric data. Keep the backup private and do
+not place it in the repository.
+
 For a persistent Spark service, copy
 `deploy/spark/cofloor-face.service` into
 `/home/dell/.config/systemd/user/`, then run
