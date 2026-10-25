@@ -1,5 +1,17 @@
 # CoFloor
 
+## English project voice updates
+
+Start project enables automatic English narration with the local Qwen Ryan voice. The independent **Voice on/off** control and current transcript remain visible when Dashboard is collapsed. **Enable audio** appears if the browser needs a user gesture; **Retry voice** retries a failed announcement without rerunning project work. Muting stops playback and discards pending announcements while text continues updating. Unmuting listens for new events. Refreshing or opening a shared run shows the latest transcript without replaying its history.
+
+The sequence is start → validated team assignment → Alex's received leave/blocker → concrete replacement proposal → verified Discord delivery → manager confirmation → applied reassignment. A proposal names the actual replacement, task and PT schedule. Only an authenticated reply to the current proposal, followed by successful application, can announce confirmation in Discord. Local adapter confirmations are explicitly narrated as tests. Recovery clears the leave blocker; dependency-bound tasks remain scheduled, and no voice message claims completed work.
+
+`BoardRun.narrationEvents` is optional for older runs and persists ordered `{id, sequence, kind, text, proposalVersion?, retrospectiveText?}` records with business state. `confirmation` binds the applied version to its decision and, for Discord, the sender/message/channel/reply receipt. The frontend deduplicates IDs, ignores older event sequences, cancels audio on reset, discards superseded proposals, and changes queued proposal/leave wording when confirmation has already arrived.
+
+`POST /api/speech` accepts `{text}` (1–8000 characters) and returns `audio/wav`. The Node backend pins inference to `http://100.89.121.112:8004/v1/audio/speech`, with `model: tts-1`, `voice: Ryan`, a 180-second timeout, no redirects or remote voice fallback. Requests use the existing origin checks; audio is limited to 20 MiB. The same middleware runs in Vite and production. A TTS error leaves project state untouched and keeps the transcript/retry control available. The browser must be able to reach the app, and the app backend must reach Spark over its private network.
+
+Verification on October 25, 2026: 76 offline tests, board contract and production build passed. An isolated browser fixture with silent WAV responses verified automatic playback, failure/retry, browser audio activation, mute/text updates and refresh without history replay. The actual Spark TTS smoke request timed out while connecting; Ryan pronunciation, real synthesis latency and a live human Discord round-trip remain unverified. No live Discord messages were sent and this change was not deployed.
+
 ## Local inference for submission review
 
 All model execution runs on the DGX Spark. Inference clients use its private

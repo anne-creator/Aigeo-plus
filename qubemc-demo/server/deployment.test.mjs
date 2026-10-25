@@ -17,7 +17,7 @@ test('native OpenClaw envelopes are parsed',()=>{
 test('live dispatch persists receipt and accepts only mapped manager direct reply',async()=>{
  process.env.COFLOOR_DISCORD='live';process.env.NEMOCLAW_DISCORD_CHANNEL_ID='1563992893704773742';process.env.COFLOOR_DISCORD_MANAGER_ID='123456789012345678';
  let sends=0,decisions=0; const saves=[];
- const run={runId:'test',messages:[{id:'q',author:'agent',text:'Reassign?',delivery:'simulated'}],issue:{status:'awaiting'}};
+ const run={runId:'test',proposal:{version:1,status:'pending'},messages:[{id:'test-proposal-1',author:'agent',text:'Reassign?',delivery:'simulated'}],issue:{status:'awaiting'}};
  const command=async args=>args[0]==='send'?(sends++,{payload:{messageId:'100'}}):{payload:{messages:[
  {id:'101',author:{id:'other'},content:'Replace',message_reference:{message_id:'100'}},
  {id:'102',author:{id:'123456789012345678'},content:'Replace',message_reference:{message_id:'999'}},
@@ -41,7 +41,7 @@ test('resolved notifications do not request another decision',async()=>{
 test('Discord confirmation binds to the current proposal and ignores superseded receipts',async()=>{
  process.env.COFLOOR_DISCORD='live';process.env.NEMOCLAW_DISCORD_CHANNEL_ID='1563992893704773742';process.env.COFLOOR_DISCORD_MANAGER_ID='123456789012345678';
  try {
-  const run={runId:'confirm',channelId:'redbull-project',projectOwnerId:'EMP-0148',proposal:{version:2},issue:{status:'awaiting'},discordAfter:'100',messages:[{author:'agent',delivery:'sent',discordMessageId:'100',proposalVersion:1},{author:'agent',text:'Confirm replacement.',delivery:'pending_transport'}]};
+  const run={runId:'confirm',channelId:'redbull-project',projectOwnerId:'EMP-0148',proposal:{version:2,status:'pending'},issue:{status:'awaiting'},discordAfter:'100',messages:[{author:'agent',delivery:'sent',discordMessageId:'100',proposalVersion:1},{id:'confirm-proposal-2',author:'agent',text:'Confirm replacement.',delivery:'pending_transport'}]};
   const decisions=[];
   const command=async args=>args[0]==='send'?{payload:{messageId:'200'}}:{payload:{messages:[
    {id:'201',author:{id:'123456789012345678'},content:'confirm',message_reference:{message_id:'100'}},
@@ -77,4 +77,16 @@ test('failed inference cannot overwrite an already persisted leave event',async(
   await syncDiscord(run,{command,save:r=>persisted=structuredClone(r),reload:()=>structuredClone(persisted),receiveEvent:async()=>{persisted.injection.status='received';persisted.leave=[{employeeId:'EMP-0329'}];throw Error('Model timed out');}});
   assert.equal(persisted.injection.status,'received');assert.equal(persisted.leave.length,1);assert.ok(persisted.discordError);
  }finally{delete process.env.COFLOOR_DISCORD;delete process.env.NEMOCLAW_DISCORD_CHANNEL_ID;delete process.env.COFLOOR_DISCORD_MANAGER_ID;delete process.env.COFLOOR_DISCORD_ALEX_ID;}
+});
+
+test('missing Discord receipt never produces a sent narration',async()=>{
+ const keys=['COFLOOR_DISCORD','NEMOCLAW_DISCORD_CHANNEL_ID','COFLOOR_DISCORD_MANAGER_ID'];
+ const previous=Object.fromEntries(keys.map(k=>[k,process.env[k]]));
+ Object.assign(process.env,{COFLOOR_DISCORD:'live',NEMOCLAW_DISCORD_CHANNEL_ID:'1563992893704773742',COFLOOR_DISCORD_MANAGER_ID:'123456789012345678'});
+ try{
+  const run={runId:'missing',proposal:{version:1,status:'pending'},messages:[{id:'missing-proposal-1',author:'agent',text:'Confirm?',delivery:'pending_transport'}],issue:{status:'awaiting'}};
+  await syncDiscord(run,{save:()=>{},command:async()=>({payload:{}})});
+  assert.equal(run.messages[0].delivery,'sending');assert.ok(run.discordError);
+  assert.equal(run.narrationEvents.some(e=>e.kind==='sent'),false);assert.equal(run.narrationEvents.at(-1).kind,'delivery_error');
+ }finally{for(const key of keys){if(previous[key]===undefined)delete process.env[key];else process.env[key]=previous[key];}}
 });
