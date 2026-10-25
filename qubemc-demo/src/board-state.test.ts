@@ -1,79 +1,17 @@
-import { test } from 'node:test';
+import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import { boardReducer, initialBoard, restoreBoard, validateTasks, waitingFor, columns } from './board-state.ts';
-import type { BoardEvent, BoardTask, BoardState } from './board-state.ts';
-const ids = new Set(['EMP-0254', 'EMP-0308', 'EMP-0350']);
-const tasks: BoardTask[] = [
-  { id: 'RB-01', title: 'Launch outline', ownerId: 'EMP-0254', due: '10:00 AM', status: 'ready', requirements: 'Prepare the outline', outputs: ['outline_v1'], dependencies: [] },
-  { id: 'RB-02', title: 'Direction approval', ownerId: 'EMP-0308', due: '10:30 AM', status: 'ready', requirements: 'Approve the direction', outputs: ['Approval'], dependencies: ['RB-01'] },
-];
-const start = () => boardReducer(initialBoard, { type: 'start', runId: 'run-1' });
-const event = (s: BoardState, e: BoardEvent) => boardReducer(s, { type: 'event', event: e, employeeIds: ids });
-const planned = (): BoardEvent => ({ id: 'plan', runId: 'run-1', type: 'planned', tasks: structuredClone(tasks) });
-const active = () => event(start(), planned());
-const update = (s: BoardState, id: string, patch: Partial<BoardTask>, eventId: string) => event(s, { id: eventId, runId: 'run-1', type: 'task.updated', task: { ...s.tasks.find(t => t.id === id)!, ...patch } });
-test('intake only assigns outline and pending approval; four columns preserve waiting state', () => {
-  const s = active();
-  assert.equal(s.phase, 'active'); assert.deepEqual(s.tasks.map(t => t.id), ['RB-01', 'RB-02']);
-  assert.deepEqual(columns.map(c => s.tasks.filter(t => t.status === c.status).length), [2, 0, 0, 0]);
-  assert.deepEqual(waitingFor(s.tasks[1], s.tasks), ['RB-01']);
-});
-test('rejects old three-task plans, unknown employees and invalid task details atomically', () => {
-  for (const proposed of [
-    [...tasks, { ...tasks[0], id: 'RB-03' }],
-    [tasks[0], { ...tasks[1], ownerId: 'invented' }],
-    [tasks[0], { ...tasks[1], requirements: undefined }],
-    [tasks[0], { ...tasks[1], dependencies: [] }],
-  ]) {
-    const s = event(start(), { ...planned(), tasks: proposed } as BoardEvent);
-    assert.ok(s.error); assert.deepEqual(s.tasks, []);
-  }
-});
-test('review cannot advance until outline completes; blocked never means done', () => {
-  let s = active();
-  s = update(s, 'RB-02', { dependencies: [] }, 'remove-gate');
-  assert.deepEqual(s.tasks[1].dependencies, ['RB-01']); assert.ok(s.error);
-  s = update(s, 'RB-02', { status: 'working' }, 'early');
-  assert.equal(s.tasks[1].status, 'ready'); assert.ok(s.error);
-  s = update(s, 'RB-01', { status: 'working', blockedReason: 'Missing product facts' }, 'blocked');
-  assert.equal(s.tasks[0].status, 'working');
-  s = update(s, 'RB-01', { status: 'done' }, 'bad-done');
-  assert.equal(s.tasks[0].status, 'working'); assert.ok(s.error);
-  s = update(s, 'RB-01', { status: 'awaiting_review', blockedReason: undefined }, 'submitted');
-  assert.deepEqual(columns.map(c => s.tasks.filter(t => t.status === c.status).length), [1, 0, 1, 0]);
-  s = update(s, 'RB-01', { status: 'done' }, 'approved');
-  assert.deepEqual(waitingFor(s.tasks[1], s.tasks), []);
-  s = update(s, 'RB-02', { status: 'working' }, 'review-start');
-  assert.equal(s.tasks[1].status, 'working'); assert.equal(s.error, undefined);
-});
-test('ignores duplicate, previous-run and unrelated legacy events', () => {
-  const p = planned(), s = event(start(), p);
-  assert.equal(event(s, p), s);
-  assert.equal(event(s, { ...p, id: 'old', runId: 'old' }), s);
-  assert.equal(event(s, { id: 'check', runId: 'run-1', type: 'checked' } as unknown as BoardEvent), s);
-  assert.equal(event(s, { id: 'p', runId: 'run-1', type: 'progress', label: {} } as unknown as BoardEvent), s);
-});
-test('resumes valid state, rejects old/corrupt state, marks interrupted inference', () => {
-  assert.deepEqual(restoreBoard(JSON.stringify(active()), ids), JSON.parse(JSON.stringify(active())));
-  assert.deepEqual(restoreBoard('{oops', ids), initialBoard);
-  assert.deepEqual(restoreBoard(JSON.stringify({ ...active(), version: 1 }), ids), initialBoard);
-  assert.deepEqual(restoreBoard(JSON.stringify({ ...active(), tasks: [{ ...tasks[0], ownerId: 'wrong' }, tasks[1]] }), ids), initialBoard);
-  assert.ok(restoreBoard(JSON.stringify(start()), ids).error);
-});
-test('dependencies reject cycles, duplicate IDs, missing tasks and downstream regression', () => {
-  for (const invalid of [
-    [{ ...tasks[0], dependencies: ['RB-02'] }, tasks[1]],
-    [tasks[0], tasks[0]],
-    [tasks[0], { ...tasks[1], dependencies: ['missing'] }],
-  ]) assert.throws(() => validateTasks(invalid, ids));
-  let s = active();
-  s = update(s, 'RB-01', { status: 'done' }, 'd');
-  s = update(s, 'RB-02', { status: 'working' }, 'w');
-  const before = s.tasks;
-  s = update(s, 'RB-01', { status: 'ready' }, 'regression');
-  assert.deepEqual(s.tasks, before); assert.ok(s.error);
-});
-test('runtime failure preserves visible error without any fixture fallback', () => {
-  const s = event(start(), { id: 'fail', runId: 'run-1', type: 'failed', message: 'Agent disconnected' });
-  assert.equal(s.error, 'Agent disconnected'); assert.deepEqual(s.tasks, []);
-});
+import {boardReducer,initialBoard,restoreBoard,validateTasks,columns} from './board-state.ts';
+import type {BoardRun,BoardState,BoardEvent} from './board-state.ts';
+const ids=new Set(['EMP-0254','EMP-0308','EMP-0350']);
+const run=():BoardRun=>({version:3,runId:'run1',source:'live',phase:'in_project',projectOwnerId:'EMP-0308',enteredAt:1000,injection:{status:'scheduled',dueAt:6000},leave:[],reservations:[],messages:[],activity:['Assigned'],tasks:[
+ {id:'write',title:'Write post',ownerId:'EMP-0254',due:'2 PM',start:'2026-10-26T13:00:00-07:00',end:'2026-10-26T14:00:00-07:00',skill:'social_copy',assignmentVersion:1,status:'ready',requirements:'Write a launch post',outputs:['post'],dependencies:[]},
+ {id:'design',title:'Design image',ownerId:'EMP-0350',due:'3 PM',start:'2026-10-26T13:00:00-07:00',end:'2026-10-26T15:00:00-07:00',skill:'graphic_design',assignmentVersion:1,status:'ready',requirements:'Create launch image',outputs:['image'],dependencies:[]},
+]});
+const start=(id='run1')=>boardReducer(initialBoard,{type:'start',runId:id});
+const emit=(s:BoardState,event:BoardEvent)=>boardReducer(s,{type:'event',event,employeeIds:ids});
+const snapshot=(s:BoardState,value=run(),id='snapshot')=>emit(s,{id,runId:value.runId,type:'snapshot',run:value});
+test('live allocation immediately enters project; dynamic tasks and attention counts',()=>{let s=snapshot(start());assert.equal(s.phase,'active');assert.equal(s.projectOwnerId,'EMP-0308');const r=run();r.tasks[1].status='attention';r.tasks[1].blockedReason='Sick leave';s=snapshot(s,r,'sick');assert.deepEqual(columns.map(c=>s.tasks.filter(t=>t.status===c.status).length),[1,0,1,0]);});
+test('invalid employees or dependencies never replace valid tasks',()=>{const s=snapshot(start()),r=run();r.tasks[0].ownerId='wrong';const bad=snapshot(s,r,'bad');assert.ok(bad.error);assert.deepEqual(bad.tasks,s.tasks);const cycle=run().tasks;cycle[0].dependencies=['design'];cycle[1].dependencies=['write'];assert.throws(()=>validateTasks(cycle,ids));});
+test('duplicate and previous-run snapshots cannot affect reset allocation',()=>{const s=snapshot(start());assert.equal(snapshot(s),s);const fresh=start('run2');assert.equal(snapshot(fresh),fresh);assert.equal(fresh.tasks.length,0);});
+test('refresh preserves injection deadline and fact, never old v2 reference state',()=>{for(const status of ['scheduled','injected','analyzed'] as const){const r=run();r.injection.status=status;const s=snapshot(start(),r);const restored=restoreBoard(JSON.stringify(s),ids);assert.equal(restored.injection?.status,status);assert.equal(restored.injection?.dueAt,6000);assert.equal(restored.operation,'idle');}assert.deepEqual(restoreBoard('{"version":2}',ids),initialBoard);assert.ok(restoreBoard(JSON.stringify(start()),ids).error);});
+test('model errors do not create fixture allocations',()=>{const s=emit(start(),{id:'error',runId:'run1',type:'failed',message:'Model disconnected'});assert.equal(s.tasks.length,0);assert.equal(s.error,'Model disconnected');assert.equal(s.operation,'idle');});

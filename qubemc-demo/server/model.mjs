@@ -116,8 +116,14 @@ export async function chatJson(system, payload, signal) {
   if (!content.trim()) throw new Error('Model returned no final answer. Please retry.');
   return parseModelJson(content);
 }
+let coordinator;
 export async function analyze(action, input, signal, call = chatJson) {
-  if (action === 'plan' && (input.project?.document || input.project?.workflowId)) throw new Error('Model document analysis requires explicit authorization for the selected project.');
+  if (input.runId) {
+    const { createCoordinator } = await import('./project.mjs');
+    coordinator ??= createCoordinator({call: chatJson});
+    return coordinator.analyze(action,input,signal);
+  }
+  if (input.project?.workflowId || input.project?.document) throw new Error('Missing run ID for project setup.');
   if (action === 'plan') {
     if (!input.project || typeof input.project.brief !== 'string' || input.project.brief.length > 10000) throw new Error('Invalid project brief.');
     const pools = candidatePools();
@@ -155,7 +161,7 @@ export function modelMiddleware(req, res, next) {
   if (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`) return send(403, { error: 'Origin not allowed.' });
   if (!req.headers['content-type']?.startsWith('application/json')) return send(415, { error: 'JSON is required.' });
   const action = req.url.slice('/api/model/'.length);
-  if (!['plan','check','decision'].includes(action)) return send(404, { error: 'Unknown operation.' });
+  if (!['plan','check','decision','state'].includes(action)) return send(404, { error: 'Unknown operation.' });
   const abort = new AbortController();
   res.on('close', () => { if (!res.writableEnded) abort.abort(); });
   let body = '', size = 0;

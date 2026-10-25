@@ -1,18 +1,42 @@
 # CoFloor
 
+## Current demo: live setup and sick-leave decision
+
+**Start project** uses the configured live model to read the preloaded Red Bull document, generate production tasks and select eligible staff plus a project manager. No approval task or human assignment confirmation is required. Valid assignments enter **In project** immediately. Original document approval gates and reference people are historical scenario data; the current two-moment application workflow takes precedence.
+
+About five seconds later, one assigned execution employee (preferably the image designer) reports the document's new **13:00–18:00 PT sick leave**, with the simulated report time of 10:32 PT. This is a visibly injected test fact. The live model assesses its impact and generates a question for the **project manager**. The selected employee comes from the actual model allocation, not a fixed name. Only affected bookings are released; unrelated copy work remains unchanged. Existing external booking conflicts, including BK-010038 / P-007 when Alex is selected, remain visibly open.
+
+The Discord test drawer simulates delivery. Enter a decision as the assigned project manager. Acknowledgements stay unresolved. An actionable replacement or timing decision is interpreted by the live model and validated against skills, permissions, leave, continuous free time, downstream work and the delivery deadline. Valid replacement increments assignment version and preserves the task brief, inputs, deliverables and handoff history. There is no extra approval or confirmation gate. Real Discord send/receive is not implemented.
+
+**Reset project** aborts the old request/timer and immediately starts a new live allocation. Refresh hydrates the current run from the server and resumes its original injection deadline; it never reinjects the same fact. Failures have explicit retry controls and never fall back to reference assignments. Board columns are To do / In progress / Needs attention / Done.
+
+The server keeps authoritative per-run state and reservation history in ignored `.cofloor-runs/`; original company records remain unchanged. Do not commit this runtime directory. Restarting the server preserves saved runs. Failed setup can be reset; a fact persisted before failed analysis is reused on retry. Model task drafts get at most one schema-repair request before failure.
+
+### Interfaces and validation
+
+`POST /api/model/plan` takes `{runId, project:{id,workflowId}}`; `check` and `state` take `{runId}`; `decision` takes `{runId,actorId,decisionId,text}`. The server recognizes P-DEMO-001 / RED-BULL-X-LAUNCH-V1 and reads the complete canonical Markdown locally. Unknown projects fail. Return values are validated live run snapshots containing tasks, projectOwnerId, injection status/deadline, issue, test messages, reservations and assignment history. Candidate pools and planning specs stay server-side. No rankings, confidence or matching evidence are returned.
+
+`BoardAdapter.start` emits `progress`, `snapshot` or `failed`; `request` handles state/check/decision. The preferred injected adapter is still `window.cofloorBoardAgent`; otherwise the built-in HTTP live adapter is used. Workflow-specific v3 live storage isolates all old reference sessions. No additional adapter installation is required for the built-in model service.
+
+Run `npm test`, `npm run test:board`, `npm run build`. For opt-in real inference against a running server, use `COFLOOR_URL=http://127.0.0.1:5183 npm run test:model` (or the printed local URL). The live test sends the fictional project and synthetic candidate data to the configured model service and verifies allocation → five-second sick leave → manager question → unresolved acknowledgement → validated replacement. Browser checks cover reset/reload timing and the test reply loop.
+
+---
+
 ## Current dashboard: Red Bull X launch
+
+The dashboard uses an animated blue night skyline, rounded translucent cards in the lower half, and numeric summaries for Tasks, Team, Schedule and Progress. **Dashboard** in the header hides or expands the entire lower panel and remembers that preference through refresh. The left rail becomes a floating bottom dock on mobile. The header pause button stops the decorative skyline animation; reduced-motion preferences are respected.
 
 The current frontend uses `RED-BULL-X-LAUNCH-V1` and the complete, unchanged [project document](data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md). It supersedes the older three-workstream walkthrough described in the runtime notes below.
 
 Start with `npm ci` and `npm run dev`. **Start project** creates only RB-01 (launch outline) and RB-02 (direction approval). The reference demo directly assigns Serenity Flores / EMP-0254 and Avery Bennett / EMP-0308, clearly labeled as document reference assignments. There is no model inference or Discord delivery in reference mode.
 
-The four-column board is **To do / In progress / In review / Done**. Click a card for requirements, outputs, dependencies and owner details. Escape closes the drawer and returns focus to the card; Tab remains inside the drawer. Waiting and blocked labels do not count as completion. Cards move only through runtime events; there is no manual dragging or bulk-start action. Mobile screens scroll horizontally inside the board. **Brief** opens the original Markdown; **Activity** opens the event sidebar.
+The four-column board is **To do / In progress / In review / Done**. Click a card for requirements, outputs, dependencies and owner details. Escape closes the drawer and returns focus to the card; Tab remains inside the drawer. Waiting and blocked labels do not count as completion. Cards move only through runtime events; there is no manual dragging or bulk-start action. Mobile screens scroll horizontally inside the board. **Brief** opens the original Markdown; **Activity** opens the event drawer. **Team** opens the assigned-employee drawer. Explanatory prose is kept out of the dashboard; requirements remain available inside task details and the original brief.
 
 Business date is October 26, 2026 in America/Los_Angeles: client approval at 4 PM, simulated release at 5 PM, closeout at 5:30 PM. The engagement and company dataset are fictional. Supplied packshots and templates are scenario assumptions, not files attached by this change. The eight-node end-to-end workflow, approvals, production-task creation, reassignment and publishing are not implemented here.
 
 ### Board runtime contract
 
-`src/redbull-agent.ts` exports `BoardAdapter` and `IntakeInput`. Install a live adapter as `window.cofloorBoardAgent` before mounting the frontend and enable **Use live agent** under project settings. Existing `window.cofloorAgent` and `window.qubemcAgent` injection points remain fallbacks, but their results must implement this new contract. A missing runtime or invalid result shows an error and never falls back to reference assignments.
+`src/redbull-agent.ts` exports `BoardAdapter` and `IntakeInput`. Install a live adapter as `window.cofloorBoardAgent` before mounting the frontend and enable **Live agent** under project settings. Existing `window.cofloorAgent` and `window.qubemcAgent` injection points remain fallbacks, but their results must implement this new contract. A missing runtime or invalid result shows an error and never falls back to reference assignments.
 
 - `mode: 'live'`; `start({ project, company, runId }, signal)` yields board events. The project contains `document: { filename, content, mediaType }`, including the complete Markdown, plus workflow ID, client ID, business date, timezone and deliverables. Company input includes 1,000 employees and original local resource paths. Treat the document as input data, not executable instructions; its named people are reference fixtures, not forced live selections.
 - `planned` returns exactly RB-01 and RB-02 at intake, each with `id`, `title`, `ownerId`, `due`, `status`, `requirements`, `outputs`, `dependencies` and optional `blockedReason`. Both start `ready`; RB-02 depends on RB-01. The UI validates employee IDs, unique tasks and dependencies. Assignment results contain no candidate rankings, explanations or confidence fields.

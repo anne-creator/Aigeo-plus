@@ -5,15 +5,26 @@ import type { BoardEvent, BoardTask } from './board-state';
 import { company, project } from './redbull-project';
 import { configureRuntime, getBoardAdapter, hasRuntime } from './redbull-agent';
 import './kanban.css';
+import { NightCity } from './NightCity';
 
 const employeeIds = new Set(company.people.map(p => p.id));
-const storageKey = `cofloor-board-v2:${company.source?.datasetId}:${project.workflowId}`;
+const storageKey = `cofloor-board-v3-live:${company.source?.datasetId}:${project.workflowId}`;
 const modeKey = `${storageKey}:mode`;
+const dashboardKey = 'cofloor-dashboard:expanded';
 const businessDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: project.timezone }).format(new Date(`${project.businessDate}T12:00:00-07:00`));
 const read = (key: string) => { try { return localStorage.getItem(key); } catch { return null; } };
-function Icon({ name, size = 20 }: { name: 'grid' | 'arrow' | 'file' | 'clock' | 'activity' | 'close' | 'chevron'; size?: number }) {
-  const paths = { grid: 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z', arrow: 'M5 12h14 M13 6l6 6-6 6', file: 'M14 2H5v20h14V7z M14 2v6h5 M8 12h8 M8 16h6', clock: 'M12 8v4l3 2 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0', activity: 'M3 12h4l3-8 4 16 3-8h4', close: 'M6 6l12 12 M18 6L6 18', chevron: 'M9 5l7 7-7 7' };
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]}/></svg>;
+type IconName = 'grid' | 'arrow' | 'file' | 'clock' | 'activity' | 'close' | 'chevron' | 'home' | 'users' | 'chart' | 'settings' | 'collapse' | 'check';
+function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
+  const paths: Record<IconName, string> = {
+    grid: 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
+    arrow: 'M5 12h14 M13 6l6 6-6 6', file: 'M14 2H5v20h14V7z M14 2v6h5 M8 12h8 M8 16h6',
+    clock: 'M12 8v4l3 2 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
+    activity: 'M3 12h4l3-8 4 16 3-8h4', close: 'M6 6l12 12 M18 6L6 18', chevron: 'M9 5l7 7-7 7',
+    home: 'M3 10l9-7 9 7v10H3z M9 20v-7h6v7', users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M16 4a4 4 0 0 1 0 8 M22 21v-2a4 4 0 0 0-3-3.87 M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
+    chart: 'M4 20V10 M12 20V4 M20 20v-7', settings: 'M4 7h16 M4 17h16 M8 4v6 M16 14v6',
+    collapse: 'M4 9l8 8 8-8', check: 'M5 12l4 4L19 6',
+  };
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]}/></svg>;
 }
 function Avatar({ id }: { id: string }) {
   const p = company.people.find(person => person.id === id);
@@ -23,13 +34,10 @@ function TaskCard({ task, tasks, onOpen }: { task: BoardTask; tasks: BoardTask[]
   const person = company.people.find(p => p.id === task.ownerId);
   const waiting = waitingFor(task, tasks);
   return <button className={`board-card ${task.blockedReason ? 'is-blocked' : ''}`} onClick={onOpen} aria-label={`${task.id}: ${task.title}, assigned to ${person?.name}`}>
-    <div className="card-top"><span className="task-id">{task.id}</span><Icon name="chevron" size={15}/></div>
+    <div className="card-top"><span className="task-id">{task.id}</span><Icon name="chevron" size={13}/></div>
     <h3>{task.title}</h3>
-    <p className="card-description">{task.requirements}</p>
-    {waiting.length > 0 && <span className="dependency-tag"><span className="tag-dot"/>{task.id === 'RB-02' ? 'Waiting for outline' : `Waiting for ${waiting.join(', ')}`}</span>}
-    {task.blockedReason && <span className="blocked-tag">Blocked · {task.blockedReason}</span>}
-    <div className="card-deliverable"><Icon name="file" size={14}/><span>{task.outputs[0] ?? 'Deliverable pending'}</span></div>
-    <div className="card-footer"><span className="card-person"><Avatar id={task.ownerId}/><span>{person?.name ?? task.ownerId}</span></span><span className="card-due"><Icon name="clock" size={13}/>{task.due}</span></div>
+    {(waiting.length > 0 || task.blockedReason) && <span className={`task-marker ${task.blockedReason ? 'blocked-tag' : 'dependency-tag'}`} title={task.blockedReason ?? `Waiting for ${waiting.join(', ')}`}><Icon name="clock" size={11}/>{task.blockedReason ? 'Blocked' : waiting.join(', ')}</span>}
+    <div className="card-footer"><span className="card-person"><Avatar id={task.ownerId}/><span>{person?.name ?? task.ownerId}</span></span><span className="card-due">{task.due}</span></div>
   </button>;
 }
 function Drawer({ titleId, children, onClose }: { titleId: string; children: React.ReactNode; onClose: () => void }) {
@@ -42,7 +50,7 @@ function Drawer({ titleId, children, onClose }: { titleId: string; children: Rea
   }, []);
   return <dialog ref={dialog} className="detail-drawer" aria-labelledby={titleId} onCancel={onClose} onClose={onClose} onKeyDown={e => {
     if (e.key !== 'Tab') return;
-    const focusable = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), [tabindex="0"]')).filter(el => el.getClientRects().length > 0);
+    const focusable = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), textarea:not(:disabled), [tabindex="0"]')).filter(el => el.getClientRects().length > 0);
     const first = focusable[0], last = focusable[focusable.length - 1];
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
@@ -54,10 +62,18 @@ function Drawer({ titleId, children, onClose }: { titleId: string; children: Rea
 }
 function App() {
   const [state, dispatch] = useReducer(boardReducer, undefined, () => restoreBoard(read(storageKey), employeeIds));
-  const [live, setLive] = useState(() => read(modeKey) === 'live');
+  const live = true;
+  const [runtimeReady, setRuntimeReady] = useState(false);
+  const [hydratedRun, setHydratedRun] = useState('');
+  const [decisionOpen, setDecisionOpen] = useState(false);
+  const [replyText, setReplyText] = useState('');
   const [saved, setSaved] = useState(true);
   const [controls, setControls] = useState(false);
   const [activity, setActivity] = useState(false);
+  const [teamOpen, setTeamOpen] = useState(false);
+  const [scenePlaying, setScenePlaying] = useState(true);
+  const [dashboardOpen, setDashboardOpen] = useState(() => read(dashboardKey) !== 'false');
+  const boardRef = useRef<HTMLElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [documentOpen, setDocumentOpen] = useState(false);
   const [, updateRuntimeStatus] = useState(0);
@@ -71,63 +87,105 @@ function App() {
     try { localStorage.setItem(storageKey, JSON.stringify(state)); localStorage.setItem(modeKey, live ? 'live' : 'development'); setSaved(true); }
     catch { setSaved(false); }
   }, [state, live]);
-  useEffect(() => () => controller.current?.abort(), []);
-  // Read-only discovery for a separately installed local model service.
+  useEffect(() => { try { localStorage.setItem(dashboardKey, String(dashboardOpen)); } catch { /* Presentation preference is optional. */ } }, [dashboardOpen]);
+  useEffect(() => () => { controller.current?.abort(); controller.current = null; running.current = false; }, []);
   useEffect(() => {
     const abort = new AbortController();
-    fetch('/api/model/status', { signal: abort.signal }).then(r => r.ok ? r.json() : null).then(data => {
-      configureRuntime(Boolean(data?.configured)); updateRuntimeStatus(n => n + 1);
-    }).catch(() => {});
+    fetch('/api/model/status', { signal: AbortSignal.any([abort.signal, AbortSignal.timeout(5000)]) }).then(r => r.ok ? r.json() : null).then(data => {
+      if (abort.signal.aborted) return;
+      configureRuntime(Boolean(data?.configured)); updateRuntimeStatus(n => n + 1); setRuntimeReady(true);
+    }).catch(() => { if (!abort.signal.aborted) { configureRuntime(false); setRuntimeReady(true); } });
     return () => abort.abort();
   }, []);
-  useEffect(() => {
-    if (!live || !started) return;
-    try { return getBoardAdapter(true).subscribe?.(emit); } catch { /* Start surfaces connection errors. */ }
-  }, [live, started, state.runId]);
-  async function start() {
+  async function operation(action: 'state' | 'check' | 'decision', extra: Record<string, unknown> = {}) {
     if (running.current) return;
+    const runId = state.runId, abort = new AbortController();
+    running.current = true; controller.current = abort;
+    dispatch({ type: 'operation', operation: action === 'decision' ? 'deciding' : 'checking' });
+    try {
+      const run = await getBoardAdapter().request(action, { runId, ...extra }, abort.signal);
+      if (!abort.signal.aborted) {
+        emit({ id: crypto.randomUUID(), runId, type: 'snapshot', run }); setHydratedRun(runId);
+        if (run.issue?.status === 'awaiting') setDecisionOpen(true);
+        if (action === 'decision') setReplyText('');
+      }
+    } catch (error) {
+      if (!abort.signal.aborted) emit({ id: crypto.randomUUID(), runId, type: 'failed', message: error instanceof Error ? error.message : 'Model request failed.' });
+    } finally { if (controller.current === abort) { running.current = false; controller.current = null; } }
+  }
+  useEffect(() => {
+    if (runtimeReady && started && hydratedRun !== state.runId && !state.error) void operation('state');
+  }, [runtimeReady, started, state.runId, hydratedRun]);
+  useEffect(() => {
+    if (!started || hydratedRun !== state.runId || state.operation !== 'idle' || state.error || !state.injection) return;
+    if (state.injection.status === 'scheduled' || state.injection.status === 'injected') {
+      const delay = state.injection.status === 'scheduled' ? Math.max(0, state.injection.dueAt - Date.now()) : 0;
+      const timer = setTimeout(() => void operation('check'), delay);
+      return () => clearTimeout(timer);
+    }
+  }, [started, hydratedRun, state.runId, state.operation, state.injection?.status, state.injection?.dueAt, state.error]);
+  async function start(force = false) {
+    if (!runtimeReady || (running.current && !force)) return;
+    if (force) { controller.current?.abort(); controller.current = null; running.current = false; }
     const runId = crypto.randomUUID(), abort = new AbortController();
-    running.current = true; controller.current = abort; setControls(false);
+    running.current = true; controller.current = abort; setControls(false); setSelectedId(null); setActivity(false); setDecisionOpen(false); setReplyText(''); setHydratedRun('');
     dispatch({ type: 'start', runId });
     try {
       let receivedResult = false;
-      for await (const event of getBoardAdapter(live).start({ project, company, runId }, abort.signal)) {
-        if (event.type === 'planned' || event.type === 'failed') receivedResult = true;
-        if (!abort.signal.aborted) emit(event);
+      for await (const event of getBoardAdapter().start({ project, company, runId }, abort.signal)) {
+        if (abort.signal.aborted) break;
+        if (event.type === 'snapshot') { receivedResult = true; setHydratedRun(runId); }
+        emit(event);
       }
-      if (!receivedResult && !abort.signal.aborted) throw new Error('Agent finished without returning an intake plan.');
+      if (!receivedResult && !abort.signal.aborted) throw new Error('Agent finished without returning a project allocation.');
     } catch (error) {
       if (!abort.signal.aborted) emit({ id: crypto.randomUUID(), runId, type: 'failed', message: error instanceof Error ? error.message : 'Agent request failed.' });
     } finally { if (controller.current === abort) { running.current = false; controller.current = null; } }
   }
-  function reset() {
-    controller.current?.abort(); controller.current = null; running.current = false;
-    dispatch({ type: 'reset' }); setControls(false); setSelectedId(null); setActivity(false);
+  function reset() { void start(true); }
+  const done = state.tasks.filter(t => t.status === 'done').length;
+  const completion = state.tasks.length ? Math.round(done / state.tasks.length * 100) : 0;
+  const owners = [...new Set(state.tasks.map(t => t.ownerId))];
+  const counts = columns.map(column => ({ ...column, count: state.tasks.filter(t => t.status === column.status).length }));
+  function revealBoard() {
+    setDashboardOpen(true);
+    requestAnimationFrame(() => { boardRef.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'nearest' }); boardRef.current?.focus({ preventScroll: true }); });
   }
-  return <div className="app-shell">
-    <header className="topbar"><a href="#" className="brand" aria-label="CoFloor home"><span className="brand-symbol"><Icon name="grid" size={18}/></span>CoFloor</a><div className="topbar-divider"/><span className="workspace-name">Bridgewell Creative</span><span className="workspace-label">WORKSPACE</span><div className="topbar-actions"><span className={`runtime-pill ${live ? 'live' : ''}`}><span className="status-dot"/>{live ? (hasRuntime() ? 'Live agent' : 'Agent disconnected') : 'Reference demo'}</span><div className="settings-wrap"><button className="icon-button" aria-label="Project settings" aria-expanded={controls} onClick={() => setControls(!controls)}>•••</button>{controls && <div className="settings-panel"><strong>Project settings</strong><label><input type="checkbox" checked={live} disabled={state.phase !== 'idle'} onChange={e => setLive(e.target.checked)}/>Use live agent</label><p>{live ? 'Requires a runtime supporting the Red Bull intake contract.' : 'Assignments use the document’s reference people. No model inference or Discord delivery.'}</p><button className="secondary-button" onClick={reset}>Reset project</button></div>}</div></div></header>
-    <main className="dashboard">
-      <nav className="breadcrumb" aria-label="Breadcrumb"><span>Projects</span><Icon name="chevron" size={13}/><span>Red Bull X launch</span></nav>
-      <section className="project-heading"><div><div className="project-kicker"><span className="project-emblem">RB</span><span>{project.id}</span><span className="neutral-pill">{started ? 'Active' : 'Project setup'}</span></div><h1>{project.title}<span className="heading-suffix">X launch</span></h1><p>One post. One launch image. A coordinated team.</p></div><div className="deadline-block"><span>CLIENT APPROVAL</span><strong>{project.deadline}<small> PT</small></strong><p>{businessDate}</p></div></section>
-      <div className="project-meta"><span><Icon name="clock" size={15}/>Simulated business date · Oct 26</span><span>Release <strong>{project.releaseTime} PT</strong></span><span>Closeout <strong>{project.closeoutTime} PT</strong></span><span className="company-summary"><strong>{company.people.length.toLocaleString()}</strong> employees<span className="meta-dot"/>{company.departments.length} departments</span></div>
-      <div className="view-bar"><span className="view-tab"><Icon name="grid" size={16}/>{started ? 'Task board' : 'Project brief'}</span><span className="view-spacer"/>{started && <button className="quiet-button" onClick={() => setDocumentOpen(true)}><Icon name="file" size={16}/>Brief</button>}<button className={`quiet-button ${activity ? 'selected' : ''}`} aria-expanded={activity} aria-controls="project-activity" onClick={() => setActivity(!activity)}><Icon name="activity" size={16}/>Activity</button></div>
-      {state.error && <div className="error-banner" role="alert"><span>{state.error}</span><button onClick={reset}>Reset & retry</button></div>}
-      {!saved && <p className="storage-warning" role="status">Browser storage is unavailable. This session will not survive a refresh.</p>}
-      <div className={`content-layout ${activity ? 'with-activity' : ''}`}>
-        <section className="main-content" aria-label={started ? 'Task board' : 'Project brief'}>
-          {!started ? <div className="intake-layout"><article className="brief-panel"><div className="section-eyebrow">CLIENT REQUEST</div><h2>A new flavor, ready for launch.</h2><p className="brief-description">{project.brief}</p><div className="brief-deliverables"><h3>Deliverables</h3><div>{project.deliverables.map(d => <span key={d}>{d}</span>)}</div></div><div className="source-document"><span className="document-symbol"><Icon name="file" size={22}/></span><div><strong>Project requirements</strong><span>{project.file}</span></div><button className="quiet-button" onClick={() => setDocumentOpen(true)}>View original<Icon name="chevron" size={15}/></button></div><div className="brief-actions"><span>{live ? 'Ready for the connected agent' : 'Reference assignments · no model inference'}</span><button className="primary-button" onClick={() => void start()} disabled={planning}>{planning ? (state.error ? 'Reset to retry' : <><span className="spinner"/>Preparing tasks</>) : <>Start project<Icon name="arrow" size={18}/></>}</button></div>{planning && !state.error && <p className="planning-label" role="status">{state.label || 'Preparing project…'}</p>}</article><aside className="intake-note"><div className="section-eyebrow">START WITH DIRECTION</div><div className="step-number">01</div><h3>Outline first.<br/>Production follows.</h3><p>A strategist prepares the launch outline. The Creative Director then approves the direction and image headline.</p><div className="note-rule"/><p>Copy and design tasks are created after approval, using the approved outline.</p><span className="small-caption">Fictional client engagement · synthetic company data</span></aside></div> : <>
-            <div className="board-caption"><span><strong>{state.tasks.length} tasks</strong><span className="meta-dot"/>{state.tasks.filter(t => t.status === 'done').length} completed</span><span>{live ? 'Updated by agent events' : 'Document reference assignments'}</span></div>
-            <div className="kanban-scroll" role="region" aria-label="Kanban board" tabIndex={0}><div className="kanban-board">{columns.map(column => {
-              const tasks = state.tasks.filter(t => t.status === column.status);
-              return <section className={`kanban-column column-${column.status}`} key={column.status} aria-label={`${column.label}: ${tasks.length} tasks`}><div className="column-heading"><span className="column-indicator"/><h2>{column.label}</h2><span className="column-count">{tasks.length}</span></div><div className="column-content">{tasks.length ? tasks.map(task => <TaskCard key={task.id} task={task} tasks={state.tasks} onOpen={() => setSelectedId(task.id)}/>) : <div className="column-empty"><span className="empty-mark">—</span><p>{column.empty}</p></div>}</div></section>;
-            })}</div></div><p className="board-footnote">{live ? 'Tasks move as the agent reports progress.' : 'Reference demo · connect an agent for live progress updates.'}</p>
-          </>}
-        </section>
-        {activity && <aside className="activity-panel" id="project-activity"><div className="activity-heading"><h2>Project activity</h2><button className="icon-button" aria-label="Close activity" onClick={() => setActivity(false)}><Icon name="close" size={17}/></button></div><span className="activity-mode">{live ? 'Agent events' : 'Reference demo'}</span>{state.activity.length ? <ol>{state.activity.map((item, i) => <li key={i}><span className="timeline-dot"/><p>{item}</p></li>)}</ol> : <p className="activity-empty">Project updates will appear here.</p>}<div className="activity-notice">{live ? 'Only events from the connected runtime are shown.' : 'No model inference or Discord delivery has taken place.'}</div></aside>}
+  return <div className={`app-shell night-scene ${scenePlaying ? '' : 'scene-paused'}`}>
+    <NightCity/>
+    <header className="topbar">
+      <a href="#" className="brand" aria-label="CoFloor home" onClick={e => { e.preventDefault(); setDashboardOpen(true); }}><span className="brand-symbol"><Icon name="grid" size={23}/></span><span>CoFloor<small>Dashboard</small></span></a>
+      <div className="topbar-actions"><button className="scene-toggle" aria-label={scenePlaying ? 'Pause background animation' : 'Play background animation'} title={scenePlaying ? 'Pause animation' : 'Play animation'} aria-pressed={!scenePlaying} onClick={() => setScenePlaying(!scenePlaying)}>{scenePlaying ? <span aria-hidden="true">Ⅱ</span> : <Icon name="arrow" size={14}/>}</button><span className={`runtime-pill ${live ? 'live' : ''}`}><span className="status-dot"/>{live ? (hasRuntime() ? 'Live mode' : 'Disconnected') : 'Reference'}</span><span className="workspace-name">Bridgewell Creative</span><button className={`dashboard-toggle ${dashboardOpen ? 'is-open' : ''}`} aria-label={dashboardOpen ? 'Hide dashboard' : 'Show dashboard'} aria-expanded={dashboardOpen} aria-controls="dashboard-panel" onClick={() => setDashboardOpen(!dashboardOpen)}><Icon name="grid" size={16}/><span>Dashboard</span><Icon name="collapse" size={14}/></button></div>
+    </header>
+    <nav className="side-rail" aria-label="Workspace">
+      <button className={`nav-circle ${dashboardOpen ? 'on' : ''}`} aria-label="Show dashboard" aria-controls="dashboard-panel" onClick={() => setDashboardOpen(true)} title="Dashboard"><Icon name="home"/></button>
+      <button className="nav-circle" aria-label="Task board" onClick={revealBoard} title="Task board"><Icon name="grid"/></button>
+      <button className="nav-circle" aria-label="Team" onClick={() => setTeamOpen(true)} title="Team"><Icon name="users"/></button>
+      <button className="nav-circle" aria-label="Project requirements" onClick={() => setDocumentOpen(true)} title="Brief"><Icon name="file"/></button>
+      <button className="nav-circle" aria-label="Project activity" onClick={() => setActivity(true)} title="Activity"><Icon name="activity"/></button>
+      <div className="settings-wrap"><button className={`nav-circle ${controls ? 'on' : ''}`} aria-label="Project settings" aria-expanded={controls} aria-controls="project-settings" onClick={() => setControls(!controls)} title="Settings"><Icon name="settings"/></button>{controls && <div className="settings-panel" id="project-settings"><strong>Project settings</strong><span className="settings-mode">Live model · automatic allocation</span><span className="settings-mode">{live ? (hasRuntime() ? 'Model configured' : 'Disconnected') : 'Reference demo'}</span><button className="secondary-button" onClick={reset}>Reset project</button></div>}</div>
+    </nav>
+    <main className="dashboard" id="dashboard-panel" hidden={!dashboardOpen} aria-label="Project dashboard">
+      <div className="dashboard-toolbar"><div className="project-label"><span className="project-emblem">RB</span><h1>{project.title}<span>X launch</span></h1></div><div className="toolbar-actions">{started && <span className="project-phase">In project</span>}<span className="date-chip"><Icon name="clock" size={14}/>{businessDate}</span><button className="toolbar-button" onClick={() => setDocumentOpen(true)}><Icon name="file" size={14}/>Brief</button><button className="toolbar-button icon-only" aria-label="Project activity" onClick={() => setActivity(true)}><Icon name="activity" size={16}/></button>{!started && <button className="primary-button" onClick={() => void start()} disabled={planning || !runtimeReady}>{planning ? <><span className="spinner"/>{state.error ? 'Setup failed' : 'Assigning'}</> : <>Start project<Icon name="arrow" size={15}/></>}</button>}</div></div>
+      {state.error && <div className="error-banner" role="alert"><span>{state.error}</span><button onClick={() => started ? void operation(state.injection?.status === 'injected' ? 'check' : 'state') : reset()}>Retry</button></div>}
+      {!saved && <p className="storage-warning" role="status">Storage unavailable</p>}
+      {planning && !state.error && <span className="setup-status" role="status">{state.label || 'Assigning your project team…'}</span>}
+      {started && state.projectOwnerId && <div className="project-owner-strip">Project owner · {company.people.find(p => p.id === state.projectOwnerId)?.name}{state.operation === 'checking' && <span role="status">Analyzing project update…</span>}{state.issue && <button className="toolbar-button" onClick={() => setDecisionOpen(true)}>{state.issue.status === 'awaiting' ? 'Decision needed' : 'Decision recorded'}</button>}</div>}
+      <div className="dashboard-grid">
+        <section className="glass-card tasks-summary" aria-labelledby="tasks-title"><div className="metric-heading"><span className="tile-icon"><Icon name="grid" size={21}/></span><h2 id="tasks-title">Tasks</h2><span className="metric-number">{state.tasks.length}</span></div><div className="status-bars">{counts.slice(0, 3).map(column => <div className="status-row" key={column.status}><div><span>{column.label}</span><strong>{column.count}</strong></div><div className="bar-track"><span style={{ width: `${state.tasks.length ? column.count / state.tasks.length * 100 : 0}%` }}/></div></div>)}</div><div className="metric-footer"><Icon name="check" size={14}/><span>{done}</span><span className="metric-unit">Done</span></div></section>
+        <section className="glass-card team-summary" aria-labelledby="team-title"><div className="metric-heading"><span className="tile-icon team-tile"><Icon name="users" size={21}/></span><h2 id="team-title">Team</h2><button className="card-link" aria-label="View team" onClick={() => setTeamOpen(true)}><Icon name="arrow" size={17}/></button></div><div className="team-total">{company.people.length.toLocaleString()}</div><div className="team-stats"><div><strong>{company.departments.length}</strong><span>Departments</span></div><div><strong>{owners.length}</strong><span>Assigned</span></div></div><div className="team-avatars">{owners.map(id => <Avatar key={id} id={id}/>)}<span aria-hidden="true" className="team-avatars-line"/></div></section>
+        <section className="glass-card schedule-summary" aria-labelledby="schedule-title"><div className="metric-heading"><span className="tile-icon schedule-tile"><Icon name="clock" size={21}/></span><h2 id="schedule-title">Schedule</h2><span className="timezone">PT</span></div><div className="schedule-times"><div><span>Delivery</span><strong>{project.deadline}</strong></div><div><span>Release</span><strong>{project.releaseTime}</strong></div><div><span>Closeout</span><strong>{project.closeoutTime}</strong></div></div><div className="schedule-track" aria-hidden="true"><i/><i/><i/></div></section>
+        <section className="glass-card progress-card" aria-labelledby="progress-title"><div className="progress-icons" aria-hidden="true">{(['grid', 'users', 'file', 'chart', 'check'] as IconName[]).map(name => <span className={`growth-disc ${name === 'chart' ? 'big' : ''}`} key={name}><Icon name={name} size={17}/></span>)}</div><h2 id="progress-title">Progress</h2><div className="progress-donut" role="img" aria-label={`${completion}% complete, ${done} of ${state.tasks.length} tasks`} style={{ '--progress': `${completion}%` } as React.CSSProperties}><strong>{completion}<span>%</span></strong></div><div className="progress-legend"><span><i/>{done}<small>Done</small></span><span><i/>{state.tasks.length - done}<small>Open</small></span></div><div className="progress-bottom"><span>{String(done).padStart(2, '0')}<span>/</span>{String(state.tasks.length).padStart(2, '0')}</span></div></section>
+        <section className="glass-card board-panel" aria-labelledby="board-title" ref={boardRef} tabIndex={-1}><div className="board-heading"><h2 id="board-title">Task board</h2><span>{state.tasks.length}</span><button className="card-link" aria-label="Open project requirements" onClick={() => setDocumentOpen(true)}><Icon name="file" size={16}/></button></div><div className="kanban-scroll" role="region" aria-label="Kanban board" tabIndex={0}><div className="kanban-board">{counts.map(column => {
+          const tasks = state.tasks.filter(t => t.status === column.status);
+          return <section className={`kanban-column column-${column.status}`} key={column.status} aria-label={`${column.label}: ${tasks.length} tasks`}><div className="column-heading"><span className="column-indicator"/><h3>{column.label}</h3><span className="column-count">{tasks.length}</span></div><div className="column-content">{tasks.length ? tasks.map(task => <TaskCard key={task.id} task={task} tasks={state.tasks} onOpen={() => setSelectedId(task.id)}/>) : <span className="column-empty">0</span>}</div></section>;
+        })}</div></div></section>
       </div>
-      <footer><span>CoFloor<span className="meta-dot"/>Project coordination</span><span>{live ? 'Connected runtime results only' : 'Reference demo · simulated engagement'}</span></footer>
     </main>
-    {selected && <Drawer titleId="task-detail-title" onClose={() => setSelectedId(null)}><div className="section-eyebrow">TASK DETAILS · {selected.id}</div><h2 id="task-detail-title">{selected.title}</h2><span className="detail-status">{columns.find(c => c.status === selected.status)?.label}</span><div className="detail-person"><Avatar id={selected.ownerId}/><div><strong>{company.people.find(p => p.id === selected.ownerId)?.name}</strong><span>{company.people.find(p => p.id === selected.ownerId)?.role}</span></div></div><dl className="task-facts"><div><dt>Deadline</dt><dd>{businessDate} · {selected.due} PT</dd></div><div><dt>Employee</dt><dd>{selected.ownerId}</dd></div></dl><h3>Requirements</h3><p>{selected.requirements}</p><h3>Deliverables</h3><ul>{selected.outputs.map(output => <li key={output}>{output}</li>)}</ul><h3>Dependencies</h3>{selected.dependencies.length ? <ul>{selected.dependencies.map(id => <li key={id}>{id} · {state.tasks.find(t => t.id === id)?.title} — {state.tasks.find(t => t.id === id)?.status === 'done' ? 'Complete' : 'Waiting'}</li>)}</ul> : <p>No dependencies. Ready to start.</p>}{selected.blockedReason && <p className="blocked-tag">Blocked · {selected.blockedReason}</p>}<button className="secondary-button drawer-document" onClick={() => { setSelectedId(null); setDocumentOpen(true); }}>View project requirements<Icon name="file" size={16}/></button></Drawer>}
+    {activity && <Drawer titleId="activity-title" onClose={() => setActivity(false)}><div className="section-eyebrow">{live ? 'Live agent' : 'Reference'}</div><h2 id="activity-title">Project activity<span className="drawer-count">{state.activity.length}</span></h2>{state.activity.length ? <ol className="activity-list">{state.activity.map((item, i) => <li key={i}>{item}</li>)}</ol> : <span className="drawer-zero">0</span>}</Drawer>}
+    {decisionOpen && <Drawer titleId="decision-title" onClose={() => setDecisionOpen(false)}><div className="section-eyebrow">Discord test channel · simulated delivery</div><h2 id="decision-title">{state.issue?.title ?? 'Project update'}</h2><p>Decision owner: {company.people.find(p => p.id === state.projectOwnerId)?.name}</p><p>{state.issue?.detail}</p>{state.injection?.fact && <p className="test-fact-label">Injected test fact · {company.people.find(p => p.id === state.injection?.fact?.employeeId)?.name} reported sick leave.</p>}<div className="decision-messages" aria-live="polite">{state.messages.map(m => <article key={m.id}><strong>{m.author === 'agent' ? 'CoFloor' : company.people.find(p => p.id === m.actorId)?.name}<small>{m.delivery === 'injected_fact' ? 'Injected test fact' : m.delivery === 'test_input' ? 'Test reply' : 'Not sent to Discord'}</small></strong><p>{m.text}</p></article>)}</div>{Boolean(state.externalConflicts?.length) && <><h3>Other project conflicts · still open</h3><ul>{state.externalConflicts?.map(c => <li key={c.bookingId}>{c.bookingId} · {c.projectId} · needs replanning by its owner</li>)}</ul></>}{state.nextCheckIn && <p>Next check-in: {state.nextCheckIn}</p>}{state.error && <p role="alert">{state.error}</p>}{state.issue?.status === 'awaiting' && <form onSubmit={e => { e.preventDefault(); if (replyText.trim()) void operation('decision', { actorId: state.projectOwnerId, text: replyText.trim(), decisionId: crypto.randomUUID() }); }}><label htmlFor="manager-reply">Project manager decision</label><textarea id="manager-reply" value={replyText} onChange={e => setReplyText(e.target.value)} placeholder="Enter the project manager’s decision…" rows={4} disabled={state.operation !== 'idle'}/><button className="primary-button" type="submit" disabled={!replyText.trim() || state.operation !== 'idle'}>{state.operation === 'deciding' ? 'Interpreting decision…' : 'Submit test reply'}</button></form>}</Drawer>}
+    {teamOpen && <Drawer titleId="team-title-drawer" onClose={() => setTeamOpen(false)}><h2 id="team-title-drawer">Team</h2><dl className="task-facts"><div><dt>Employees</dt><dd>{company.people.length.toLocaleString()}</dd></div><div><dt>Departments</dt><dd>{company.departments.length}</dd></div><div><dt>Assigned</dt><dd>{owners.length}</dd></div></dl>{owners.map(id => { const person = company.people.find(p => p.id === id); return <div key={id} className="detail-person"><Avatar id={id}/><div><strong>{person?.name ?? id}</strong><span>{person?.role}</span></div></div>; })}</Drawer>}
+    {selected && <Drawer titleId="task-detail-title" onClose={() => setSelectedId(null)}><div className="section-eyebrow">TASK DETAILS · {selected.id}</div><h2 id="task-detail-title">{selected.title}</h2><span className="detail-status">{columns.find(c => c.status === selected.status)?.label}</span><div className="detail-person"><Avatar id={selected.ownerId}/><div><strong>{company.people.find(p => p.id === selected.ownerId)?.name}</strong><span>{company.people.find(p => p.id === selected.ownerId)?.role}</span></div></div><dl className="task-facts"><div><dt>Deadline</dt><dd>{businessDate} · {selected.due} PT</dd></div><div><dt>Employee</dt><dd>{selected.ownerId}</dd></div></dl><h3>Requirements</h3><p>{selected.requirements}</p><h3>Inputs</h3><ul>{selected.inputs?.map(input => <li key={input}>{input}</li>)}</ul><h3>Deliverables</h3><ul>{selected.outputs.map(output => <li key={output}>{output}</li>)}</ul><h3>Dependencies</h3>{selected.dependencies.length ? <ul>{selected.dependencies.map(id => <li key={id}>{id} · {state.tasks.find(t => t.id === id)?.title} — {state.tasks.find(t => t.id === id)?.status === 'done' ? 'Complete' : 'Waiting'}</li>)}</ul> : <p>No dependencies. Ready to start.</p>}{selected.blockedReason && <p className="blocked-tag">Blocked · {selected.blockedReason}</p>}<button className="secondary-button drawer-document" onClick={() => { setSelectedId(null); setDocumentOpen(true); }}>View project requirements<Icon name="file" size={16}/></button></Drawer>}
     {documentOpen && <Drawer titleId="document-title" onClose={() => setDocumentOpen(false)}><div className="section-eyebrow">ORIGINAL DOCUMENT</div><h2 id="document-title">Project requirements</h2><p className="document-filename">{project.file}</p><a className="secondary-button download-link" download={project.file} href={`data:text/markdown;charset=utf-8,${encodeURIComponent(project.document.content)}`}>Download Markdown<Icon name="file" size={16}/></a><pre className="document-content">{project.document.content}</pre></Drawer>}
   </div>;
 }

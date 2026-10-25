@@ -1,12 +1,42 @@
 # CoFloor Project Structure
 
+## Live two-moment workflow (2026-10-25)
+
+This section supersedes the earlier reference-intake and approval-workflow notes.
+
+- `server/project.mjs`: canonical document input, live production-task decomposition and assignment, project manager selection, feasibility validation, durable per-run state, once-only five-second sick leave, decision interpretation, reservation release/rebooking and assignment/handoff history. Working copies stay in ignored `.cofloor-runs/`. All source company files remain unchanged.
+- `server/model.mjs`: existing model connection plus run-scoped plan/check/decision/state routing. Preloaded Red Bull setup is explicitly supported; no blanket document authorization rejection. Credentials remain server-only and the configured HTTPS host allowlist remains enforced.
+- `src/redbull-agent.ts`, `src/board-state.ts` and the current dashboard: built-in live HTTP adapter, validated snapshots, v3 live storage, automatic In project entry, timer recovery, manager dialogue and immediate reallocation on Reset. Board status attention replaces the old review gate.
+
+`Start project` → model decomposes execution work → eligible candidate pools → model selects owners and a dispatch-capable project manager → validate/reserve/save → In project → about five seconds → persist a newly reported 13:00–18:00 PT sick leave for the selected designer → release affected reservations → model asks PM → test-channel manager decision → model proposes updates → validate/rebook/version increment → continue. No approval stage and no fabricated inference. Acknowledgement-only replies cannot restore work. External project conflicts stay open after resolving this project's task.
+
+The source document's original reference ranking, named actors and eight-node approval flow are retained as source data, not UI requirements. The dynamic plan does not return rankings or evidence; original brief/inputs and outputs survive handoff. Real Discord is outside this change: delivery and manager input are explicitly labeled simulated/test.
+
+Validation: server/state regression tests, canonical-document and adapter contract check, strict TypeScript/build, desktop/mobile browser test with mocked transport, and opt-in genuine-model integration script. Coverage includes early/once-only injection, refresh recovery, sick employee exclusion, manager identity, reservation/history preservation, open P-007 conflict, vague/invalid decisions, assignment versions, cancellation and reset run isolation.
+
+---
+
+## Current presentation: collapsible glass dashboard (2026-10-25)
+
+- Night skyline background: `src/NightCity.tsx` renders deterministic SVG towers, blue roof lights, layered skyline, window lights and a drifting light band behind the panels. CSS animates opacity and transforms without timers or network media. The header pause/play control stops the scene; reduced-motion preferences disable animation. Night-scene contrast uses 45% scene brightness and 70% saturation; glass has 5% white tint / 48 px blur and slightly desaturated backdrops, with a lighter shadow and fine edge highlight for clearer transmission. Titles and key numbers use weight 600, with weight 500 labels. This brings the dark neutral glass and bright text closer to the supplied Wealth reference while retaining transmitted blue light. Production build and browser pause/play checks pass.
+
+- Transparency correction: all five dashboard panels share a 10.7% white tint with 30 px backdrop blur; removed the 83–90% opaque dark fills and adjusted text for the white stage. Panel backgrounds transmit the scene beneath them; text and controls stay fully opaque. No project logic changes.
+
+- `src/main.tsx` and `src/kanban.css`: Wealth-inspired rounded glass cards, circular navigation and a bottom-anchored dashboard over an animated blue night skyline. The scene uses local SVG/CSS and has no external image or walking characters. Retains the React project and its existing runtime; the supplied HTML brief is a visual reference, not a replacement finance application.
+- Tasks, Team, Schedule, Progress and the four-column task board share one lower panel. Metrics derive from the existing board/company/project inputs; there are no invented financial figures or fake progress. Dashboard descriptions, explanatory empty states and promotional copy are removed. Task requirements and the unchanged original brief remain accessible in dialogs.
+- The header Dashboard button hides or expands the whole lower panel. `cofloor-dashboard:expanded` stores only that presentation preference; hiding never resets tasks or aborts a live subscription. The left rail and mobile bottom dock retain access to the dashboard, board, team, document, activity and settings. Team and activity use focus-contained dialogs. The board scrolls internally to preserve the lower-panel height when several cards occupy one column.
+- Desktop targets the supplied 1341 × 958 proportions with CSS `--u`; smaller screens use a multi-column layout and then a single scrolling column. Reduced motion is respected.
+- Project state transitions, dependency gates, reference assignments, data, adapter selection, server routes and credentials are unchanged. Read-only local status returned `configured: true`, model `coo-llm`, Discord `demo`. The existing local model service still rejects document-backed intake and uses the older three-workstream contract; this UI change does not claim the Red Bull board is connected to live inference.
+- Validation: strict TypeScript and production build; 7 board tests, the board contract check and 13 existing data/state/model tests pass. Browser checks cover reference start, task detail, hide/show, hidden preference through refresh, desktop and 390 px mobile layouts. No live project document was submitted. Work stays local; no commit or push per Anne's instruction.
+
+
 ## Current feature: Red Bull document and Kanban board (2026-10-25)
 
 This section describes the current UI and supersedes the earlier dashboard workflow notes below. Existing local-model integration notes are preserved for their separate implementation.
 
 ### Structure and data flow
 
-- `src/main.tsx` and `src/kanban.css`: compact white/cyan project dashboard; four status columns; direct assigned owners; original-document and task-detail dialogs; collapsible activity; mobile board scrolling.
+- `src/main.tsx` and `src/kanban.css`: bottom-anchored glass project dashboard over a white stage; numeric summaries; four status columns; direct assigned owners; document, task, team and activity dialogs; persistent whole-panel collapse; mobile board scrolling.
 - `src/redbull-project.ts` and `data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md`: project metadata and the unchanged source document, bundled as raw text and passed in full to the runtime. Document instructions are data, not executed commands.
 - `src/redbull-agent.ts`: reference intake plus the typed BoardAdapter boundary; preferred `window.cofloorBoardAgent`, compatible legacy injection points, and optional read-only discovery hooks for a separately installed model service.
 - `src/board-state.ts`: isolated v2 snapshot, four statuses, event-driven card updates, ID/dependency validation, duplicate/stale protection and interrupted-run recovery. Earlier `src/state.ts` remains available to the separate legacy service.

@@ -34,8 +34,8 @@ test('status never returns credentials; foreign requests are rejected',()=>{
   modelMiddleware({url:'/api/model/plan',method:'POST',headers:{host:'127.0.0.1:5173',origin:'https://unrelated.example'}},res,()=>{});
   assert.equal(status,403);
 });
-test('separate document workflows are blocked before any inference call',async()=>{
+test('document setup requires a run ID before inference',async()=>{
   let called=false;
-  await assert.rejects(analyze('plan',{project:{workflowId:'RED-BULL-X-LAUNCH-V1',document:{content:'Document'}}},new AbortController().signal,async()=>{called=true;return {}}),/explicit authorization/);
+  await assert.rejects(analyze('plan',{project:{workflowId:'RED-BULL-X-LAUNCH-V1',document:{content:'Document'}}},new AbortController().signal,async()=>{called=true;return {}}),/Missing run ID/);
   assert.equal(called,false);
 });
