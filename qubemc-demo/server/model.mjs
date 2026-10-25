@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { loadEnvFile } from 'node:process';
+import './config.mjs';
+import { nemoclawSettings } from './config.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-try { loadEnvFile(resolve(root, '.env.local')); } catch (error) { if (error.code !== 'ENOENT') throw error; }
 const read = name => JSON.parse(readFileSync(resolve(root, 'data/company', name + '.json'), 'utf8'));
 const meta = read('metadata');
 const employees = read('employees');
@@ -154,7 +154,7 @@ export function modelMiddleware(req, res, next) {
   if (!req.url?.startsWith('/api/model/')) return next();
   const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
   const send = (status, body) => { if (!res.destroyed) { res.writeHead(status, headers); res.end(JSON.stringify(body)); } };
-  if (req.method === 'GET' && req.url === '/api/model/status') return send(200, { configured: Boolean(process.env.MODEL_API_AUTH), model: process.env.MODEL_API_MODEL || 'coo-llm', discord: 'demo' });
+  if (req.method === 'GET' && req.url === '/api/model/status') return send(200, { configured: Boolean(process.env.MODEL_API_AUTH), model: process.env.MODEL_API_MODEL || 'coo-llm', discord: nemoclawSettings().configured ? 'nemoclaw' : 'unconfigured' });
   if (!/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(req.headers.host ?? '')) return send(403, { error: 'Origin not allowed.' });
   if (req.method !== 'POST') return send(405, { error: 'Method not allowed.' });
   // Only the local app may invoke the credentialed service.

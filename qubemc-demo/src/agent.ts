@@ -59,10 +59,10 @@ declare global {
 }
 const liveAdapter = () => window.cofloorAgent ?? window.qubemcAgent;
 let localModelConfigured = false;
-if (typeof window !== 'undefined') fetch('/api/model/status').then(r => r.ok ? r.json() : null).then(data => { localModelConfigured = Boolean(data?.configured); }).catch(() => {});
+if (typeof window !== 'undefined') fetch('/api/model/status').then(r => r.ok ? r.json() : null).then(data => { localModelConfigured = Boolean(data?.configured); modelAgent.dispatchMode = data?.discord === 'nemoclaw' ? 'live' : 'simulated'; }).catch(() => {});
 export function setModelConfigured(configured: boolean) { localModelConfigured = configured; }
 export const hasLiveAdapter = () => liveAdapter()?.mode === 'live' || localModelConfigured;
-export const usesDemoDiscord = () => !liveAdapter() || liveAdapter()?.dispatchMode === 'simulated';
+export const usesDemoDiscord = () => (liveAdapter() ?? modelAgent).dispatchMode !== 'live';
 export function getAdapter(live: boolean): AgentAdapter {
   if (!live) return mockAgent;
   const adapter = liveAdapter() ?? modelAgent;
