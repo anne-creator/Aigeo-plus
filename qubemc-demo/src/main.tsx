@@ -18,7 +18,7 @@ const modeKey = `${storageKey}:mode`;
 const requestedRun = new URLSearchParams(window.location.search).get('run') || '';
 const sharedRun = /^[-\w]{1,100}$/.test(requestedRun) ? requestedRun : '';
 const businessDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: project.timezone }).format(new Date(`${project.businessDate}T12:00:00-07:00`));
-type IconName = 'grid' | 'arrow' | 'file' | 'clock' | 'activity' | 'close' | 'chevron' | 'home' | 'users' | 'chart' | 'settings' | 'collapse' | 'check';
+type IconName = 'grid' | 'arrow' | 'file' | 'clock' | 'activity' | 'close' | 'chevron' | 'home' | 'users' | 'camera' | 'chart' | 'settings' | 'collapse' | 'check';
 function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
   const paths: Record<IconName, string> = {
     grid: 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
@@ -26,6 +26,7 @@ function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     clock: 'M12 8v4l3 2 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
     activity: 'M3 12h4l3-8 4 16 3-8h4', close: 'M6 6l12 12 M18 6L6 18', chevron: 'M9 5l7 7-7 7',
     home: 'M3 10l9-7 9 7v10H3z M9 20v-7h6v7', users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M16 4a4 4 0 0 1 0 8 M22 21v-2a4 4 0 0 0-3-3.87 M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
+    camera: 'M3 7h4l2-3h6l2 3h4v13H3z M12 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8',
     chart: 'M4 20V10 M12 20V4 M20 20v-7', settings: 'M4 7h16 M4 17h16 M8 4v6 M16 14v6',
     collapse: 'M4 9l8 8 8-8', check: 'M5 12l4 4L19 6',
   };
@@ -199,6 +200,7 @@ function App() {
       <button disabled={locked} className={`nav-circle ${dashboardVisible ? 'on' : ''}`} aria-label="Show dashboard" aria-controls="dashboard-panel" onClick={() => setDashboardOpen(true)} title="Dashboard"><Icon name="home"/></button>
       <button disabled={locked} className="nav-circle" aria-label="Task board" onClick={revealBoard} title="Task board"><Icon name="grid"/></button>
       <button disabled={locked} className="nav-circle" aria-label="Team" onClick={() => setTeamOpen(true)} title="Team"><Icon name="users"/></button>
+      {!locked && <a className="nav-circle" aria-label="Face recognition" href="/face-demo.html" title="Face recognition"><Icon name="camera"/></a>}
       <button disabled={locked} className="nav-circle" aria-label="Project requirements" onClick={() => setDocumentOpen(true)} title="Brief"><Icon name="file"/></button>
       <button disabled={locked} className="nav-circle" aria-label="Project activity" onClick={() => setActivity(true)} title="Activity"><Icon name="activity"/></button>
       <div className="settings-wrap"><button disabled={locked} className={`nav-circle ${controls ? 'on' : ''}`} aria-label="Project settings" aria-expanded={controls} aria-controls="project-settings" onClick={() => setControls(!controls)} title="Settings"><Icon name="settings"/></button>{controls && <div className="settings-panel" id="project-settings"><strong>Project settings</strong><label><input type="checkbox" checked={ambientScene} onChange={e=>setAmbientScene(e.target.checked)}/>Ambient animation</label><span className="settings-mode">Live model · automatic allocation</span><span className="settings-mode">{live ? (hasRuntime() ? 'Model configured' : 'Disconnected') : 'Reference demo'}</span><button className="secondary-button" onClick={reset}>Reset project</button></div>}</div>

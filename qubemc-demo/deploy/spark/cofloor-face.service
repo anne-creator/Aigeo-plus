@@ -1,0 +1,14 @@
+[Unit]
+Description=CoFloor local face recognition
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/dell/cofloor-face
+ExecStart=/home/dell/cofloor-face/.venv/bin/python /home/dell/cofloor-face/face_service.py serve
+Restart=on-failure
+RestartSec=3
+UMask=0077
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CoFloor · Face recognition</title>
+<style>
+  :root{font-family:system-ui,sans-serif;color:#e9f1ee;background:#101b1a}
+  *{box-sizing:border-box}body{margin:0;padding:32px}main{max-width:960px;margin:auto}
+  header{display:flex;justify-content:space-between;align-items:center}a{color:#91e1c1}
+  h1{font-size:clamp(28px,4vw,44px);margin:32px 0 8px}p{color:#b4c6bf;line-height:1.5}
+  .controls{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}
+  button,.upload{font:inherit;font-weight:700;padding:12px 18px;border:0;border-radius:10px;cursor:pointer;color:#10211b;background:#91e1c1}
+  button.secondary,.upload{color:#e9f1ee;background:#283a35}button:disabled{opacity:.5}input[type=file]{display:none}
+  .stage{background:#192925;border:1px solid #385247;border-radius:16px;min-height:300px;display:grid;place-items:center;overflow:hidden}
+  canvas{display:block;width:100%;height:auto;max-height:68vh;object-fit:contain}video{display:none}
+  #results{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .result{padding:10px 14px;border:1px solid #496b59;border-radius:10px;background:#263e34}
+  .unknown{background:#3e3026;border-color:#796044}small{color:#a9beb5}
+</style>
+</head>
+<body><main>
+<header><strong>CoFloor · Spark vision</strong><a href="/">Back to dashboard</a></header>
+<h1>Recognize the team</h1>
+<p>Face detection and matching run on the DGX Spark. Camera frames are checked locally and are not saved by this service.</p>
+<div class="controls">
+  <button id="start">Start camera</button>
+  <button class="secondary" id="stop" disabled>Stop camera</button>
+  <label class="upload">Try a photo<input id="upload" type="file" accept="image/*"></label>
+</div>
+<p id="status" role="status">Checking Spark face service…</p>
+<div class="stage"><video id="video" playsinline muted></video><canvas id="canvas"></canvas></div>
+<div id="results" aria-live="polite"></div>
+<p><small>A name is a visual match, not proof of identity. Unmatched faces appear as unknown.</small></p>
+</main>
+<script>
+const video=document.getElementById('video'),canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d');
+const status=document.getElementById('status'),results=document.getElementById('results');
+const start=document.getElementById('start'),stop=document.getElementById('stop');
+const names={anne:'Anne',max:'Max',selina:'Selina',unknown:'Unknown'};
+let stream=null,timer=null,busy=false;
+async function health(){
+  try{
+    const r=await fetch('/api/face/status'),data=await r.json();
+    if(!r.ok||!data.ready)throw Error(data.error||'No enrolled faces');
+    const count=Object.values(data.enrolled).reduce((a,b)=>a+b,0);
+    status.textContent='Ready · '+Object.keys(data.enrolled).length+' teammates · '+count+' enrollment photos';
+  }catch(e){status.textContent=e.message||'Face service unavailable';}
+}
+function show(data){
+  results.replaceChildren();
+  for(const face of data.faces){
+    const [x,y,w,h]=face.box,unknown=face.label==='unknown',title=(names[face.label]||face.label)+' · '+face.score.toFixed(2);
+    ctx.strokeStyle=unknown?'#efaa72':'#91e1c1';ctx.lineWidth=Math.max(3,canvas.width/180);ctx.strokeRect(x,y,w,h);
+    ctx.font='bold '+Math.max(18,canvas.width/32)+'px system-ui';
+    const top=Math.max(28,y);
+    ctx.fillStyle=unknown?'#efaa72':'#91e1c1';ctx.fillRect(x,top-28,ctx.measureText(title).width+16,30);
+    ctx.fillStyle='#10211b';ctx.fillText(title,x+8,top-6);
+    const chip=document.createElement('div');chip.className='result'+(unknown?' unknown':'');chip.textContent=title;results.append(chip);
+  }
+  status.textContent=data.faces.length?data.faces.length+' face'+(data.faces.length===1?'':'s')+' detected':'No face detected — face the camera and improve the light';
+}
+async function analyze(){
+  if(busy)return;busy=true;
+  try{
+    const r=await fetch('/api/face/recognize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:canvas.toDataURL('image/jpeg',0.82)})});
+    const data=await r.json();if(!r.ok)throw Error(data.error||'Recognition failed');show(data);
+  }catch(e){status.textContent=e.message||'Recognition failed';}finally{busy=false;}
+}
+async function scan(){
+  if(!stream)return;
+  if(!busy&&video.videoWidth){
+    canvas.width=Math.min(video.videoWidth,960);
+    canvas.height=Math.round(canvas.width*video.videoHeight/video.videoWidth);
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    await analyze();
+  }
+  if(stream)timer=setTimeout(scan,1200);
+}
+function stopCamera(){
+  clearTimeout(timer);timer=null;stream?.getTracks().forEach(track=>track.stop());
+  stream=null;video.srcObject=null;start.disabled=false;stop.disabled=true;
+}
+start.addEventListener('click',async()=>{
+  try{
+    stopCamera();
+    stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:960},facingMode:'user'},audio:false});
+    video.srcObject=stream;await video.play();start.disabled=true;stop.disabled=false;status.textContent='Camera started';void scan();
+  }catch(e){status.textContent='Camera unavailable: '+(e.message||e);}
+});
+stop.addEventListener('click',()=>{stopCamera();status.textContent='Camera stopped';});
+document.getElementById('upload').addEventListener('change',async event=>{
+  const file=event.target.files?.[0];if(!file)return;stopCamera();
+  const url=URL.createObjectURL(file);
+  try{
+    const image=new Image();await new Promise((ok,fail)=>{image.onload=ok;image.onerror=fail;image.src=url;});
+    canvas.width=Math.min(image.naturalWidth,960);canvas.height=Math.round(canvas.width*image.naturalHeight/image.naturalWidth);
+    ctx.drawImage(image,0,0,canvas.width,canvas.height);await analyze();
+  }catch(e){status.textContent='Could not read photo: '+(e.message||e);}
+  finally{URL.revokeObjectURL(url);event.target.value='';}
+});
+window.addEventListener('beforeunload',stopCamera);void health();
+</script>
+</body></html>
