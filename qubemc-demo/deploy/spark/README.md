@@ -112,11 +112,18 @@ Confirmed decisions send a completion notice without requesting another reply.
 
 ### Confirmation workflow update
 
-The latest source uses `discord-confirm-v1`: no automatic sick-leave injection.
-A local event adapter supplies an authenticated Alex event to `/api/model/event`;
-this endpoint is blocked on the public host in live Discord mode. The raw Discord
-employee-event adapter is not implemented. Manager proposals are delivered via
-NemoClaw and require a direct `confirm` reply. Receipts bind to proposal versions;
-replies to superseded proposals cannot apply a newer list. Old workflow runs are
-retained as audit files but require starting a new run with the new source.
-The Spark release `fc34987` predates this workflow; merging does not redeploy it.
+The source uses `discord-confirm-v1`: no automatic sick-leave injection.
+Configure distinct `COFLOOR_DISCORD_ALEX_ID` and `COFLOOR_DISCORD_MANAGER_ID`,
+plus `NEMOCLAW_DISCORD_SERVER_ID` and `NEMOCLAW_DISCORD_CHANNEL_ID` in app.env.
+After Start project, NemoClaw posts a team-assignment message mentioning both
+people. Alex replies directly with the supplied leave text. Only the configured
+Alex account and exact recorded intake message are accepted. This creates the
+scenario's 10:32 PT report for 13:00–18:00 PT leave; real message provenance is
+stored separately. The model generates a concrete proposal and mentions the
+manager. The manager replies `confirm` directly to the current proposal.
+Receipts bind to proposal versions, so stale replies cannot apply a newer list.
+
+The public host rejects employee-event and manager-decision HTTP submissions.
+Only NemoClaw's authenticated message reads populate the live coordinator.
+The dashboard polls run state and exposes a link to the real project group.
+Old workflow runs remain audit files and require a new run with this source.

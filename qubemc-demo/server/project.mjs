@@ -199,7 +199,7 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
       next.activity.push('Project manager confirmed the reassignment list.');return publicRun(save(next,signal));
     }
     if(action==='state') {
-      if (liveDiscord()) await syncDiscord(run, {save:r=>save(r,signal),decide:async data=>{await perform('decision',data,signal);return load(runId);}});
+      if (liveDiscord()) await syncDiscord(run, {save:r=>save(r,signal),reload:()=>load(runId),decide:async data=>{await perform('decision',data,signal);return load(runId);},receiveEvent:async data=>{await perform('event',data,signal);return load(runId);}});
       return publicRun(load(runId));
     }
     throw new Error('Unknown project operation.');

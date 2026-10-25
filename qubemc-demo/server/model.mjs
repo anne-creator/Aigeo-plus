@@ -196,7 +196,7 @@ setInterval(async () => {
       const signal = AbortSignal.timeout(600000);
       if (run.injection.status === 'received' || run.proposal?.status === 'invalid')
         await analyze('check',{runId:run.runId},signal);
-      if (run.issue?.status === 'awaiting' || run.messages.some(m=>m.author==='agent' && ['simulated','pending_transport'].includes(m.delivery)))
+      if (run.injection.status === 'waiting' || run.issue?.status === 'awaiting' || run.messages.some(m=>m.author==='agent' && ['simulated','pending_transport'].includes(m.delivery)))
         await analyze('state',{runId:run.runId},signal);
     }
   } catch (error) { if(error.code !== 'ENOENT') console.error('CoFloor coordination worker will retry.'); }
