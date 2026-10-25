@@ -1,3 +1,5 @@
+import { createPlanJobs } from './plan-jobs.mjs';
+import { pollDiscordRuns } from './discord-poll.mjs';
 import { localModelUrl, inferenceMode } from './local-inference.mjs';
 import { allowedRequest } from './origin.mjs';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -118,6 +120,7 @@ export async function chatJson(system, payload, signal, request = fetch) {
   if (!content.trim()) throw new Error('Model returned no final answer. Please retry.');
   return parseModelJson(content);
 }
+const planJobs = createPlanJobs({storeDir:resolve(root,'.cofloor-runs'),plan:(input,signal)=>analyze('plan',input,signal)});
 let coordinator;
 export async function analyze(action, input, signal, call = chatJson) {
   if (input.runId) {
@@ -162,14 +165,24 @@ export function modelMiddleware(req, res, next) {
   // Only the local app may invoke the credentialed service.
   if (!req.headers['content-type']?.startsWith('application/json')) return send(415, { error: 'JSON is required.' });
   const action = req.url.slice('/api/model/'.length);
-  if (!['plan','check','decision','state','event'].includes(action)) return send(404, { error: 'Unknown operation.' });
+  if (!['plan','plan-start','plan-status','check','decision','state','event'].includes(action)) return send(404, { error: 'Unknown operation.' });
   const abort = new AbortController();
   res.on('close', () => { if (!res.writableEnded) abort.abort(); });
   let body = '', size = 0;
   req.on('data', chunk => { size += chunk.length; if (size > 65536) { send(413, { error: 'Request too large.' }); req.destroy(); } else body += chunk; });
   req.on('end', async () => {
     if (size > 65536) return;
-    try { if ((action === 'decision' || (action === 'event' && !/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(req.headers.host ?? ''))) && process.env.COFLOOR_DISCORD === 'live') throw new Error('Invalid decision transport. Reply in Discord.'); send(200, await analyze(action, JSON.parse(body), abort.signal)); }
+    try {
+      const input=JSON.parse(body);
+      if(action==='plan-start')return send(202,planJobs.start(input));
+      if(action==='plan-status')return send(200,planJobs.status(input.runId));
+      // Browser refreshes never invoke Discord or wait for an inference command.
+      if(action==='state' && input.runId){
+        const job=planJobs.status(input.runId);
+        if(job.status!=='complete')return send(409,{error:'Allocation is still pending. Resume this project.'});
+        return send(200,job.run);
+      }
+      if ((action === 'decision' || (action === 'event' && !/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(req.headers.host ?? ''))) && process.env.COFLOOR_DISCORD === 'live') throw new Error('Invalid decision transport. Reply in Discord.'); send(200, await analyze(action, JSON.parse(body), abort.signal)); }
     catch (error) {
       if (abort.signal.aborted) return;
       // Whitelist our safe messages; never return upstream bodies, credentials, or stacks.
@@ -185,16 +198,16 @@ setInterval(async () => {
   if (workerBusy || process.env.COFLOOR_DISCORD !== 'live') return;
   workerBusy = true;
   try {
-    for (const name of readdirSync(resolve(root,'.cofloor-runs'))) {
-      if (!name.endsWith('.json')) continue;
-      const run = JSON.parse(readFileSync(resolve(root,'.cofloor-runs',name),'utf8'));
-      if (run.transport !== 'discord' || run.workflowMode !== 'discord-confirm-v1') continue;
-      const signal = AbortSignal.timeout(600000);
-      if (run.injection.status === 'received' || run.proposal?.status === 'invalid')
-        await analyze('check',{runId:run.runId},signal);
-      if (run.injection.status === 'waiting' || run.issue?.status === 'awaiting' || run.messages.some(m=>m.author==='agent' && ['simulated','pending_transport'].includes(m.delivery)))
-        await analyze('state',{runId:run.runId},signal);
+    const runs=readdirSync(resolve(root,'.cofloor-runs')).filter(name=>name.endsWith('.json')).map(name=>JSON.parse(readFileSync(resolve(root,'.cofloor-runs',name),'utf8'))).filter(run=>run.workflowMode==='discord-confirm-v1');
+    for(const run of runs){
+      if(run.injection.status==='received'||run.proposal?.status==='invalid')await analyze('check',{runId:run.runId},AbortSignal.timeout(600000));
     }
+    const {openclawMessage}=await import('./nemoclaw-discord.mjs');
+    await pollDiscordRuns(runs,{
+      channel:process.env.NEMOCLAW_DISCORD_CHANNEL_ID,
+      read:openclawMessage,
+      sync:(runId,batch)=>analyze('sync',{runId,batch},AbortSignal.timeout(600000)),
+    });
   } catch (error) { if(error.code !== 'ENOENT') console.error('CoFloor coordination worker will retry.'); }
   finally { workerBusy = false; }
 },5000).unref();

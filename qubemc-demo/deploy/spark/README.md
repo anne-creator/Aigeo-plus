@@ -127,3 +127,26 @@ The public host rejects employee-event and manager-decision HTTP submissions.
 Only NemoClaw's authenticated message reads populate the live coordinator.
 The dashboard polls run state and exposes a link to the real project group.
 Old workflow runs remain audit files and require a new run with this source.
+
+### Recoverable allocation jobs
+
+The dashboard uses `POST /api/model/plan-start` to persist and enqueue a job,
+then polls `POST /api/model/plan-status` with the same run ID. Each HTTP request
+returns quickly; inference remains in the NemoClaw harness. The URL contains the
+run ID before submission, and Retry reuses it. Completed runs are recovered from
+the authoritative store instead of being allocated again. Interrupted jobs are
+reported explicitly and can be retried after a service restart.
+
+Job records live in `.cofloor-runs/jobs/`; preserve that directory together with
+run data on deployment. Jobs execute serially, with a ten-minute execution
+budget after reaching the front of the queue. Closing a browser does not cancel
+an accepted job. The HTTP state route reads saved data without running Discord.
+The background worker reads the channel once per cycle from the oldest pending
+cursor, then each run checks the existing sender, reply, and proposal constraints.
+All Discord reads and sends still go through NemoClaw.
+
+Regression coverage: `npm test` includes durable-job recovery and batched polling.
+`scripts/test_allocation_recovery.cjs` additionally exercises a lost/non-JSON
+acknowledgement, same-ID Retry, and reload during allocation in Playwright. Set
+`TEST_RUN_FIXTURE` to a representative saved run JSON and `TEST_BASE_URL` to a
+local built server; its model routes are mocked and it sends no Discord messages.
