@@ -17,7 +17,7 @@ import cv2
 import numpy as np
 
 
-HOME = Path(os.environ.get("COFLOOR_FACE_HOME", "/home/dell/cofloor-face"))
+HOME = Path(os.environ.get("COFLOOR_FACE_HOME", Path(__file__).resolve().parent))
 MODEL_DIR = HOME / "models"
 EMBEDDINGS = HOME / "private-data" / "embeddings.json"
 IMAGE_TYPES = {".jpg", ".jpeg", ".png", ".webp"}
