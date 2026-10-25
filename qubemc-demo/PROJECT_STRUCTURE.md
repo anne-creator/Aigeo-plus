@@ -1,5 +1,13 @@
 # CoFloor Project Structure
 
+## Face recognition frame-to-animation workflow (2026-10-25)
+
+- `public/face-demo.js` stops scanning and releases the camera after exactly one recognized face. The submitted canvas frame and its match box remain frozen for one second; unknown or multiple faces keep scanning. The same success sequence applies to photo uploads.
+- `public/face-demo.html` provides a viewport overlay containing a temporary canvas copy of the recognized frame. It expands from the original frame's position and dimensions to the full viewport over 700 ms, then crossfades into the existing five-second silent Avatar Forge video when playback starts. The temporary copy stays in browser memory. The recognized name and a manual Return to main page link remain available during playback.
+- The video's `ended` event automatically replaces the recognition page with `/` in browser history. Reduced motion skips playback after the freeze. Media errors, rejected playback and a 12-second loading/playback timeout also return automatically. Reset/unload cancels timers and expansion; cancelled recognition responses remain ignored. No recognition API, model, enrollment data or dependencies changed.
+- `scripts/test_face_animation.cjs` exercises controlled recognition responses, exact frozen pixels and expansion origin, crossfade, camera release, full desktop/mobile viewport, actual video completion and navigation, unknown/group rejection, stale responses, reduced motion, failed/rejected/stalled playback and photo upload.
+- Validation: all 77 offline tests, the TypeScript/production build and the expanded browser regression passed. Inspected the full-screen playback screenshot. Browser checks used fixture recognition responses and blocked other API calls; live biometric matching and remote deployment were not exercised.
+
 ## Hidden Dashboard by default (2026-10-25)
 
 This supersedes the visible-startup and visible-reset presentation below.

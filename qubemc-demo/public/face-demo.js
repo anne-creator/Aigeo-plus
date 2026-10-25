@@ -1,9 +1,9 @@
 const $=id=>document.getElementById(id);
 const video=$('video'),canvas=$('canvas'),ctx=canvas.getContext('2d');
 const status=$('status'),results=$('results'),start=$('start'),stop=$('stop'),upload=$('upload');
-const success=$('success'),film=$('success-film');
+const success=$('success'),film=$('success-film'),frozenFrame=$('match-frame');
 const names={anne:'Anne',max:'Max',selina:'Selina',unknown:'Unknown'};
-let stream=null,timer=null,request=null,generation=0,matched=false,filmTimer=null;
+let stream=null,timer=null,request=null,generation=0,matched=false,phase='scanning',freezeTimer=null,filmTimer=null,frameTransition=null;
 const name=label=>names[label]||label;
 function stopCamera(){
   clearTimeout(timer);timer=null;stream?.getTracks().forEach(track=>track.stop());
@@ -13,27 +13,54 @@ function cancel(){
   generation++;request?.abort();request=null;stopCamera();
 }
 function reset(){
-  cancel();matched=false;clearTimeout(filmTimer);film.pause();film.removeAttribute('src');film.load();
-  success.hidden=true;$('match-status').textContent='';film.hidden=false;start.disabled=false;upload.disabled=false;results.replaceChildren();
+  cancel();matched=false;phase='scanning';clearTimeout(freezeTimer);clearTimeout(filmTimer);film.pause();film.removeAttribute('src');film.load();
+  frameTransition?.cancel();frameTransition=null;frozenFrame.hidden=true;
+  success.hidden=true;success.classList.remove('is-playing','is-revealed');document.body.classList.remove('celebrating');
+  $('match-status').textContent='';film.hidden=true;start.disabled=false;upload.disabled=false;results.replaceChildren();
 }
 function finishAnimation(){
-  clearTimeout(filmTimer);film.pause();
-  if(matched)$('match-status').textContent='Match complete. You can continue to the dashboard or scan again.';
+  if(!matched||phase!=='animation')return;
+  phase='returning';clearTimeout(filmTimer);film.pause();
+  $('match-status').textContent='Returning to the main page…';
+  window.location.replace('/');
+}
+async function playAnimation(version){
+  if(version!==generation||!matched||phase!=='frozen')return;
+  phase='animation';
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){finishAnimation();return;}
+  const rect=canvas.getBoundingClientRect();
+  frozenFrame.width=canvas.width;frozenFrame.height=canvas.height;
+  frozenFrame.getContext('2d').drawImage(canvas,0,0);frozenFrame.hidden=false;
+  success.classList.add('is-playing');document.body.classList.add('celebrating');film.hidden=false;
+  $('match-status').textContent='Face matched. Playing your welcome animation…';
+  // Also return if loading stalls or the browser cannot play the supplied film.
+  filmTimer=setTimeout(finishAnimation,12000);
+  try{
+    // Expand the actual recognized pixels from their original on-screen position.
+    frameTransition=frozenFrame.animate([
+      {top:`${rect.top}px`,left:`${rect.left}px`,width:`${rect.width}px`,height:`${rect.height}px`,borderRadius:'16px'},
+      {top:'0px',left:'0px',width:'100vw',height:'100dvh',borderRadius:'0px'}
+    ],{duration:700,easing:'cubic-bezier(.22,1,.36,1)'});
+    await frameTransition.finished;
+    if(version!==generation||phase!=='animation')return;
+    film.src=film.canPlayType('video/webm; codecs=vp9')?'/avatar-forge/success.webm':'/avatar-forge/success.mp4';
+    await film.play();
+  }catch{if(version===generation)finishAnimation();}
 }
 function celebrate(face){
   if(matched)return;
-  matched=true;stopCamera();start.disabled=true;upload.disabled=true;
+  // The canvas still holds the exact submitted frame, including its match box.
+  matched=true;phase='frozen';stopCamera();start.disabled=true;upload.disabled=true;
   $('match-title').textContent=`Welcome, ${name(face.label)}`;
   status.textContent=`${name(face.label)} matched by the local face service.`;
-  success.hidden=false;
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches){film.hidden=true;finishAnimation();return;}
-  $('match-status').textContent='Face matched. Playing your welcome animation…';
-  film.src=film.canPlayType('video/webm; codecs=vp9')?'/avatar-forge/success.webm':'/avatar-forge/success.mp4';
-  filmTimer=setTimeout(()=>{film.hidden=true;finishAnimation();},12000);
-  film.play().catch(()=>{film.hidden=true;finishAnimation();});
+  success.hidden=false;film.hidden=true;
+  $('match-status').textContent='Face recognized. Frame frozen.';
+  const version=generation;
+  freezeTimer=setTimeout(()=>playAnimation(version),1000);
 }
 film.addEventListener('ended',finishAnimation);
-film.addEventListener('error',()=>{if(matched){film.hidden=true;finishAnimation();}});
+film.addEventListener('error',finishAnimation);
+film.addEventListener('playing',()=>{if(matched&&phase==='animation')success.classList.add('is-revealed');});
 async function health(){
   const version=generation;
   try{
@@ -88,7 +115,6 @@ start.addEventListener('click',async()=>{
   }catch(e){if(version===generation){stopCamera();status.textContent='Camera unavailable: '+(e.message||e);}}
 });
 stop.addEventListener('click',()=>{cancel();status.textContent='Camera stopped';});
-$('scan-again').addEventListener('click',()=>{reset();status.textContent='Ready — start the camera or choose a photo.';start.focus();});
 upload.addEventListener('change',async event=>{
   const file=event.target.files?.[0];if(!file)return;reset();const version=generation;
   const url=URL.createObjectURL(file);
@@ -100,4 +126,4 @@ upload.addEventListener('change',async event=>{
   }catch(e){if(version===generation)status.textContent='Could not read photo: '+(e.message||e);}
   finally{URL.revokeObjectURL(url);event.target.value='';}
 });
-window.addEventListener('beforeunload',()=>{cancel();clearTimeout(filmTimer);film.pause();});void health();
+window.addEventListener('beforeunload',()=>{cancel();clearTimeout(freezeTimer);clearTimeout(filmTimer);frameTransition?.cancel();film.pause();});void health();

@@ -75,10 +75,17 @@ is not suitable for access control because this demo has no liveness check.
 
 The face page plays the supplied five-second silent Avatar Forge video only after
 `/api/face/recognize` returns exactly one recognized face. Unknown or multiple
-faces keep scanning. A match stops and releases the camera, shows the actual
-recognized name, and offers Continue to dashboard or Scan again. Scan again
-clears the match; late responses from a cancelled scan are ignored. Reduced
-motion and video failures show the completed match without blocking navigation.
+faces keep scanning. A match stops and releases the camera and freezes the exact
+recognized canvas frame, including the match box, for one second. The frozen
+frame then expands from its exact on-screen position to fill the browser
+viewport over 700 ms, blending into the supplied video when playback starts.
+The actual recognized name remains visible during the video. When the
+five-second video ends, the page automatically returns to the main page (`/`),
+replacing the recognition page in browser history. A Return to main page link
+also remains available. Late responses from a cancelled scan are ignored.
+Reduced motion skips playback after the freeze and returns automatically;
+video errors, rejected playback, or a 12-second loading/playback timeout also
+return automatically. Camera and photo upload use the same success sequence.
 The animated character remains illustrative, not a reconstruction or login grant.
 
 `npm run build` and `npm run dev` stage the video from the repository's
