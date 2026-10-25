@@ -1,0 +1,11 @@
+[Unit]
+Description=CoFloor loopback proxy for vLLM
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 %h/.local/lib/cofloor/cofloor-vllm-proxy.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
