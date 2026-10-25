@@ -12,7 +12,8 @@ Single local React + TypeScript + Vite frontend. Future backend / local model in
 - `scripts/import_company.py`: validates source checksums, unique IDs, department counts and dated capacity, then regenerates imports; never executes package scripts.
 - `src/data.test.ts`: import fidelity, capacity, counts and source-hash regression checks.
 - `vite.config.ts`: React integration and a separately cached company-data chunk.
-- `src/style.css`: responsive dark / cyan presentation UI, reduced-motion support, system fonts.
+- `src/style.css`: responsive dashboard layout, reduced-motion support and system fonts.
+- `src/theme.css`: white backgrounds, dark text, cyan actions and accessible light-theme state colors.
 - `src/state.test.ts`: meaningful state and persistence regression tests.
 - `README.md`: startup, walkthrough and local integration contract.
 
@@ -36,7 +37,7 @@ Company input replaced by Anne’s provided Bridgewell Creative dataset, ID brid
 - Skip to execution → inject development issue → notification → wait for worker decision → update commitment and next checkpoint.
 - All development events marked mock; live mode never silently falls back to fixtures.
 - No reassignment or final delivery / acceptance workflow in P0.
-- Original dark / cyan direction; factual text only. Removed promotional subtitles and file explanation labels.
+- White background with cyan actions; factual text only. Removed promotional subtitles and file explanation labels.
 - Google Doc updated in original Requirements / Technical Requirements / Frontend prompt structure; preceding draft retained in full as final appendix.
 
 ## Validation
@@ -48,3 +49,5 @@ Six tests pass (three data import checks plus three state tests): stale / duplic
 - 2026-10-25: Implemented local dashboard and adapter boundary; synchronized Google Doc with original structure and appended prior draft. Real local model and Discord integration remain pending.
 
 - 2026-10-25: Imported provided company records, capacities and local schedules. UI counts derive from the dataset; date labels use its reference time. Dataset-specific storage prevents stale invented employee IDs. No UI redesign or new workflow.
+
+- 2026-10-25: Changed current dashboard to white backgrounds at Anne’s request. No historical white UI exists in the available Git commits; layout, employee inputs and Agent integration boundaries are preserved.

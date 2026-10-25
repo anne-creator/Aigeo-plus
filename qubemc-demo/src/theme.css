@@ -1,0 +1,80 @@
+/* White dashboard theme. Layout and application behavior remain in style.css. */
+:root {
+  color-scheme: light;
+  color: #172433;
+  background: #ffffff;
+  --muted: #64748b;
+  --mint: #087e98;
+  --line: #e2e8ef;
+  --panel: #ffffff;
+}
+body { background: #ffffff; }
+button:focus-visible, a:focus-visible, input:focus-visible {
+  outline-color: #0891b2;
+}
+.brand-mark { background: #0891b2; color: #ffffff; }
+.mode, .project-top { color: #65758a; }
+.mode i, .status-tag i { background: #0891b2; }
+.menu-button { background: #ffffff; border-color: #dce4ed; }
+.menu-button:hover { background: #f1f5f9; }
+.breadcrumb span { color: #94a3b8; }
+.eyebrow, .hero .eyebrow, .subtle { color: #64748b; }
+.tiny-square { background: #0891b2; }
+.deadline small, .deadline-foot { color: #64748b; }
+.status-tag { color: #087e98; }
+.brief-card, .company-card, .task-card, .conversation {
+  background: #ffffff;
+  color: #172433;
+  border-color: #dce4ed;
+}
+.brief-card, .company-card { box-shadow: 0 2px 8px #17243304; }
+.file-icon { background: #f0f9fc; border-color: #cce7ee; color: #087e98; }
+.file-type, .brief-top, .asset-list { color: #64748b; }
+.asset-list b { color: #087e98; }
+.brief-bottom { border-color: #e2e8ef; }
+.deliverables span { background: #f8fafc; color: #334155; border-color: #e2e8ef; }
+.primary { background: #087e98; color: #ffffff; }
+.primary:hover { background: #08677c; }
+.company-stat span { color: #64748b; }
+.dot-field i { background: #d7e5ed; }
+.dot-field i:nth-child(5n) { background: #8fb8c9; }
+.dot-field i.highlight { background: #0891b2; box-shadow: 0 0 8px #0891b240; }
+.company-bottom, .company-bottom span:last-child { color: #64748b; }
+.task-number { color: #7a8b9e; }
+.task-owner span:not(.avatar), .task-due span { color: #64748b; }
+.task-status { background: #ecf8fb; color: #08758c; border-color: #c3e6ed; }
+.task-status.attention { background: #fff5df; color: #8b570a; border-color: #ecd098; }
+.needs-attention { background: #fffcf5; border-color: #e6bd72; }
+.resolved { border-color: #7dc0cc; }
+.commitment { color: #08758c; border-color: #d4e9ee; }
+.avatar.rose { background: #eee4f3; color: #674c78; }
+.avatar.mint, .worker-avatar { background: #d9eff3; color: #245e6c; }
+.avatar.sand { background: #e3e9f7; color: #475d86; }
+.work-footer, footer { color: #64748b; }
+.text-button, .mini-check, .working-label, .green-text, .reply-received { color: #087e98; }
+.channel { background: #f8fafc; }
+.channel-dot { background: #0891b2; }
+.discord-icon { color: #5865aa; }
+.attention-border { border-color: #e6bd72; }
+.issue-summary p, .watch p { color: #53657a; }
+.watch-symbol { color: #0891b2; }
+.message p { color: #334155; }
+.message time { color: #64748b; }
+.agent-avatar { background: #0891b2; color: #ffffff; }
+.bot-tag { background: #e5f4f8; color: #08758c; }
+.waiting { color: #81550c; }
+.amber .status-tag, .amber-text { color: #96600c !important; }
+.amber .status-tag i, .amber-pulse { background: #b77913; }
+.error { background: #fff5e9; color: #8b451b; border: 1px solid #f1d2b7; }
+.error button { color: #8b451b; border-color: #dba77f; }
+.storage-note { color: #8b451b; }
+.control-panel {
+  background: #ffffff;
+  color: #172433;
+  border-color: #d4dee9;
+  box-shadow: 0 12px 44px #1724331a;
+}
+.control-panel > button { border-color: #e2e8ef; }
+.control-panel small, .live-toggle { color: #64748b; }
+.reset-button { color: #087e98; }
+.live-toggle input { accent-color: #087e98; }

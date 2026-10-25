@@ -1,6 +1,6 @@
 # QubeMC
 
-Local English dashboard for two moments: project planning / assignment, and issue detection / worker decision. Dark surfaces, cyan accents, factual labels.
+Local English dashboard for two moments: project planning / assignment, and issue detection / worker decision. White background, cyan accents, factual labels.
 
 ## Run
 
