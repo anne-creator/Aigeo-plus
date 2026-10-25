@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
-    "test": "node --import tsx --test src/state.test.ts src/data.test.ts src/board-state.test.ts src/scene/model.test.ts src/scene/arrival.test.ts server/model.test.mjs server/project.test.mjs server/board.test.mjs",
+    "test": "node --import tsx --test src/state.test.ts src/data.test.ts src/board-state.test.ts src/dashboard-gesture.test.ts src/scene/model.test.ts src/scene/arrival.test.ts server/model.test.mjs server/project.test.mjs server/board.test.mjs",
     "start": "node server/start.mjs",
     "test:model": "node scripts/test_model_flow.mjs",
     "test:board": "node --import tsx --test src/board-state.test.ts && node scripts/test_board_contract.mjs"

@@ -5,6 +5,7 @@ import type { BoardEvent, BoardTask } from './board-state';
 import { createDisplayLabels } from './display';
 import { company, project } from './redbull-project';
 import { configureRuntime, getBoardAdapter, hasRuntime } from './redbull-agent';
+import { bindDashboardWheel } from './dashboard-gesture';
 import './kanban.css';
 import { ProjectScene } from './scene/ProjectScene';
 
@@ -74,6 +75,10 @@ function App() {
   const [scenePlaying, setScenePlaying] = useState(true);
   const [ambientScene, setAmbientScene] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
+  const shellRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (shellRef.current) return bindDashboardWheel(shellRef.current, setDashboardOpen);
+  }, []);
   const boardRef = useRef<HTMLElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [documentOpen, setDocumentOpen] = useState(false);
@@ -152,7 +157,7 @@ function App() {
     setDashboardOpen(true);
     requestAnimationFrame(() => { boardRef.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'nearest' }); boardRef.current?.focus({ preventScroll: true }); });
   }
-  return <div className={`app-shell night-scene ${scenePlaying ? '' : 'scene-paused'}`}>
+  return <div ref={shellRef} className={`app-shell night-scene ${scenePlaying ? '' : 'scene-paused'}`}>
     <ProjectScene state={state} playing={scenePlaying} ambient={ambientScene} onSelect={id => { const task=state.tasks.find(t=>t.ownerId===id); if(task)setSelectedId(task.id);else setTeamOpen(true); }}/>
     <header className="topbar">
       <a href="#" className="brand" aria-label="CoFloor home" onClick={e => { e.preventDefault(); setDashboardOpen(true); }}><span className="brand-symbol"><Icon name="grid" size={23}/></span><span>CoFloor<small>Dashboard</small></span></a>

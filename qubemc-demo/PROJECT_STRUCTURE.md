@@ -2,6 +2,10 @@
 
 The Dashboard panel starts collapsed on every page load. Click the header Dashboard button or navigation to open it; expanded state is not restored after refresh.
 
+Background wheel shortcut (`src/dashboard-gesture.ts`): standard trackpad/mouse wheel events drive the same `dashboardOpen` state. Positive vertical delta shows the panel and negative hides it after 60 normalized pixels (16px/line, viewport height/page); physical swipe direction follows system scrolling settings. One command per burst, rearmed after 250ms idle. Dashboard, board, header/navigation, settings, interactive controls and open dialogs retain native scrolling; horizontal/modified/pinch bursts cannot trigger or leak into the background. The app-shell effect removes its listener and idle timer on unmount. No backend or mobile touch gesture changes. `src/dashboard-gesture.test.ts` covers thresholds, units, direction, jitter, inertia, exclusions, idle reset and cleanup.
+
+Gesture validation: 9 focused tests plus the full 45-test suite and production build passed. Chrome and Safari background show/hide were checked with native wheel input. In-app browser checks also verified repeated directions, transparent dashboard top padding, horizontal board scrolling, native document-drawer scrolling and modal/settings exclusions. Edge is unavailable on this machine, so an Edge-specific browser run remains unverified.
+
 Startup is click-gated: opening or refreshing the Dashboard begins idle and does not restore/start an active run or inject facts. Only **Start project** initiates allocation. Once clicked, automatic execution and the five-second injection work normally. Explicit **Reset project** still starts a new allocation. Saved server runs remain audit history. This supersedes earlier auto-resume-on-refresh notes.
 
 Task cards, dependencies, details, activity and model messages display task text and employee names. Internal IDs remain in state/API/audit data; presentation resolves saved model text too. The original Markdown download remains unchanged.

@@ -2,6 +2,8 @@
 
 The Dashboard panel starts collapsed on every page load. Click the header Dashboard button or navigation to open it; expanded state is not restored after refresh.
 
+Scroll on the background to show/hide Dashboard: positive vertical wheel delta shows it, negative hides it (physical swipe direction follows your system scroll setting). Trackpads and mouse wheels both work; each gesture needs 60px and rearms after 250ms idle. Scrolling inside Dashboard, navigation, settings and dialogs keeps its usual behavior. Horizontal scrolling and pinch zoom are ignored.
+
 Startup is click-gated: opening or refreshing the Dashboard begins idle and does not restore/start an active run or inject facts. Only **Start project** initiates allocation. Once clicked, automatic execution and the five-second injection work normally. Explicit **Reset project** still starts a new allocation. Saved server runs remain audit history. This supersedes earlier auto-resume-on-refresh notes.
 
 For the persistent NemoClaw inference proxies and Discord setup from the Spark's local `.env`, see [Spark runtime helpers](deploy/spark/README.md).
