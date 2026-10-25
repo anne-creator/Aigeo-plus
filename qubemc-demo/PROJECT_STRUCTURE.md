@@ -10,6 +10,17 @@ Startup is click-gated: opening or refreshing the Dashboard begins idle and does
 
 Task cards, dependencies, details, activity and model messages display task text and employee names. Internal IDs remain in state/API/audit data; presentation resolves saved model text too. The original Markdown download remains unchanged.
 
+## Work-focused dashboard and allocation animation (2026-10-25)
+
+This section supersedes earlier summary-card and persistent-expansion presentation notes.
+
+- `src/main.tsx` + `src/dashboard-focus.css`: the global view has one launch card (deliverables, deadline, Brief and Start project), with small company totals. No empty task board or progress ring. The project view has a compact project/owner/deadline/completion bar, a roughly 75/25 task-board/sidebar split, unresolved issues and five latest changes. Cards prioritize task title, owner, status and deadline. At narrow widths the order is attention → horizontally scrollable board → changes. Existing details, Team, Brief, Activity and server operations remain available.
+- `src/dashboard-presentation.ts`: pure presentation stages (global, assigning, setup-error, entering, project), current-run reveal guard, and adjacent valid snapshot observations. First allocation produces one team-ready summary; repeated/reordered snapshots do not duplicate entries. Owner/status/blocker/schedule changes get sync-observation labels rather than invented event times. All changed task cards can highlight for five seconds even though the feed is capped at five. Proposals remain pending until applied; unresolved decisions have an explicit sidebar entry and never open a dialog automatically. Reset clears observations.
+- `src/AllocationAnimation.tsx` + `public/allocation/scan-drop.mp4`: Anne's unchanged 12-second silent video from `CoFloor-Scan-Drop-Standalone/CoFloor-Scan-Drop-Silent.mp4`. Original titles, names, captions and timing are preserved at Anne's request; this is a standalone visual loop, not a live data display. The video uses muted autoplay/loop/playsInline and is only mounted during assignment. Existing office art covers loading, media failure, playback rejection, pause, reduced motion and hidden-page states. The media cannot signal business success. No extra runtime, audio, CDN or backend progress endpoint.
+- Start project immediately hides the panel and shows the dedicated allocation screen. A validated active snapshot exits it and starts the existing F90 arrival; `ProjectScene` reports completion using the run ID, and the parent reveals the project panel once. An explicit entry-run token covers instant results that batch away the planning render. Pause/reduced-motion/canvas failure skip entry safely. Older requests and callbacks cannot reveal another run, and refresh never reopens a manually collapsed panel. Assignment/error/arrival stages disable ordinary dashboard buttons and wheel gestures. Failure retains the allocation screen with Retry.
+- APIs, company input files, task statuses, reservations, assignment validation and Discord transport are unchanged. No timer moves tasks or fabricates percentages. Refresh continues through existing state/check endpoints, including retry of a received event's failed analysis.
+- Validation: presentation tests cover phases, stale callbacks, once-only reveal, pending/applied proposals, duplicate/reordered snapshots, complete highlight sets and run reset; existing arrival tests cover completion, reset, pause and reduced motion. Browser checks use an explicitly labeled local adapter fixture (no model/Discord calls) for slow/instant success, failure/retry, transition ordering, pending review, owner/blocker changes, manual collapse, pause and 390px layout. The supplied video is verified byte-for-byte against the original. See the current maintenance entry for final check results.
+
 ## Project-driven building and office scenes (2026-10-25)
 
 - `src/scene/arrival.ts` preserves the supplied tower’s F90 zoom (3.5×, cubic-bezier(.7,0,.2,1), 760 ms switch). A successful planning → active allocation triggers it once before revealing the office. Snapshots during entry update the queued employee scene; actors start walking after arrival. Reset cancels the old transition. Paused/reduced-motion/hidden scenes skip or finish entry, and reloads do not replay it. The camera origin follows the fitted tower on desktop and mobile; dashboard controls remain fixed. Lifecycle and camera regression tests cover these gates.
@@ -39,7 +50,7 @@ Validation: server/state regression tests, canonical-document and adapter contra
 
 ---
 
-## Current presentation: collapsible glass dashboard (2026-10-25)
+## Earlier presentation: collapsible glass dashboard (2026-10-25)
 
 - Night skyline background: `src/NightCity.tsx` renders deterministic SVG towers, blue roof lights, layered skyline, window lights and a drifting light band behind the panels. CSS animates opacity and transforms without timers or network media. The header pause/play control stops the scene; reduced-motion preferences disable animation. Night-scene contrast uses 45% scene brightness and 70% saturation; glass has 5% white tint / 48 px blur and slightly desaturated backdrops, with a lighter shadow and fine edge highlight for clearer transmission. Titles and key numbers use weight 600, with weight 500 labels. This brings the dark neutral glass and bright text closer to the supplied Wealth reference while retaining transmitted blue light. Production build and browser pause/play checks pass.
 
@@ -53,7 +64,7 @@ Validation: server/state regression tests, canonical-document and adapter contra
 - Validation: strict TypeScript and production build; 7 board tests, the board contract check and 13 existing data/state/model tests pass. Browser checks cover reference start, task detail, hide/show, hidden preference through refresh, desktop and 390 px mobile layouts. No live project document was submitted. Work stays local; no commit or push per Anne's instruction.
 
 
-## Current feature: Red Bull document and Kanban board (2026-10-25)
+## Earlier feature: Red Bull document and Kanban board (2026-10-25)
 
 This section describes the current UI and supersedes the earlier dashboard workflow notes below. Existing local-model integration notes are preserved for their separate implementation.
 
@@ -155,3 +166,6 @@ CoFloor rename validation: all six existing tests and strict TypeScript / produc
 - Concurrent-work limitation: the new Red Bull board is being authored separately in this checkout. This model change does not stage or overwrite its files. Automatic approval review rejected a test that would send that separate project document, so document-backed model requests are blocked pending explicit user authorization. Three-workstream API tests remain independent.
 
 - Final direct-answer live verification: planning 1.4 s, evidence-free check 0.5 s, injected-risk check 1.9 s, unresolved reply 0.6 s, accepted commitment 0.7 s. JSON-constrained output validated; model-generated decision question is a valid draft if no separate message is returned.
+
+- 2026-10-25: Implemented work-focused global/project dashboards, separate allocation and arrival stages, snapshot-based latest changes and inline attention. Integrated Anne’s original silent scan/drop animation unchanged; no push or live model/Discord verification.
+- Final validation for the dashboard update: all 52 offline tests, the board contract check and strict TypeScript/production build passed. Local browser fixtures verified a 45-second wait with repeated 12-second video loops, pause/static fallback, hidden allocation/entry panels, failure/retry, instant success, pending proposals without automatic dialogs, changed-card highlight and 390px panel order/internal board scrolling. No live allocation or Discord request was used.

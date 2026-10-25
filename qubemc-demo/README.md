@@ -12,9 +12,17 @@ Task cards, dependencies, details, activity and model messages display task text
 
 The backdrop now follows the project: headquarters before setup, a single office floor after a successful live allocation. The imported tower, office artwork and pixel characters come from Anne's supplied `cofloor-deploy` package. Actual owner IDs, task states, leave and assignment versions drive the visual handoffs. Unknown mappings or rendering failures fall back to decorative walking; **Project settings → Ambient animation** lets you exercise that fallback. Animations do not advance work or simulate approvals. Pause the background from the header, or hide Dashboard to see the whole scene.
 
+## Dashboard flow
+
+**Start project → Assigning your team → headquarters/F90 entry → Project Dashboard.** The initial dashboard is hidden; opening it before allocation shows one project launch card. During allocation, Anne's original 12-second scan/drop animation loops silently with its original text and names. Its duration does not determine allocation completion. An actual validated assignment result starts the F90 entry, then reveals the task board once. Failed allocation stays on the waiting screen with Retry. Pause, reduced motion or rendering failure use static fallback and do not block project entry.
+
+The project panel emphasizes the four-column task board, current owners, deadlines and dependencies. Its side panel holds unresolved issues and the latest five observed changes, with Refresh and Activity. Pending proposals remain pending until applied; reviewing one requires a click. Duplicate snapshots do not repeat notifications. Change labels say **Observed on sync** when no event timestamp exists. Task cards briefly highlight real changes. On mobile, attention comes first, then the horizontally scrolling board and latest changes.
+
+Ordinary Dashboard buttons/gestures are disabled during assignment, error and arrival screens. After entry they behave normally; a later refresh does not reopen a manually hidden panel. The animation asset and lifecycle are documented in [public/allocation/README.md](public/allocation/README.md).
+
 ## Current demo: live setup and sick-leave decision
 
-**Start project** uses the configured live model to read the preloaded Red Bull document, generate production tasks and select eligible staff plus a project manager. No approval task or human assignment confirmation is required. Valid assignments enter **In project** immediately. Original document approval gates and reference people are historical scenario data; the current two-moment application workflow takes precedence.
+**Start project** uses the configured live model to read the preloaded Red Bull document, generate production tasks and select eligible staff plus a project manager. No approval task or human assignment confirmation is required. Valid assignments enter the **In project** business state immediately; the dashboard appears after the visual entry transition. Original document approval gates and reference people are historical scenario data; the current two-moment application workflow takes precedence.
 
 After setup, the project waits for **Alex Morgan’s Discord leave event**. There is no timed or automatically generated sick-leave message. Alex is the initial launch-image owner, validated against skills and availability. The scenario leave interval is **13:00–18:00 PT on October 26, 2026**. Only affected reservations are released; other work continues.
 
@@ -38,7 +46,7 @@ Run `npm test`, `npm run test:board`, `npm run build`. For opt-in real inference
 
 ---
 
-## Current dashboard: Red Bull X launch
+## Earlier dashboard: Red Bull X launch (historical)
 
 The dashboard uses an animated blue night skyline, rounded translucent cards in the lower half, and numeric summaries for Tasks, Team, Schedule and Progress. **Dashboard** in the header hides or expands the entire lower panel and remembers that preference through refresh. The left rail becomes a floating bottom dock on mobile. The header pause button stops the decorative skyline animation; reduced-motion preferences are respected.
 

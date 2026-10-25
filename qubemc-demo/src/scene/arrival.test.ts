@@ -47,11 +47,12 @@ test('engine finishes once, preserves arrival during updates, and cancels on res
   const floor: Scene = {...building, mode: 'floor'};
   const tick = () => {const callbacks = [...frames.values()]; frames.clear(); now += 80; callbacks.forEach(fn => fn(now));};
   try {
-    engine.apply(building); engine.apply(floor, true); tick(); tick();
+    engine.apply(building); assert.equal(engine.isEntering(), false);
+    engine.apply(floor, true); assert.equal(engine.isEntering(), true); tick(); tick();
     engine.apply({...floor, fallback: true});
     assert.deepEqual(changes, [true]);
     for (let i = 0; i < 15; i++) tick();
-    assert.deepEqual(changes, [true, false]);
+    assert.deepEqual(changes, [true, false]); assert.equal(engine.isEntering(), false);
     engine.apply(floor); tick(); assert.equal(changes.length, 2);
     engine.apply(building); engine.apply(floor, true); engine.apply({...building, runId: 'two'});
     for (let i = 0; i < 15; i++) tick();

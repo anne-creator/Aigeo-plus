@@ -114,6 +114,7 @@ export function createSceneEngine(canvas:HTMLCanvasElement,headcount:number,onFa
   document.addEventListener('visibilitychange',visibility);
   return {
     apply,
+    isEntering:()=>arrival!==null,
     setPlayback(value:boolean,reduce:boolean){playing=value;reduced=reduce;stop();if(!playing||reduced)finishArrival();if(reduced)settle();render();schedule();},
     setArt(value:HTMLImageElement|null,failed=false){image=value;artFailed=failed;if(failed){onFallback();for(const a of actors.values()){a.queue=[];a.carry=false;a.dwell=0;}}render();},
     pick(clientX:number,clientY:number){if(scene.mode!=='floor'||arrival!==null)return null;const r=canvas.getBoundingClientRect(),x=(clientX-r.left-area.x)/area.w*100,y=(clientY-r.top-area.y)/area.h*100;return [...actors.values()].filter(a=>a.pose!=='away'&&Math.abs(a.x-x)<3&&y<a.y+2&&y>a.y-7).sort((a,b)=>b.y-a.y)[0]?.member.id??null;},
