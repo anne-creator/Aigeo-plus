@@ -1,0 +1,16 @@
+.env*
+.git
+.next
+node_modules
+/uploads/
+tmp
+prisma/*.db*
+prisma/schema.production.prisma
+deploy/private
+deploy/data
+deploy/backups
+*.tar.gz
+*.log
+*.tsbuildinfo
+coverage
+.DS_Store

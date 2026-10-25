@@ -1,0 +1,390 @@
+// Aigeo+ 项目考核系统数据模型
+// 本地开发用 SQLite；上线换 Postgres 时把 provider 改为 "postgresql" 即可（本模型不用任何 SQLite 专有特性）。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// 用户。role: ADMIN | PM | INTERN | CHANNEL（渠道方，channel 为其渠道代码）
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  name         String
+  role         String
+  /// 负责人类型（仅 INTERN 账号）：VIDEO | USER_LAYER | MEDIA | WRITER，见 src/lib/tasks.ts
+  dutyRole     String?
+  /// 渠道代码（仅 CHANNEL 账号）：ZHIWAI | ZHITUI | MAXUS，见 src/lib/channels.ts
+  channel      String?
+  active       Boolean  @default(true)
+  /// 薪酬停发依据，独立于账号临时停用状态
+  departedOn   String?
+  createdAt    DateTime @default(now())
+
+  projects      Project[]        @relation("ProjectPm")
+  submissions   Submission[]
+  reviews       Deliverable[]    @relation("DeliverableReviewer")
+  internTasks   InternTask[]     @relation("InternTaskAssignee")
+  createdTasks  InternTask[]     @relation("InternTaskCreator")
+  internLogs    InternDailyLog[]
+  timelineCreated   TimelineItem[] @relation("TimelineItemCreator")
+  timelineCompleted TimelineItem[] @relation("TimelineItemCompleter")
+  taskBatchesCreated  TaskBatch[]      @relation("TaskBatchCreator")
+  taskBatchesAssigned TaskBatch[]      @relation("TaskBatchAssignee")
+  taskSubmissions     TaskSubmission[]
+  timelineRevisionsSubmitted TimelineRevision[] @relation("TimelineRevisionSubmitter")
+  timelineRevisionsReviewed  TimelineRevision[] @relation("TimelineRevisionReviewer")
+  meetingsOrganized   Meeting[]        @relation("MeetingOrganizer")
+  meetingInvites      MeetingInvite[]
+  monthlyHours        MonthlyHours[]
+}
+
+/// 客户项目档案（CRM）。所有交付节点从 startDate 起算。
+/// planTier: LAUNCH | GROW | CUSTOM；status: ACTIVE | PAUSED | TERMINATED | COMPLETED
+model Project {
+  id              String   @id @default(cuid())
+  clientName      String
+  websiteUrl      String
+  startDate       String   // YYYY-MM-DD，北京时间，记为 D0（第 1 天）
+  planTier        String
+  /// 客户来源：DIRECT 直客 | ZHIWAI 知外 | ZHITUI 智推时代 | MAXUS
+  source          String   @default("DIRECT")
+  /// 客户进度分享链接的令牌（/share/<token>，无需登录）；为空表示未开启分享
+  shareToken      String?  @unique
+  monthlyFeeUsd   Float
+  contractMonths  Int      @default(3)
+  status          String   @default("ACTIVE")
+  terminationDate String?  // YYYY-MM-DD，暂停/终止日；之后的节点不再生成
+  renewalStatus   String?  // NONE | IN_PROGRESS | RENEWED | LOST
+  renewalNote     String?
+  /// 续约时长（月）：续约成功后由管理员录入；续约奖 = 月提成 × 续约月数 ÷ 3（提前终止按实际服务并回款月数改小）
+  renewalMonths   Int?
+  /// 续约奖已发放时间（续约期服务结束后的下一个发薪日发放）
+  renewalPaidAt   DateTime?
+  renewalPaidCny  Float?
+  /// 新一期续约的签约日与开始日（不能把原合同结束日当作续约期结束日）
+  renewalSignedDate String?
+  renewalStartDate  String?
+  /// 管理员核实的实际服务且已回款月数，以及这些月份实际人民币回款合计
+  renewalServedPaidMonths Float?
+  renewalReceivedCny Float?
+  notes           String?
+  pmId            String
+  pm              User     @relation("ProjectPm", fields: [pmId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  kpis          ProjectKpi[]
+  deliverables  Deliverable[]
+  assessments   QuarterAssessment[]
+  timelineItems TimelineItem[]
+  internTasks   InternTask[]
+  taskBatches   TaskBatch[]
+  timelineRevisions TimelineRevision[]
+  serviceReceipts ServiceReceipt[]
+}
+
+/// 回款按服务月分摊。预付多月仍逐月记录，不能在到账月一次计发全部提成。
+model ServiceReceipt {
+  id           String   @id @default(cuid())
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  serviceMonth Int
+  receivedCny  Float
+  note         String?
+  confirmedById String
+  updatedAt    DateTime @updatedAt
+
+  @@unique([projectId, serviceMonth])
+}
+
+/// 建档时承诺的交付 KPI。metricType: SHOWUP_RATE | VISIBILITY_LIFT | REDDIT_POSTS | ARTICLES | CUSTOM
+model ProjectKpi {
+  id          String  @id @default(cuid())
+  projectId   String
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  metricType  String
+  name        String
+  targetValue Float
+  unit        String
+  note        String?
+}
+
+/// 交付节点实例（由规则引擎按 startDate 生成并落库）。
+/// code 见 src/lib/rules/types.ts；kind: FILE | TEXT
+/// reviewStatus: NONE | PENDING | APPROVED | REJECTED
+model Deliverable {
+  id                 String    @id @default(cuid())
+  projectId          String
+  project            Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  code               String
+  seq                Int
+  title              String
+  kind               String
+  periodLabel        String
+  quarter            Int
+  windowStart        DateTime
+  dueAt              DateTime
+  firstSubmittedAt   DateTime?
+  reviewStatus       String    @default("NONE")
+  /// 审核来源：AI（AI 自动审核）| ADMIN（管理员人工）
+  reviewSource       String?
+  reviewDeductionPct Float?
+  reviewNote         String?
+  reviewedById       String?
+  reviewedBy         User?     @relation("DeliverableReviewer", fields: [reviewedById], references: [id])
+  reviewedAt         DateTime?
+
+  submissions Submission[]
+  aiReviews   AiReview[]
+
+  @@unique([projectId, code, seq])
+  @@index([projectId, quarter])
+}
+
+/// 每次提交（只追加，不修改）。
+model Submission {
+  id            String      @id @default(cuid())
+  deliverableId String
+  deliverable   Deliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  submittedById String
+  submittedBy   User        @relation(fields: [submittedById], references: [id])
+  submittedAt   DateTime    @default(now())
+  version       Int
+  textContent   String?
+  fileName      String?
+  filePath      String?
+  fileSize      Int?
+  mimeType      String?
+  note          String?
+}
+
+/// 项目 timeline 条目：项目经理在基线报告确认后上传的详细节点计划
+/// （例如“10-15 提交 Reddit 内容”“10-20 提交第二批博客”）。自动进入项目经理的日历与当日 checklist。
+/// 完成即勾选（completedAt）；超过截止日 7 天（可配置）仍未完成的开始扣分。
+model TimelineItem {
+  id            String    @id @default(cuid())
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title         String
+  dueDate       String    // YYYY-MM-DD，北京时间
+  note          String?
+  sortOrder     Int       @default(0)
+  createdById   String
+  createdBy     User      @relation("TimelineItemCreator", fields: [createdById], references: [id])
+  completedAt   DateTime?
+  completedById String?
+  completedBy   User?     @relation("TimelineItemCompleter", fields: [completedById], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([projectId, dueDate])
+}
+
+/// 项目 timeline 的修改申请：首次上传直接生效；之后项目经理重新提交整份 timeline，
+/// 管理员审批通过才替换旧节点（已勾选完成的条目保留）。
+/// status: PENDING | APPROVED | REJECTED | WITHDRAWN；itemsJson = [{dueDate, title}]
+model TimelineRevision {
+  id             String    @id @default(cuid())
+  projectId      String
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  submittedById  String
+  submittedBy    User      @relation("TimelineRevisionSubmitter", fields: [submittedById], references: [id])
+  reason         String?
+  sourceText     String?
+  sourceFileName String?
+  sourceFilePath String?
+  sourceFileSize Int?
+  sourceMimeType String?
+  itemsJson      String
+  status         String    @default("PENDING")
+  reviewNote     String?
+  reviewedById   String?
+  reviewedBy     User?     @relation("TimelineRevisionReviewer", fields: [reviewedById], references: [id])
+  reviewedAt     DateTime?
+  /// 通过时实际变更的摘要，如“新增 2 · 删除 1 · 改期 3”
+  appliedSummary String?
+  createdAt      DateTime  @default(now())
+
+  @@index([projectId, status])
+  @@index([status, createdAt])
+}
+
+/// 会议：管理员或项目经理发起，邀请任意内部成员；被邀请人接受后进入其日历。
+model Meeting {
+  id              String    @id @default(cuid())
+  title           String    // 会议目的
+  startAt         DateTime
+  durationMinutes Int       @default(30)
+  location        String?   // 会议室或线上链接
+  note            String?
+  organizerId     String
+  organizer       User      @relation("MeetingOrganizer", fields: [organizerId], references: [id])
+  canceledAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  invites MeetingInvite[]
+
+  @@index([startAt])
+}
+
+/// 会议邀请。status: PENDING | ACCEPTED | DECLINED。发起人自己也有一条（ACCEPTED）。
+model MeetingInvite {
+  id          String    @id @default(cuid())
+  meetingId   String
+  meeting     Meeting   @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  status      String    @default("PENDING")
+  respondedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([meetingId, userId])
+  @@index([userId, status])
+}
+
+/// AI 审核记录：每次提交（版本）一条。score 0–100；verdict PASS | FAIL | ERROR（读不到内容或调用失败，留给管理员）
+model AiReview {
+  id            String      @id @default(cuid())
+  deliverableId String
+  deliverable   Deliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  submissionId  String
+  score         Int?
+  verdict       String
+  summary       String
+  issuesJson    String      @default("[]")
+  deductionPct  Float       @default(0)
+  model         String?
+  error         String?
+  createdAt     DateTime    @default(now())
+
+  @@index([deliverableId, createdAt])
+}
+
+/// 项目经理某月的日均有效工时（管理员根据内部平台当月工作日记录录入；未录入则底薪待确认）
+model MonthlyHours {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  month         String   // YYYY-MM（北京时间）
+  avgDailyHours Float
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, month])
+}
+
+/// 季度考核结算（管理员录入效果数据后固化）。
+model QuarterAssessment {
+  id                   String    @id @default(cuid())
+  projectId            String
+  project              Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  quarter              Int
+  actualShowupRate     Float?    // 实际 ShowUp 率（%）
+  targetShowupRate     Float?    // 合同目标（%），结算时从 KPI 快照
+  fxRate               Float     @default(6.8)
+  achievementPct       Float?    // 达成率（%）
+  tierPct              Float?    // 档位系数：100 / 60 / 0
+  deliveryScorePct     Float?    // 季度交付得分（%）
+  monthlyCommissionCny Float?
+  kpiBonusCny          Float?
+  note                 String?
+  finalizedAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@unique([projectId, quarter])
+}
+
+/// 系统设置（JSON）。key = "rules" 存放权重/扣分比例/汇率。
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+/// 负责人任务（界面上叫“任务”，账号角色代码仍是 INTERN）。status: TODO | DONE
+/// 项目经理“分配任务”确认下发后由 TaskBatch 生成；管理员也可以单独建。
+model InternTask {
+  id          String    @id @default(cuid())
+  assigneeId  String
+  assignee    User      @relation("InternTaskAssignee", fields: [assigneeId], references: [id])
+  createdById String
+  createdBy   User      @relation("InternTaskCreator", fields: [createdById], references: [id])
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  batchId     String?
+  batch       TaskBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  title       String
+  description String?
+  dueAt       DateTime? // 截止：北京时间当天 23:59:59
+  /// 项目经理录入的预计完成用时（分钟，0–180）
+  estimatedMinutes Int?
+  status      String    @default("TODO")
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  submissions TaskSubmission[]
+
+  @@index([assigneeId, status])
+  @@index([projectId])
+}
+
+/// 项目经理的一次“分配任务”：原始文字/文档 → 自动整理的草稿清单 → 确认下发。
+/// status: DRAFT | CONFIRMED | DISCARDED；itemsJson 为草稿清单 [{title, dueDate|null, note|null}]
+model TaskBatch {
+  id             String    @id @default(cuid())
+  projectId      String
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdById    String
+  createdBy      User      @relation("TaskBatchCreator", fields: [createdById], references: [id])
+  assigneeId     String
+  assignee       User      @relation("TaskBatchAssignee", fields: [assigneeId], references: [id])
+  dutyRole       String
+  sourceText     String?
+  sourceFileName String?
+  sourceFilePath String?
+  sourceFileSize Int?
+  sourceMimeType String?
+  itemsJson      String    @default("[]")
+  parseMethod    String?   // ai | rules
+  status         String    @default("DRAFT")
+  createdAt      DateTime  @default(now())
+  confirmedAt    DateTime?
+
+  tasks InternTask[]
+
+  @@index([createdById, status])
+}
+
+/// 负责人提交的交付物：链接或文件（只追加）
+model TaskSubmission {
+  id            String     @id @default(cuid())
+  taskId        String
+  task          InternTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  submittedById String
+  submittedBy   User       @relation(fields: [submittedById], references: [id])
+  submittedAt   DateTime   @default(now())
+  url           String?
+  fileName      String?
+  filePath      String?
+  fileSize      Int?
+  mimeType      String?
+  note          String?
+}
+
+/// 实习生日报（占位）。
+model InternDailyLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  date      String   // YYYY-MM-DD
+  content   String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+}

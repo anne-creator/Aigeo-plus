@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "node deploy/vercel-build.mjs",
+  "regions": ["iad1"],
+  "functions": {
+    "src/app/**/*": { "maxDuration": 300 }
+  }
+}

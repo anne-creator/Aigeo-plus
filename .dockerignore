@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.vercel
+.env*
+uploads
+tmp
+prisma/*.db*
+deploy/private
+deploy/data
+deploy/backups
+*.tar.gz
+*.log
+*.tsbuildinfo
+.DS_Store
