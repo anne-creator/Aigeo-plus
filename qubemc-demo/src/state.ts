@@ -11,15 +11,16 @@ export type CompanyInput = {
   };
 };
 export type Issue = { taskId: string; title: string; detail: string; question: string };
-export type Message = { id: string; author: 'agent' | 'worker'; personId?: string; text: string; time: string };
+export type Message = { id: string; author: 'agent' | 'worker'; personId?: string; text: string; time: string; delivery?: 'simulated' | 'sent' | 'received' };
 export type Phase = 'idle' | 'planning' | 'assigned' | 'monitoring' | 'analyzing' | 'notifying' | 'awaiting' | 'interpreting' | 'resumed';
 export type AgentEvent = { id: string; runId: string } & (
   { type: 'progress'; label: string } | { type: 'planned'; tasks: Task[] } |
   { type: 'issue'; issue: Issue } | { type: 'sent'; message: Message } |
   { type: 'reply'; message: Message } | { type: 'resolved'; commitment: string; nextCheckIn?: string } |
+  { type: 'checked'; at: string } | { type: 'pending'; note: string } |
   { type: 'failed'; message: string }
 );
-export type Snapshot = { version: 1; runId: string; phase: Phase; tasks: Task[]; issue?: Issue; messages: Message[]; seen: string[]; label: string; nextCheckIn?: string; error?: string };
+export type Snapshot = { version: 1; runId: string; phase: Phase; tasks: Task[]; issue?: Issue; messages: Message[]; seen: string[]; label: string; nextCheckIn?: string; lastCheckedAt?: string; decisionNote?: string; error?: string };
 export const initialState: Snapshot = { version: 1, runId: '', phase: 'idle', tasks: [], messages: [], seen: [], label: '' };
 export type Action = { type: 'reset' } | { type: 'start'; runId: string } | { type: 'monitor' } | { type: 'check' } | { type: 'reply-start' } | { type: 'event'; event: AgentEvent };
 export function reducer(s: Snapshot, a: Action): Snapshot {
@@ -37,8 +38,10 @@ export function reducer(s: Snapshot, a: Action): Snapshot {
     case 'issue': return (s.phase === 'analyzing' || s.phase === 'monitoring') ? { ...next, phase: 'notifying', issue: e.issue, tasks: s.tasks.map(t => t.id === e.issue.taskId ? { ...t, status: 'attention' } : t) } : s;
     case 'sent': return s.phase === 'notifying' ? { ...next, phase: 'awaiting', messages: [...s.messages, e.message] } : s;
     case 'reply': return (s.phase === 'interpreting' || s.phase === 'awaiting') ? { ...next, phase: 'interpreting', messages: [...s.messages, e.message] } : s;
-    case 'resolved': return s.phase === 'interpreting' && s.messages.some(m => m.author === 'worker') ? { ...next, phase: 'resumed', nextCheckIn: e.nextCheckIn, tasks: s.tasks.map(t => t.id === s.issue?.taskId ? { ...t, status: 'working', commitment: e.commitment } : t) } : s;
-    case 'failed': return { ...next, error: e.message };
+    case 'resolved': return s.phase === 'interpreting' && s.messages.some(m => m.author === 'worker') ? { ...next, phase: 'resumed', decisionNote: undefined, nextCheckIn: e.nextCheckIn, tasks: s.tasks.map(t => t.id === s.issue?.taskId ? { ...t, status: 'working', commitment: e.commitment } : t) } : s;
+    case 'checked': return s.phase === 'analyzing' ? { ...next, phase: 'monitoring', lastCheckedAt: e.at } : s;
+    case 'pending': return s.phase === 'interpreting' ? { ...next, phase: 'awaiting', decisionNote: e.note } : s;
+    case 'failed': return { ...next, phase: s.phase === 'analyzing' ? 'monitoring' : s.phase === 'interpreting' ? 'awaiting' : s.phase, error: e.message };
   }
 }
 export function restore(raw: string | null): Snapshot {

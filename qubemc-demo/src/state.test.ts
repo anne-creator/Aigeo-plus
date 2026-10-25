@@ -31,3 +31,12 @@ test('storage corruption resets safely; interrupted inference is never completed
   const restored = restore(JSON.stringify(start()));
   assert.equal(restored.phase,'planning'); assert.ok(restored.error);
 });
+test('no-issue check returns to monitoring; an unresolved reply does not resume',()=>{
+  let s = reducer(start(),{type:'event',event:{id:'p',runId:'run-1',type:'planned',tasks:[{id:'visual',title:'Visual',ownerId:'alex',due:'3 PM',status:'ready'}]}});
+  s=reducer(s,{type:'monitor'});s=reducer(s,{type:'check'});
+  s=reducer(s,{type:'event',event:{id:'c',runId:'run-1',type:'checked',at:'1 PM'}});
+  assert.equal(s.phase,'monitoring');assert.equal(s.lastCheckedAt,'1 PM');
+  s={...s,phase:'interpreting'};
+  s=reducer(s,{type:'event',event:{id:'u',runId:'run-1',type:'pending',note:'Still blocked'}});
+  assert.equal(s.phase,'awaiting');assert.equal(s.decisionNote,'Still blocked');
+});

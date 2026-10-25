@@ -78,3 +78,5 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .control-panel small, .live-toggle { color: #64748b; }
 .reset-button { color: #087e98; }
 .live-toggle input { accent-color: #087e98; }
+.control-panel textarea { width:100%;margin-top:14px;padding:10px;border:1px solid var(--line);border-radius:5px;font:inherit;font-size:14px;line-height:1.5;color:#172433;background:#f8fafc;resize:vertical; }
+.decision-note { padding:12px;background:#fff5df;border-radius:5px;color:#81550c;font-size:15px;line-height:1.5; }

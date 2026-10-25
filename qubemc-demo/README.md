@@ -1,46 +1,62 @@
 # CoFloor
 
-Local English dashboard for two moments: project planning / assignment, and issue detection / worker decision. White background, cyan accents, factual labels.
+Local English dashboard for project planning / assignment and issue detection / worker decisions. White background, factual labels, imported Bridgewell Creative employee data.
 
-## Run
+## Run with the deployed model
+
+Use Node 22+ (tested with Node 24). Copy `.env.example` to `.env.local` and configure `MODEL_API_AUTH` locally. This machine is already configured. The credential stays on the server; never put it in `src/`, a `VITE_` variable, or Git.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open the printed localhost URL. `npm run build` creates `dist/`. No hosted backend or external runtime assets are required. The Vite server serves the frontend locally.
+For a built local app:
 
-## Walk through
+```sh
+npm run build
+npm start
+```
 
-1. Select **Start Project**. The development adapter emits planning events and three example task assignments.
-2. Select **View project in progress** to skip the off-screen execution stage.
-3. Open **••• → Inject delayed photography**. Wait for the simulated notification; the dashboard stays waiting for a decision.
-4. Select **••• → Simulate worker reply**. The reply and resulting commitment update the task; its owner stays the same.
-5. **••• → Reset demo** starts over. Refresh preserves the current state. An interrupted operation requires a reset, rather than pretending it completed.
+The built local service binds to `127.0.0.1:5173`. The Vite middleware in development and `server/start.mjs` in production use the same model implementation. No separate backend deployment is needed. A static `dist/` host alone cannot run model inference.
 
-All current model results and Discord messages are development fixtures. There is no actual inference or Discord transmission yet.
+Model configuration: `https://models.qubemc.com/llm/v1/chat/completions`, model `coo-llm`, Basic authentication, matching the repository's `scripts/test_llm.py`. `MODEL_ENABLE_THINKING=true` enables longer model reasoning if desired; the default direct-answer setting reduces demo latency ([NVIDIA model guidance](https://www.nvidia.com/en-us/ai-data-science/foundation-models/nemotron/llm-info/)). The service only consumes final answer content and never sends reasoning to the UI.
 
-## Local Agent connection
+## Demo and current parallel UI work
 
-`src/agent.ts` exports the `AgentAdapter` interface. `src/data.ts` holds the project fixture and imported company input. The company now comes from Anne’s provided Bridgewell Creative dataset: 1,000 employees, 17 departments, 72 roles and 99 teams. `src/company-data.json` is the compact frontend projection; complete source records and schedules are retained in `data/company/`. Stable employee IDs replace the previous generated employees. The source explicitly labels its data synthetic. The mocked three-person assignments (Taylor Reed, Alex Morgan and Jordan Brooks) remain development examples, not model selections.
+The currently changing Red Bull board is a separate UI workflow. Its document has NOT been sent to the model. Document-backed analysis is deliberately rejected by the local service pending explicit authorization for that project. The original three-workstream endpoints below are implemented and tested; the new board’s two-task contract has not been connected.
 
-Availability refers to October 26, 2026, the source reference day, in America/Los_Angeles. Remaining daily capacity is not task-window feasibility. `CompanyInput.source.resources` supplies local source paths for later model integration. The storage key includes dataset ID, so sessions containing the old invented employee IDs do not overwrite this dataset. See `data/company/README.md` for provenance and import instructions.
+The following steps describe the original two-moment UI, not the concurrently authored board:
 
-Implement the adapter in the same project when the local runtime details are provided. Install it as `window.cofloorAgent` before the app mounts; set `mode: 'live'`. The **Use local runtime** control selects that adapter; a missing runtime produces a visible error and never falls back to mock.
+1. Refresh the page. Reset any previous mock run from **••• → Reset demo**.
+2. Enable **Use local model** in **•••**. The header shows **Live model · Discord demo**.
+3. Select **Start Project**. The actual model plans three workstreams and chooses eligible employee IDs; no mocked assignments are substituted on errors.
+4. Select **View project in progress**. The real model checks current facts immediately, then every 30 seconds while monitoring. The empty initial state says **Awaiting first check**, not an invented all-clear. **Check current facts** can trigger an extra check.
+5. Select **••• → Inject delayed photography**. This inserts an observation; the model decides whether it is a risk and writes the question. The UI marks the subsequent notification **DISCORD DEMO**. No actual Discord message is sent.
+6. In **•••**, edit **Test worker reply** and select **Simulate worker reply**. The actual model interprets the test text. An unresolved blocker remains waiting; only a concrete acceptable commitment resumes the task. Checkpoint times come from the model's interpretation, not fixed UI text.
 
-Existing integrations using `window.qubemcAgent` remain supported; `window.cofloorAgent` takes precedence. Existing browser storage keys are retained to preserve saved project state and runtime selection. The source directory remains `qubemc-demo/` for compatibility with current local workflows. The new logo is pending Anne’s review; the dashboard uses the CoFloor wordmark.
+Discord remains a simulated transport. The API credential supplied for the model does not grant Discord access. Model mode and Discord delivery are labeled separately. External real-transport adapters may still be installed as `window.cofloorAgent` (`window.qubemcAgent` is retained for compatibility).
 
-- `start({ project, company, runId }, signal)` yields `progress` and `planned` events from real inference.
-- `check({ project, company, state, observation }, signal)` consumes current runtime state; `observation` is empty in live mode. It yields `issue`, then `sent` only after actual transport success. Live **Check latest project state** calls this method.
-- Optional `subscribe(onEvent)` delivers asynchronous observations and genuine Discord replies. Return an unsubscribe function. An `issue` event can arrive while monitoring; a `reply` changes waiting to interpreting; `resolved` records the model's commitment only after a worker reply. Model-provided `nextCheckIn` is optional.
-- `receiveDecision({ state, text }, signal)` is used by the development reply control. A production bridge should feed only genuine incoming replies through its subscribed events or this boundary.
-- All events carry a stable event `id` and current `runId`. Preserve IDs on redelivery. Reset cancels pending calls; stale and duplicate events are ignored.
+Mock mode remains available for offline UI work. Do not enable it silently on model failure.
 
-No HTTP, model provider, Python bridge, or Discord protocol is assumed. Connect to the actual local runtime here after its information arrives. Do not implement model calls inside UI components. Do not substitute the development controls for real notifications in live mode.
+## Model and data boundary
 
-The underlying facts and decision contents stay in the events. The UI exposes task owners, deadlines, issue facts, messages and next steps; internal matching and orchestration stay behind the scenes. Reassignment is P1.
+`server/model.mjs` reads full local company inputs, validates hard constraints, invokes the deployed model and validates its structured final output. Skill levels, permissions, client clearances/conflicts, remaining daily capacity and a contiguous free task window are checked before the model receives feasible candidates. It selects distinct employees from those pools. Invalid IDs, duplicate workstreams, malformed JSON or incomplete output fail without saving assignments.
+
+The launch demo retains three workstreams (copy, visual, coordination) and established deadlines. The model generates task titles and chooses owners for those workstreams. Full arbitrary project decomposition, reassignment and final delivery remain out of scope.
+
+`src/model-agent.ts` adapts real model results into existing typed events. UI components do not contain API credentials or provider calls. The small local routes are `/api/model/status`, `/api/model/plan`, `/api/model/check`, and `/api/model/decision`. Status exposes only configuration, model name and transport mode. Errors do not include upstream bodies, credentials or stack traces. Disconnect/reset aborts outstanding inference; stale/duplicate results are ignored.
+
+`src/data.ts` uses 1,000 imported synthetic employees, 17 departments, 72 roles and 99 teams. Full originals remain in `data/company/`; `src/company-data.json` is only the frontend projection. Employee IDs are stable. Availability is referenced to October 26, 2026, America/Los_Angeles. The model receives a feasibility pool from the original calendars and bookings, not just daily free hours. See `data/company/README.md` for provenance.
 
 ## Verification
 
-`npm test` checks stale events, duplicates, waiting until a reply, owner preservation, persistence and interrupted runs. `npm run build` includes strict TypeScript validation. Browser walkthrough verifies both moments, reload recovery and unavailable live runtime errors.
+```sh
+npm test
+npm run build
+node scripts/test_model_flow.mjs
+```
+
+The first two commands are offline checks. `test_model_flow.mjs` is an opt-in real-model integration test against the running local service: planning, an evidence-free check, an injected risk, an unresolved reply and an accepted commitment. `COFLOOR_URL` overrides the local service URL. It sends synthetic data through the configured endpoint; it does not contact Discord. The supplied `scripts/test_llm.py` can also test the provider using `MODEL_API_AUTH` in its environment or its documented local credential file.
+
+Browser automation was blocked by the browser's URL security policy during this change; use a manual page refresh to load and verify the new mode in the live viewer.

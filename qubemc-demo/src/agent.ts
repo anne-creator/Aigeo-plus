@@ -1,7 +1,9 @@
 import type { AgentEvent, CompanyInput, ProjectInput, Snapshot } from './state';
 import { company, demoOwners } from './data';
+import { modelAgent } from './model-agent';
 export interface AgentAdapter {
   mode: 'development' | 'live';
+  dispatchMode?: 'simulated' | 'live';
   subscribe?(onEvent: (event: AgentEvent) => void): () => void;
   start(input: { project: ProjectInput; company: CompanyInput; runId: string }, signal: AbortSignal): AsyncIterable<AgentEvent>;
   check(input: { project: ProjectInput; company: CompanyInput; state: Snapshot; observation: string }, signal: AbortSignal): AsyncIterable<AgentEvent>;
@@ -56,10 +58,14 @@ declare global {
   }
 }
 const liveAdapter = () => window.cofloorAgent ?? window.qubemcAgent;
-export const hasLiveAdapter = () => liveAdapter()?.mode === 'live';
+let localModelConfigured = false;
+if (typeof window !== 'undefined') fetch('/api/model/status').then(r => r.ok ? r.json() : null).then(data => { localModelConfigured = Boolean(data?.configured); }).catch(() => {});
+export function setModelConfigured(configured: boolean) { localModelConfigured = configured; }
+export const hasLiveAdapter = () => liveAdapter()?.mode === 'live' || localModelConfigured;
+export const usesDemoDiscord = () => !liveAdapter() || liveAdapter()?.dispatchMode === 'simulated';
 export function getAdapter(live: boolean): AgentAdapter {
   if (!live) return mockAgent;
-  const adapter = liveAdapter();
+  const adapter = liveAdapter() ?? modelAgent;
   if (adapter?.mode !== 'live') throw new Error('Local Agent is not connected. Add the local runtime adapter before starting a live run.');
   return adapter;
 }
