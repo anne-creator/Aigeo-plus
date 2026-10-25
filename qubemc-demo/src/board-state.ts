@@ -7,9 +7,10 @@ export type BoardTask = {
 export type Reservation = {taskId:string;employeeId:string;start:string;end:string;status:'reserved'|'released';assignmentVersion:number};
 export type BoardRun = {
   transport?:'discord';discordError?:string;version:3;runId:string;source:'live';phase:'in_project';projectOwnerId:string;tasks:BoardTask[];
-  enteredAt:number;injection:{status:'scheduled'|'injected'|'analyzed';dueAt:number;fact?:{employeeId:string;taskId:string;start:string;end:string}};
+  channelId:string;proposal?:{version:number;status:'pending'|'applied'|'invalid'|'unavailable';updates:{taskId:string;ownerId:string;start:string;end:string}[]};
+  enteredAt:number;injection:{status:'waiting'|'received'|'analyzed';fact?:{employeeId:string;taskId:string;start:string;end:string}};
   reservations:Reservation[];leave:{employeeId:string;start:string;end:string}[];
-  messages:{id:string;author:'agent'|'manager'|'employee';actorId:string;text:string;delivery:'simulated'|'test_input'|'injected_fact'|'sending'|'sent'|'received'}[];
+  messages:{id:string;author:'agent'|'manager'|'employee';actorId:string;text:string;channelId?:string;mentionIds?:string[];delivery:'pending_transport'|'test_input'|'received_event'|'sending'|'sent'|'received'}[];
   activity:string[];issue?:{taskId:string;title:string;detail:string;question:string;recipientId:string;status:'awaiting'|'resolved'};nextCheckIn?:string;
 };
 export type BoardState = Omit<Partial<BoardRun>,'phase'> & {version:3;runId:string;phase:'idle'|'planning'|'active';tasks:BoardTask[];activity:string[];messages:BoardRun['messages'];seen:string[];label:string;error?:string;operation:'idle'|'setup'|'checking'|'deciding'};
@@ -34,7 +35,7 @@ export function validateTasks(tasks:unknown,ids:ReadonlySet<string>):asserts tas
 }
 export function validateRun(run:BoardRun,ids:ReadonlySet<string>){
   validateTasks(run.tasks,ids);
-  if(run.version!==3||run.source!=='live'||run.phase!=='in_project'||!ids.has(run.projectOwnerId)||!Number.isFinite(run.enteredAt)||!run.injection||!Number.isFinite(run.injection.dueAt)||!['scheduled','injected','analyzed'].includes(run.injection.status)||!Array.isArray(run.messages)||!run.messages.every(m=>typeof m.text==='string'&&['agent','manager','employee'].includes(m.author))||!Array.isArray(run.activity)||!run.activity.every(x=>typeof x==='string'))throw new Error('Invalid live project state.');
+  if(run.version!==3||run.source!=='live'||run.phase!=='in_project'||!ids.has(run.projectOwnerId)||!Number.isFinite(run.enteredAt)||!run.injection||typeof run.channelId!=='string'||!['waiting','received','analyzed'].includes(run.injection.status)||!Array.isArray(run.messages)||!run.messages.every(m=>typeof m.text==='string'&&['agent','manager','employee'].includes(m.author))||!Array.isArray(run.activity)||!run.activity.every(x=>typeof x==='string'))throw new Error('Invalid live project state.');
 }
 export type BoardEvent={id:string;runId:string}&({type:'snapshot';run:BoardRun}|{type:'progress';label:string}|{type:'failed';message:string});
 export type BoardAction={type:'start';runId:string}|{type:'reset'}|{type:'operation';operation:BoardState['operation']}|{type:'event';event:BoardEvent;employeeIds:ReadonlySet<string>};

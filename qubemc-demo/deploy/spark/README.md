@@ -109,3 +109,14 @@ Verify `openclaw message read` after applying it. Repeat this setting after any
 onboarding/rebuild that replaces channel configuration.
 
 Confirmed decisions send a completion notice without requesting another reply.
+
+### Confirmation workflow update
+
+The latest source uses `discord-confirm-v1`: no automatic sick-leave injection.
+A local event adapter supplies an authenticated Alex event to `/api/model/event`;
+this endpoint is blocked on the public host in live Discord mode. The raw Discord
+employee-event adapter is not implemented. Manager proposals are delivered via
+NemoClaw and require a direct `confirm` reply. Receipts bind to proposal versions;
+replies to superseded proposals cannot apply a newer list. Old workflow runs are
+retained as audit files but require starting a new run with the new source.
+The Spark release `fc34987` predates this workflow; merging does not redeploy it.

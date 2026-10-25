@@ -38,3 +38,16 @@ test('resolved notifications do not request another decision',async()=>{
   assert.match(content,/No further reply is needed/);assert.doesNotMatch(content,/Reply directly/);
  }finally{delete process.env.COFLOOR_DISCORD;delete process.env.NEMOCLAW_DISCORD_CHANNEL_ID;delete process.env.COFLOOR_DISCORD_MANAGER_ID;}
 });
+test('Discord confirmation binds to the current proposal and ignores superseded receipts',async()=>{
+ process.env.COFLOOR_DISCORD='live';process.env.NEMOCLAW_DISCORD_CHANNEL_ID='1563992893704773742';process.env.COFLOOR_DISCORD_MANAGER_ID='123456789012345678';
+ try {
+  const run={runId:'confirm',channelId:'redbull-project',projectOwnerId:'EMP-0148',proposal:{version:2},issue:{status:'awaiting'},discordAfter:'100',messages:[{author:'agent',delivery:'sent',discordMessageId:'100',proposalVersion:1},{author:'agent',text:'Confirm replacement.',delivery:'pending_transport'}]};
+  const decisions=[];
+  const command=async args=>args[0]==='send'?{payload:{messageId:'200'}}:{payload:{messages:[
+   {id:'201',author:{id:'123456789012345678'},content:'confirm',message_reference:{message_id:'100'}},
+   {id:'202',author:{id:'123456789012345678'},content:'confirm',message_reference:{message_id:'200'}}]}};
+  await syncDiscord(run,{save:()=>{},command,decide:async input=>{decisions.push(input);run.issue.status='resolved';return run;}});
+  assert.equal(decisions.length,1);assert.equal(decisions[0].proposalVersion,2);assert.equal(decisions[0].channelId,'redbull-project');assert.equal(decisions[0].decisionId,'discord-202');
+  assert.equal(run.messages[1].delivery,'sent');assert.equal(run.messages[1].proposalVersion,2);
+ }finally{delete process.env.COFLOOR_DISCORD;delete process.env.NEMOCLAW_DISCORD_CHANNEL_ID;delete process.env.COFLOOR_DISCORD_MANAGER_ID;}
+});

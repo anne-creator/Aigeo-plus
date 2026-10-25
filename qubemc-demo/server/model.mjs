@@ -166,14 +166,14 @@ export function modelMiddleware(req, res, next) {
   // Only the local app may invoke the credentialed service.
   if (!req.headers['content-type']?.startsWith('application/json')) return send(415, { error: 'JSON is required.' });
   const action = req.url.slice('/api/model/'.length);
-  if (!['plan','check','decision','state'].includes(action)) return send(404, { error: 'Unknown operation.' });
+  if (!['plan','check','decision','state','event'].includes(action)) return send(404, { error: 'Unknown operation.' });
   const abort = new AbortController();
   res.on('close', () => { if (!res.writableEnded) abort.abort(); });
   let body = '', size = 0;
   req.on('data', chunk => { size += chunk.length; if (size > 65536) { send(413, { error: 'Request too large.' }); req.destroy(); } else body += chunk; });
   req.on('end', async () => {
     if (size > 65536) return;
-    try { if (action === 'decision' && process.env.COFLOOR_DISCORD === 'live') throw new Error('Invalid decision transport. Reply in Discord.'); send(200, await analyze(action, JSON.parse(body), abort.signal)); }
+    try { if ((action === 'decision' || (action === 'event' && !/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(req.headers.host ?? ''))) && process.env.COFLOOR_DISCORD === 'live') throw new Error('Invalid decision transport. Reply in Discord.'); send(200, await analyze(action, JSON.parse(body), abort.signal)); }
     catch (error) {
       if (abort.signal.aborted) return;
       // Whitelist our safe messages; never return upstream bodies, credentials, or stacks.
@@ -192,11 +192,11 @@ setInterval(async () => {
     for (const name of readdirSync(resolve(root,'.cofloor-runs'))) {
       if (!name.endsWith('.json')) continue;
       const run = JSON.parse(readFileSync(resolve(root,'.cofloor-runs',name),'utf8'));
-      if (run.transport !== 'discord') continue;
+      if (run.transport !== 'discord' || run.workflowMode !== 'discord-confirm-v1') continue;
       const signal = AbortSignal.timeout(600000);
-      if (run.injection.status !== 'analyzed' && Date.now() >= run.injection.dueAt)
+      if (run.injection.status === 'received' || run.proposal?.status === 'invalid')
         await analyze('check',{runId:run.runId},signal);
-      if (run.issue?.status === 'awaiting' || run.messages.some(m=>m.author==='agent' && m.delivery==='simulated'))
+      if (run.issue?.status === 'awaiting' || run.messages.some(m=>m.author==='agent' && ['simulated','pending_transport'].includes(m.delivery)))
         await analyze('state',{runId:run.runId},signal);
     }
   } catch (error) { if(error.code !== 'ENOENT') console.error('CoFloor coordination worker will retry.'); }
