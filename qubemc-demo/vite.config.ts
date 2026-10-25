@@ -1,3 +1,4 @@
+import { faceMiddleware } from './server/face.mjs';
 import { speechMiddleware } from './server/speech.mjs';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -6,7 +7,7 @@ import { boardMiddleware } from './server/board.mjs';
 import { nemoclawMiddleware } from './server/nemoclaw-discord.mjs';
 
 export default defineConfig({
-  plugins: [react(), { name: 'local-model-service', configureServer(server) { server.middlewares.use(speechMiddleware); server.middlewares.use(modelMiddleware); server.middlewares.use(boardMiddleware); server.middlewares.use(nemoclawMiddleware); } }],
+  plugins: [react(), { name: 'local-model-service', configureServer(server) { server.middlewares.use(faceMiddleware); server.middlewares.use(speechMiddleware); server.middlewares.use(modelMiddleware); server.middlewares.use(boardMiddleware); server.middlewares.use(nemoclawMiddleware); } }],
   build: {
     rollupOptions: {
       output: {
