@@ -14,7 +14,7 @@ export async function syncDiscord(run, {save, decide, command = openclawMessage}
     for (const item of run.messages.filter(m => m.author === 'agent' && m.delivery === 'simulated')) {
       // Mark before sending: an ambiguous crash must not silently duplicate a notification.
       item.delivery = 'sending'; save(run);
-      const sent = await command(['send','--channel','discord','--target',`channel:${channel}`,'--message',`<@${manager}> CoFloor deployment test\n${item.text.replace(/\bEMP-\d{4}\b/g,id=>people.get(id)||id).slice(0,1600)}\nReply directly to this message with your decision.`,'--json']);
+      const sent = await command(['send','--channel','discord','--target',`channel:${channel}`,'--message',`<@${manager}> CoFloor deployment test\n${item.text.replace(/\bEMP-\d{4}\b/g,id=>people.get(id)||id).slice(0,1600)}\n${run.issue?.status === 'awaiting' ? 'Reply directly to this message with your decision.' : 'Decision recorded. No further reply is needed.'}`,'--json']);
       item.discordMessageId = messageId(sent); item.delivery = 'sent';
       run.discordAfter ||= item.discordMessageId; save(run);
     }

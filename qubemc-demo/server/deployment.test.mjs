@@ -28,3 +28,13 @@ test('live dispatch persists receipt and accepts only mapped manager direct repl
  assert.equal(sends,1);assert.equal(decisions,1);assert.equal(saves[0].messages[0].delivery,'sending');assert.equal(run.messages[0].delivery,'sent');
  delete process.env.COFLOOR_DISCORD;delete process.env.COFLOOR_DISCORD_MANAGER_ID;delete process.env.NEMOCLAW_DISCORD_CHANNEL_ID;
 });
+
+test('resolved notifications do not request another decision',async()=>{
+ process.env.COFLOOR_DISCORD='live';process.env.NEMOCLAW_DISCORD_CHANNEL_ID='1563992893704773742';process.env.COFLOOR_DISCORD_MANAGER_ID='123456789012345678';
+ try {
+  const run={runId:'resolved',issue:{status:'resolved'},messages:[{author:'agent',text:'Replacement assigned.',delivery:'simulated'}]};
+  let content;
+  await syncDiscord(run,{save:()=>{},decide:()=>{throw Error('must not process a resolved decision')},command:async args=>{assert.equal(args[0],'send');content=args[args.indexOf('--message')+1];return {payload:{messageId:'200'}}}});
+  assert.match(content,/No further reply is needed/);assert.doesNotMatch(content,/Reply directly/);
+ }finally{delete process.env.COFLOOR_DISCORD;delete process.env.NEMOCLAW_DISCORD_CHANNEL_ID;delete process.env.COFLOOR_DISCORD_MANAGER_ID;}
+});

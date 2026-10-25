@@ -88,3 +88,24 @@ systemctl --user restart cofloor-app
 Do not terminate desktop sessions or reboot the Spark for app deployment.
 The public UI has no login in this initial deployment; only the configured
 Discord manager can approve staffing changes through the live workflow.
+
+### One owner for Discord replies
+
+The coordination channel must not also trigger OpenClaw's general chat agent.
+Otherwise a human reply runs through both the dashboard coordinator and the
+long-lived chat session; the latter can exceed the local model context and post
+compaction errors even after the project decision succeeded.
+
+Keep the channel enabled for explicit message actions. Configure its native
+`channels.discord.guilds.<server>.channels.<channel>.users` allowlist to contain
+only the bot's own numeric ID, with bot-originated turns disabled (`allowBots:false`).
+This blocks human-triggered general chat turns in this channel while retaining
+NemoClaw's explicit message send/read operations. The app separately checks the
+real manager ID before interpreting a reply. Preserve existing channel entries;
+if adding the first channel map, retain `"*":{"enabled":true}` to preserve other
+channels' previous behavior. Do not set this channel's `enabled:false`: that also
+blocks explicit message read/send. The gateway hot-reloads channel configuration.
+Verify `openclaw message read` after applying it. Repeat this setting after any
+onboarding/rebuild that replaces channel configuration.
+
+Confirmed decisions send a completion notice without requesting another reply.
