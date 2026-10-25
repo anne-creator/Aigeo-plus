@@ -54,7 +54,7 @@ export async function openclawMessage(args, runner = runFile) {
 export async function runNemoClawAgent(prompt, runId, signal, runner = runFile) {
   if (typeof prompt !== 'string' || prompt.length > 150_000 || !/^[a-zA-Z0-9-]{1,80}$/.test(runId)) throw new Error('Invalid NemoClaw agent request.');
   const { sandbox, sshTarget, sshControlPath } = nemoclawSettings();
-  const command = ['nemoclaw', sandbox, 'exec', '--', 'openclaw', 'agent', '--agent', 'main', '--session-key', `cofloor-${runId}`, '--message', prompt, '--timeout', '180', '--json'];
+  const command = ['nemoclaw', sandbox, 'exec', '--', 'openclaw', 'agent', 'exec', '--local-model-lean', '--thinking', 'off', '--timeout', '180', '--json', prompt];
   const executable = sshTarget ? 'ssh' : 'nemoclaw';
   const argv = sshTarget
     ? sshArgs(sshTarget, sshControlPath, command)
