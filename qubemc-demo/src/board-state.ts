@@ -6,11 +6,11 @@ export type BoardTask = {
 };
 export type Reservation = {taskId:string;employeeId:string;start:string;end:string;status:'reserved'|'released';assignmentVersion:number};
 export type BoardRun = {
-  version:3;runId:string;source:'live';phase:'in_project';projectOwnerId:string;tasks:BoardTask[];
+  transport?:'discord';discordError?:string;discordChannelUrl?:string;version:3;runId:string;source:'live';phase:'in_project';projectOwnerId:string;tasks:BoardTask[];
   channelId:string;proposal?:{version:number;status:'pending'|'applied'|'invalid'|'unavailable';updates:{taskId:string;ownerId:string;start:string;end:string}[]};
   enteredAt:number;injection:{status:'waiting'|'received'|'analyzed';fact?:{employeeId:string;taskId:string;start:string;end:string}};
   reservations:Reservation[];leave:{employeeId:string;start:string;end:string}[];
-  messages:{id:string;author:'agent'|'manager'|'employee';actorId:string;text:string;channelId?:string;mentionIds?:string[];delivery:'pending_transport'|'test_input'|'received_event'}[];
+  messages:{id:string;author:'agent'|'manager'|'employee';actorId:string;text:string;channelId?:string;mentionIds?:string[];delivery:'pending_transport'|'test_input'|'received_event'|'sending'|'sent'|'received'}[];
   activity:string[];issue?:{taskId:string;title:string;detail:string;question:string;recipientId:string;status:'awaiting'|'resolved'};nextCheckIn?:string;
 };
 export type BoardState = Omit<Partial<BoardRun>,'phase'> & {version:3;runId:string;phase:'idle'|'planning'|'active';tasks:BoardTask[];activity:string[];messages:BoardRun['messages'];seen:string[];label:string;error?:string;operation:'idle'|'setup'|'checking'|'deciding'};

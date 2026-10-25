@@ -1,0 +1,13 @@
+[Unit]
+Description=CoFloor frontend and backend
+After=network-online.target nemoclaw-openshell-gateway.service
+[Service]
+WorkingDirectory=%h/cofloor/current
+Environment=PATH=/home/dell/.local/bin:/home/dell/.nvm/versions/node/v22.23.4/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=%h/cofloor/app.env
+ExecStart=/home/dell/.nvm/versions/node/v22.23.4/bin/node server/start.mjs
+Restart=on-failure
+RestartSec=5
+UMask=0077
+[Install]
+WantedBy=default.target

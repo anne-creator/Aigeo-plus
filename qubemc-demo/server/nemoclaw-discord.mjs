@@ -1,10 +1,17 @@
+import { allowedRequest } from './origin.mjs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import { analyze } from './model.mjs';
 import { nemoclawSettings } from './config.mjs';
 
-const runFile = promisify(execFile);
+const executeFile = promisify(execFile);
+let commandQueue = Promise.resolve();
+const runFile = (...args) => {
+  const result = commandQueue.then(() => { args[2]?.signal?.throwIfAborted(); return executeFile(...args); });
+  commandQueue = result.catch(() => {});
+  return result;
+};
 const pending = new Map();
 const dispatched = new Map();
 const listeners = new Set();
@@ -54,7 +61,7 @@ export async function openclawMessage(args, runner = runFile) {
 export async function runNemoClawAgent(prompt, runId, signal, runner = runFile) {
   if (typeof prompt !== 'string' || prompt.length > 150_000 || !/^[a-zA-Z0-9-]{1,80}$/.test(runId)) throw new Error('Invalid NemoClaw agent request.');
   const { sandbox, sshTarget, sshControlPath } = nemoclawSettings();
-  const command = ['nemoclaw', sandbox, 'exec', '--', 'openclaw', 'agent', 'exec', '--local-model-lean', '--thinking', 'off', '--timeout', '180', '--json', prompt];
+  const command = ['nemoclaw', sandbox, 'exec', '--', 'openclaw', 'agent', 'exec', ...(process.env.NEMOCLAW_PLANNER_CONFIG ? ['--config',process.env.NEMOCLAW_PLANNER_CONFIG] : ['--local-model-lean']), '--thinking', 'off', '--timeout', '180', '--json', prompt];
   const executable = sshTarget ? 'ssh' : 'nemoclaw';
   const argv = sshTarget
     ? sshArgs(sshTarget, sshControlPath, command)
@@ -70,13 +77,13 @@ export async function runNemoClawAgent(prompt, runId, signal, runner = runFile) 
   return text;
 }
 
-function messageId(result) {
-  const id = result?.id ?? result?.messageId ?? result?.message_id ?? result?.message?.id ?? result?.result?.id ?? result?.result?.messageId;
+export function messageId(result) {
+  const id = result?.payload?.result?.messageId ?? result?.payload?.messageId ?? result?.id ?? result?.messageId ?? result?.message_id ?? result?.message?.id ?? result?.result?.id ?? result?.result?.messageId;
   if (!/^\d+$/.test(String(id ?? ''))) throw new Error('NemoClaw did not confirm a Discord message ID.');
   return String(id);
 }
-function messagesOf(result) {
-  const messages = Array.isArray(result) ? result : result?.messages ?? result?.result?.messages ?? result?.data?.messages;
+export function messagesOf(result) {
+  const messages = Array.isArray(result) ? result : result?.payload?.messages ?? result?.messages ?? result?.result?.payload?.messages ?? result?.messages ?? result?.data?.messages;
   if (!Array.isArray(messages)) throw new Error('NemoClaw returned an unreadable Discord message list.');
   return messages;
 }
@@ -152,8 +159,7 @@ setInterval(() => { void pollNemoClaw(); }, 5_000).unref();
 export function nemoclawMiddleware(req, res, next) {
   if (!req.url?.startsWith('/api/discord/')) return next();
   const send = (code, body) => { if (!res.destroyed) { res.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(body)); } };
-  if (!/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(req.headers.host ?? '')) return send(403, { error: 'Origin not allowed.' });
-  if (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`) return send(403, { error: 'Origin not allowed.' });
+  if (!allowedRequest(req)) return send(403, { error: 'Origin not allowed.' });
   if (req.method === 'GET' && req.url === '/api/discord/status') return send(200, { configured: nemoclawSettings().configured, transport: 'nemoclaw' });
   if (req.method === 'GET' && req.url === '/api/discord/events') {
     res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
