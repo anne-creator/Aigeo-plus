@@ -1,0 +1,49 @@
+{
+  "mode": "simulation",
+  "channel_id": null,
+  "bindings": [
+    {
+      "employee_id": "EMP-0218",
+      "name": "Jordan Brooks",
+      "discord_user_id": null
+    },
+    {
+      "employee_id": "EMP-0082",
+      "name": "Morgan Hayes",
+      "discord_user_id": null
+    },
+    {
+      "employee_id": "EMP-0349",
+      "name": "Taylor Reed",
+      "discord_user_id": null
+    },
+    {
+      "employee_id": "EMP-0308",
+      "name": "Avery Bennett",
+      "discord_user_id": null
+    },
+    {
+      "employee_id": "EMP-0329",
+      "name": "Alex Morgan",
+      "discord_user_id": null
+    },
+    {
+      "employee_id": "EMP-0423",
+      "name": "Jamie Chen",
+      "discord_user_id": null
+    },
+    {
+      "employee_id": "EMP-0368",
+      "name": "Riley Carter",
+      "discord_user_id": null
+    }
+  ],
+  "external_contact_bindings": [
+    {
+      "contact_id": "EXT-CLIENT-001",
+      "name": "Casey Williams",
+      "discord_user_id": null
+    }
+  ],
+  "instructions": "Bind only real demo participants. A person may play multiple synthetic roles in a labeled demo; authorize actor IDs through the binding, not message text."
+}

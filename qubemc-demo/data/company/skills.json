@@ -1,0 +1,272 @@
+[
+  {
+    "skill_id": "business_development",
+    "name": "Business development",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "pitch_management",
+    "name": "Pitch management",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "account_management",
+    "name": "Account management",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "scope_management",
+    "name": "Scope management",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "project_management",
+    "name": "Project management",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "resource_planning",
+    "name": "Resource planning",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "risk_management",
+    "name": "Project risk management",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "brand_strategy",
+    "name": "Brand strategy",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "consumer_research",
+    "name": "Consumer research",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "communication_strategy",
+    "name": "Communications strategy",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "copywriting",
+    "name": "Copywriting",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "social_copy",
+    "name": "Social copywriting",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "art_direction",
+    "name": "Art direction",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "graphic_design",
+    "name": "Graphic design",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "brand_design",
+    "name": "Brand identity design",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "ux_design",
+    "name": "UX design",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "production_management",
+    "name": "Production management",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "photography",
+    "name": "Photography and videography",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "video_editing",
+    "name": "Video editing and color grading",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "motion_design",
+    "name": "Motion design and 3D",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "media_planning",
+    "name": "Media planning",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "media_buying",
+    "name": "Media buying",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "performance_ads",
+    "name": "Paid media optimization",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "ad_operations",
+    "name": "Ad operations",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "social_strategy",
+    "name": "Social strategy",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "social_operations",
+    "name": "Social media operations",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "influencer_management",
+    "name": "Influencer partnerships",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "community_operations",
+    "name": "Community management",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "pr_strategy",
+    "name": "PR strategy",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "media_relations",
+    "name": "Media relations",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "social_listening",
+    "name": "Social listening",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "ecommerce_operations",
+    "name": "Ecommerce operations",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "crm_operations",
+    "name": "CRM and lifecycle marketing",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "conversion_optimization",
+    "name": "Conversion rate optimization",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "event_planning",
+    "name": "Experiential planning",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "event_operations",
+    "name": "Event production",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "vendor_management",
+    "name": "Vendor management",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "analytics",
+    "name": "Marketing analytics",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "attribution",
+    "name": "Attribution and experimentation",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "data_engineering",
+    "name": "Data engineering",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "solution_design",
+    "name": "Solution design",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "web_development",
+    "name": "Web development",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "qa_testing",
+    "name": "Quality assurance testing",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "integration",
+    "name": "Systems integration",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "finance",
+    "name": "Project accounting",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "procurement",
+    "name": "Procurement",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "hr_operations",
+    "name": "People operations",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "administration",
+    "name": "Workplace operations",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "it_support",
+    "name": "IT support",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "contract_review",
+    "name": "Contract review",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "ip_compliance",
+    "name": "Advertising and intellectual property review",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "data_privacy",
+    "name": "Data privacy review",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "executive_management",
+    "name": "Agency management",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  },
+  {
+    "skill_id": "quality_review",
+    "name": "Creative quality review",
+    "level_scale": "1 learning; 2 assisted; 3 independent; 4 advanced; 5 expert"
+  }
+]

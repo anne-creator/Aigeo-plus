@@ -1,0 +1,1178 @@
+[
+  {
+    "role_id": "ceo",
+    "department_id": "D01",
+    "title": "Chief Executive Officer",
+    "headcount": 1,
+    "core_skills": [
+      "executive_management",
+      "account_management"
+    ],
+    "responsibilities": [
+      "Manage agency performance, major commitments and escalated tradeoffs.",
+      "Maintain client communication, consolidate feedback and obtain written approvals."
+    ],
+    "default_permissions": [
+      "budget.exception",
+      "scope.change"
+    ]
+  },
+  {
+    "role_id": "exec",
+    "department_id": "D01",
+    "title": "Managing Partner",
+    "headcount": 5,
+    "core_skills": [
+      "executive_management",
+      "resource_planning"
+    ],
+    "responsibilities": [
+      "Manage agency performance, major commitments and escalated tradeoffs.",
+      "Match staffing requests to skills, authorization and bookable capacity."
+    ],
+    "default_permissions": [
+      "budget.exception",
+      "scope.change"
+    ]
+  },
+  {
+    "role_id": "bizops",
+    "department_id": "D01",
+    "title": "Business Operations Analyst",
+    "headcount": 4,
+    "core_skills": [
+      "analytics",
+      "project_management"
+    ],
+    "responsibilities": [
+      "Define metric definitions and produce accurate campaign reporting.",
+      "Own the job schedule, dependencies, risks, time tracking and handoffs."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "bd_head",
+    "department_id": "D02",
+    "title": "Head of Business Development",
+    "headcount": 1,
+    "core_skills": [
+      "business_development",
+      "pitch_management"
+    ],
+    "responsibilities": [
+      "Qualify opportunities and maintain the new-business pipeline.",
+      "Coordinate pitch deliverables, contributors, deadlines and submission requirements."
+    ],
+    "default_permissions": [
+      "proposal.approve"
+    ]
+  },
+  {
+    "role_id": "bd",
+    "department_id": "D02",
+    "title": "Business Development Manager",
+    "headcount": 19,
+    "core_skills": [
+      "business_development",
+      "account_management"
+    ],
+    "responsibilities": [
+      "Qualify opportunities and maintain the new-business pipeline.",
+      "Maintain client communication, consolidate feedback and obtain written approvals."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "pitch",
+    "department_id": "D02",
+    "title": "Pitch Producer",
+    "headcount": 6,
+    "core_skills": [
+      "pitch_management",
+      "project_management"
+    ],
+    "responsibilities": [
+      "Coordinate pitch deliverables, contributors, deadlines and submission requirements.",
+      "Own the job schedule, dependencies, risks, time tracking and handoffs."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "agency_brand",
+    "department_id": "D02",
+    "title": "Agency Marketing Specialist",
+    "headcount": 4,
+    "core_skills": [
+      "copywriting",
+      "pr_strategy"
+    ],
+    "responsibilities": [
+      "Write concepts, headlines, scripts and campaign copy using approved claims.",
+      "Develop press messages, media angles and approved response guidance."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "account_director",
+    "department_id": "D03",
+    "title": "Account Director",
+    "headcount": 18,
+    "core_skills": [
+      "account_management",
+      "scope_management"
+    ],
+    "responsibilities": [
+      "Maintain client communication, consolidate feedback and obtain written approvals.",
+      "Translate requests into deliverables, assumptions, revision limits and change requests."
+    ],
+    "default_permissions": [
+      "client.submit",
+      "scope.change",
+      "proposal.approve"
+    ]
+  },
+  {
+    "role_id": "account_manager",
+    "department_id": "D03",
+    "title": "Account Manager",
+    "headcount": 36,
+    "core_skills": [
+      "account_management",
+      "scope_management"
+    ],
+    "responsibilities": [
+      "Maintain client communication, consolidate feedback and obtain written approvals.",
+      "Translate requests into deliverables, assumptions, revision limits and change requests."
+    ],
+    "default_permissions": [
+      "client.submit"
+    ]
+  },
+  {
+    "role_id": "account_executive",
+    "department_id": "D03",
+    "title": "Account Executive",
+    "headcount": 36,
+    "core_skills": [
+      "account_management",
+      "project_management"
+    ],
+    "responsibilities": [
+      "Maintain client communication, consolidate feedback and obtain written approvals.",
+      "Own the job schedule, dependencies, risks, time tracking and handoffs."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "pmo_head",
+    "department_id": "D04",
+    "title": "VP, Project Management",
+    "headcount": 1,
+    "core_skills": [
+      "project_management",
+      "resource_planning"
+    ],
+    "responsibilities": [
+      "Own the job schedule, dependencies, risks, time tracking and handoffs.",
+      "Match staffing requests to skills, authorization and bookable capacity."
+    ],
+    "default_permissions": [
+      "resource.override",
+      "scope.change"
+    ]
+  },
+  {
+    "role_id": "delivery_lead",
+    "department_id": "D04",
+    "title": "Group Project Manager",
+    "headcount": 10,
+    "core_skills": [
+      "project_management",
+      "resource_planning"
+    ],
+    "responsibilities": [
+      "Own the job schedule, dependencies, risks, time tracking and handoffs.",
+      "Match staffing requests to skills, authorization and bookable capacity."
+    ],
+    "default_permissions": [
+      "resource.override"
+    ]
+  },
+  {
+    "role_id": "resource_scheduler",
+    "department_id": "D04",
+    "title": "Resource Manager",
+    "headcount": 4,
+    "core_skills": [
+      "resource_planning",
+      "project_management"
+    ],
+    "responsibilities": [
+      "Match staffing requests to skills, authorization and bookable capacity.",
+      "Own the job schedule, dependencies, risks, time tracking and handoffs."
+    ],
+    "default_permissions": [
+      "resource.override"
+    ]
+  },
+  {
+    "role_id": "senior_pm",
+    "department_id": "D04",
+    "title": "Senior Project Manager",
+    "headcount": 20,
+    "core_skills": [
+      "project_management",
+      "risk_management"
+    ],
+    "responsibilities": [
+      "Own the job schedule, dependencies, risks, time tracking and handoffs.",
+      "Resolve delivery risks and propose scope, staffing or timing tradeoffs."
+    ],
+    "default_permissions": [
+      "project.dispatch"
+    ]
+  },
+  {
+    "role_id": "pm",
+    "department_id": "D04",
+    "title": "Project Manager",
+    "headcount": 60,
+    "core_skills": [
+      "project_management",
+      "scope_management"
+    ],
+    "responsibilities": [
+      "Own the job schedule, dependencies, risks, time tracking and handoffs.",
+      "Translate requests into deliverables, assumptions, revision limits and change requests."
+    ],
+    "default_permissions": [
+      "project.dispatch"
+    ]
+  },
+  {
+    "role_id": "junior_pm",
+    "department_id": "D04",
+    "title": "Associate Project Manager",
+    "headcount": 20,
+    "core_skills": [
+      "project_management",
+      "scope_management"
+    ],
+    "responsibilities": [
+      "Own the job schedule, dependencies, risks, time tracking and handoffs.",
+      "Translate requests into deliverables, assumptions, revision limits and change requests."
+    ],
+    "default_permissions": [
+      "project.dispatch"
+    ]
+  },
+  {
+    "role_id": "strategy_head",
+    "department_id": "D05",
+    "title": "Head of Strategy",
+    "headcount": 1,
+    "core_skills": [
+      "brand_strategy",
+      "consumer_research",
+      "communication_strategy"
+    ],
+    "responsibilities": [
+      "Define audience priorities, positioning and the creative brief.",
+      "Analyze existing research, interview findings and competitive evidence.",
+      "Develop message architecture and channel roles."
+    ],
+    "default_permissions": [
+      "strategy.review"
+    ]
+  },
+  {
+    "role_id": "brand_strategist",
+    "department_id": "D05",
+    "title": "Brand Strategist",
+    "headcount": 29,
+    "core_skills": [
+      "brand_strategy",
+      "communication_strategy"
+    ],
+    "responsibilities": [
+      "Define audience priorities, positioning and the creative brief.",
+      "Develop message architecture and channel roles."
+    ],
+    "default_permissions": [
+      "strategy.review"
+    ]
+  },
+  {
+    "role_id": "researcher",
+    "department_id": "D05",
+    "title": "Consumer Insights Analyst",
+    "headcount": 20,
+    "core_skills": [
+      "consumer_research",
+      "analytics"
+    ],
+    "responsibilities": [
+      "Analyze existing research, interview findings and competitive evidence.",
+      "Define metric definitions and produce accurate campaign reporting."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "comm_strategist",
+    "department_id": "D05",
+    "title": "Communications Strategist",
+    "headcount": 10,
+    "core_skills": [
+      "communication_strategy",
+      "media_planning"
+    ],
+    "responsibilities": [
+      "Develop message architecture and channel roles.",
+      "Plan audiences, placements, flight dates and channel budgets."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "creative_head",
+    "department_id": "D06",
+    "title": "Executive Creative Director",
+    "headcount": 1,
+    "core_skills": [
+      "art_direction",
+      "copywriting",
+      "graphic_design",
+      "quality_review"
+    ],
+    "responsibilities": [
+      "Direct visual concepts and review craft against the approved concept.",
+      "Write concepts, headlines, scripts and campaign copy using approved claims.",
+      "Produce campaign layouts, resize assets and hand off editable files.",
+      "Approve creative quality, brand consistency and final asset specifications."
+    ],
+    "default_permissions": [
+      "creative.review"
+    ]
+  },
+  {
+    "role_id": "creative_director",
+    "department_id": "D06",
+    "title": "Creative Director",
+    "headcount": 6,
+    "core_skills": [
+      "art_direction",
+      "copywriting",
+      "quality_review"
+    ],
+    "responsibilities": [
+      "Direct visual concepts and review craft against the approved concept.",
+      "Write concepts, headlines, scripts and campaign copy using approved claims.",
+      "Approve creative quality, brand consistency and final asset specifications."
+    ],
+    "default_permissions": [
+      "creative.review"
+    ]
+  },
+  {
+    "role_id": "copywriter",
+    "department_id": "D06",
+    "title": "Copywriter",
+    "headcount": 37,
+    "core_skills": [
+      "copywriting",
+      "social_copy"
+    ],
+    "responsibilities": [
+      "Write concepts, headlines, scripts and campaign copy using approved claims.",
+      "Write channel-appropriate captions, calls to action and social variants."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "art_designer",
+    "department_id": "D06",
+    "title": "Graphic Designer",
+    "headcount": 45,
+    "core_skills": [
+      "graphic_design",
+      "art_direction"
+    ],
+    "responsibilities": [
+      "Produce campaign layouts, resize assets and hand off editable files.",
+      "Direct visual concepts and review craft against the approved concept."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "brand_designer",
+    "department_id": "D06",
+    "title": "Brand Designer",
+    "headcount": 31,
+    "core_skills": [
+      "brand_design",
+      "graphic_design"
+    ],
+    "responsibilities": [
+      "Apply and extend visual identity systems within brand guidelines.",
+      "Produce campaign layouts, resize assets and hand off editable files."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "ux_designer",
+    "department_id": "D06",
+    "title": "UX Designer",
+    "headcount": 15,
+    "core_skills": [
+      "ux_design",
+      "graphic_design"
+    ],
+    "responsibilities": [
+      "Design user flows, wireframes and accessible interface layouts.",
+      "Produce campaign layouts, resize assets and hand off editable files."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "production_head",
+    "department_id": "D07",
+    "title": "Head of Production",
+    "headcount": 1,
+    "core_skills": [
+      "production_management",
+      "quality_review"
+    ],
+    "responsibilities": [
+      "Build production estimates, shot lists, crew plans and delivery schedules.",
+      "Approve creative quality, brand consistency and final asset specifications."
+    ],
+    "default_permissions": [
+      "production.review"
+    ]
+  },
+  {
+    "role_id": "producer",
+    "department_id": "D07",
+    "title": "Integrated Producer",
+    "headcount": 19,
+    "core_skills": [
+      "production_management",
+      "vendor_management"
+    ],
+    "responsibilities": [
+      "Build production estimates, shot lists, crew plans and delivery schedules.",
+      "Manage vendor scope, insurance documents, deliverables and deadlines."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "photographer",
+    "department_id": "D07",
+    "title": "Photographer / Videographer",
+    "headcount": 20,
+    "core_skills": [
+      "photography",
+      "production_management"
+    ],
+    "responsibilities": [
+      "Capture product photos and video using approved shot lists and usage permissions.",
+      "Build production estimates, shot lists, crew plans and delivery schedules."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "editor",
+    "department_id": "D07",
+    "title": "Video Editor / Colorist",
+    "headcount": 35,
+    "core_skills": [
+      "video_editing",
+      "quality_review"
+    ],
+    "responsibilities": [
+      "Edit footage, captions, sound and color into specified deliverables.",
+      "Approve creative quality, brand consistency and final asset specifications."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "motion",
+    "department_id": "D07",
+    "title": "Motion Designer / 3D Artist",
+    "headcount": 25,
+    "core_skills": [
+      "motion_design",
+      "graphic_design"
+    ],
+    "responsibilities": [
+      "Create animations, motion graphics and 3D visual assets.",
+      "Produce campaign layouts, resize assets and hand off editable files."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "media_head",
+    "department_id": "D08",
+    "title": "Head of Media",
+    "headcount": 1,
+    "core_skills": [
+      "media_planning",
+      "performance_ads"
+    ],
+    "responsibilities": [
+      "Plan audiences, placements, flight dates and channel budgets.",
+      "Monitor pacing and propose bid, audience and creative adjustments."
+    ],
+    "default_permissions": [
+      "media.review",
+      "media.publish"
+    ]
+  },
+  {
+    "role_id": "media_planner",
+    "department_id": "D08",
+    "title": "Media Planner",
+    "headcount": 24,
+    "core_skills": [
+      "media_planning",
+      "analytics"
+    ],
+    "responsibilities": [
+      "Plan audiences, placements, flight dates and channel budgets.",
+      "Define metric definitions and produce accurate campaign reporting."
+    ],
+    "default_permissions": [
+      "media.review"
+    ]
+  },
+  {
+    "role_id": "media_buyer",
+    "department_id": "D08",
+    "title": "Media Buyer",
+    "headcount": 20,
+    "core_skills": [
+      "media_buying",
+      "vendor_management"
+    ],
+    "responsibilities": [
+      "Negotiate placements and prepare authorized insertion orders.",
+      "Manage vendor scope, insurance documents, deliverables and deadlines."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "optimizer",
+    "department_id": "D08",
+    "title": "Paid Media Specialist",
+    "headcount": 55,
+    "core_skills": [
+      "performance_ads",
+      "analytics"
+    ],
+    "responsibilities": [
+      "Monitor pacing and propose bid, audience and creative adjustments.",
+      "Define metric definitions and produce accurate campaign reporting."
+    ],
+    "default_permissions": [
+      "media.publish"
+    ]
+  },
+  {
+    "role_id": "adops",
+    "department_id": "D08",
+    "title": "Ad Operations Specialist",
+    "headcount": 15,
+    "core_skills": [
+      "ad_operations",
+      "performance_ads"
+    ],
+    "responsibilities": [
+      "Traffic approved assets, validate tracking and execute authorized launches.",
+      "Monitor pacing and propose bid, audience and creative adjustments."
+    ],
+    "default_permissions": [
+      "media.publish"
+    ]
+  },
+  {
+    "role_id": "social_head",
+    "department_id": "D09",
+    "title": "Head of Social",
+    "headcount": 1,
+    "core_skills": [
+      "social_strategy",
+      "influencer_management"
+    ],
+    "responsibilities": [
+      "Define organic social themes, channel plans and content calendars.",
+      "Shortlist creators and coordinate fees, usage rights and disclosures."
+    ],
+    "default_permissions": [
+      "social.publish"
+    ]
+  },
+  {
+    "role_id": "social_strategist",
+    "department_id": "D09",
+    "title": "Social Strategist",
+    "headcount": 9,
+    "core_skills": [
+      "social_strategy",
+      "communication_strategy"
+    ],
+    "responsibilities": [
+      "Define organic social themes, channel plans and content calendars.",
+      "Develop message architecture and channel roles."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "social_operator",
+    "department_id": "D09",
+    "title": "Social Media Manager",
+    "headcount": 30,
+    "core_skills": [
+      "social_operations",
+      "social_copy"
+    ],
+    "responsibilities": [
+      "Schedule approved posts, verify publishing details and monitor responses.",
+      "Write channel-appropriate captions, calls to action and social variants."
+    ],
+    "default_permissions": [
+      "social.publish"
+    ]
+  },
+  {
+    "role_id": "influencer",
+    "department_id": "D09",
+    "title": "Influencer Partnerships Manager",
+    "headcount": 25,
+    "core_skills": [
+      "influencer_management",
+      "vendor_management"
+    ],
+    "responsibilities": [
+      "Shortlist creators and coordinate fees, usage rights and disclosures.",
+      "Manage vendor scope, insurance documents, deliverables and deadlines."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "community",
+    "department_id": "D09",
+    "title": "Community Manager",
+    "headcount": 15,
+    "core_skills": [
+      "community_operations",
+      "social_listening"
+    ],
+    "responsibilities": [
+      "Moderate communities and route service or reputation issues.",
+      "Monitor brand conversations and flag emerging reputation risks."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "pr_head",
+    "department_id": "D10",
+    "title": "Head of PR & Communications",
+    "headcount": 1,
+    "core_skills": [
+      "pr_strategy",
+      "media_relations"
+    ],
+    "responsibilities": [
+      "Develop press messages, media angles and approved response guidance.",
+      "Maintain journalist relationships and coordinate approved outreach."
+    ],
+    "default_permissions": [
+      "pr.review"
+    ]
+  },
+  {
+    "role_id": "pr_strategist",
+    "department_id": "D10",
+    "title": "PR Strategist",
+    "headcount": 9,
+    "core_skills": [
+      "pr_strategy",
+      "copywriting"
+    ],
+    "responsibilities": [
+      "Develop press messages, media angles and approved response guidance.",
+      "Write concepts, headlines, scripts and campaign copy using approved claims."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "media_relations",
+    "department_id": "D10",
+    "title": "Media Relations Manager",
+    "headcount": 12,
+    "core_skills": [
+      "media_relations",
+      "account_management"
+    ],
+    "responsibilities": [
+      "Maintain journalist relationships and coordinate approved outreach.",
+      "Maintain client communication, consolidate feedback and obtain written approvals."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "listening",
+    "department_id": "D10",
+    "title": "Social Listening Analyst",
+    "headcount": 8,
+    "core_skills": [
+      "social_listening",
+      "analytics"
+    ],
+    "responsibilities": [
+      "Monitor brand conversations and flag emerging reputation risks.",
+      "Define metric definitions and produce accurate campaign reporting."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "commerce_head",
+    "department_id": "D11",
+    "title": "Head of Commerce & CRM",
+    "headcount": 1,
+    "core_skills": [
+      "ecommerce_operations",
+      "crm_operations"
+    ],
+    "responsibilities": [
+      "Maintain product content, merchandising and campaign storefronts.",
+      "Build consent-aware lifecycle segments, emails and retention journeys."
+    ],
+    "default_permissions": [
+      "commerce.publish"
+    ]
+  },
+  {
+    "role_id": "commerce",
+    "department_id": "D11",
+    "title": "Ecommerce Specialist",
+    "headcount": 14,
+    "core_skills": [
+      "ecommerce_operations",
+      "analytics"
+    ],
+    "responsibilities": [
+      "Maintain product content, merchandising and campaign storefronts.",
+      "Define metric definitions and produce accurate campaign reporting."
+    ],
+    "default_permissions": [
+      "commerce.publish"
+    ]
+  },
+  {
+    "role_id": "crm",
+    "department_id": "D11",
+    "title": "CRM / Lifecycle Marketing Specialist",
+    "headcount": 10,
+    "core_skills": [
+      "crm_operations",
+      "data_privacy"
+    ],
+    "responsibilities": [
+      "Build consent-aware lifecycle segments, emails and retention journeys.",
+      "Review data collection, permissions, retention and approved use."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "cro",
+    "department_id": "D11",
+    "title": "Conversion Optimization Specialist",
+    "headcount": 10,
+    "core_skills": [
+      "conversion_optimization",
+      "analytics"
+    ],
+    "responsibilities": [
+      "Form test hypotheses and improve conversion paths using evidence.",
+      "Define metric definitions and produce accurate campaign reporting."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "event_head",
+    "department_id": "D12",
+    "title": "Head of Experiential",
+    "headcount": 1,
+    "core_skills": [
+      "event_planning",
+      "event_operations"
+    ],
+    "responsibilities": [
+      "Plan audience experience, venue requirements and activation runs of show.",
+      "Coordinate vendors, load-in, staffing and onsite delivery."
+    ],
+    "default_permissions": [
+      "event.approve"
+    ]
+  },
+  {
+    "role_id": "event_planner",
+    "department_id": "D12",
+    "title": "Experiential Strategist",
+    "headcount": 9,
+    "core_skills": [
+      "event_planning",
+      "production_management"
+    ],
+    "responsibilities": [
+      "Plan audience experience, venue requirements and activation runs of show.",
+      "Build production estimates, shot lists, crew plans and delivery schedules."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "event_operator",
+    "department_id": "D12",
+    "title": "Event Producer",
+    "headcount": 15,
+    "core_skills": [
+      "event_operations",
+      "vendor_management"
+    ],
+    "responsibilities": [
+      "Coordinate vendors, load-in, staffing and onsite delivery.",
+      "Manage vendor scope, insurance documents, deliverables and deadlines."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "event_vendor",
+    "department_id": "D12",
+    "title": "Experiential Vendor Coordinator",
+    "headcount": 5,
+    "core_skills": [
+      "vendor_management",
+      "event_operations"
+    ],
+    "responsibilities": [
+      "Manage vendor scope, insurance documents, deliverables and deadlines.",
+      "Coordinate vendors, load-in, staffing and onsite delivery."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "data_head",
+    "department_id": "D13",
+    "title": "Head of Marketing Analytics",
+    "headcount": 1,
+    "core_skills": [
+      "analytics",
+      "attribution"
+    ],
+    "responsibilities": [
+      "Define metric definitions and produce accurate campaign reporting.",
+      "Design experiments and explain attribution assumptions and limitations."
+    ],
+    "default_permissions": [
+      "data.review"
+    ]
+  },
+  {
+    "role_id": "analyst",
+    "department_id": "D13",
+    "title": "Marketing Analyst",
+    "headcount": 19,
+    "core_skills": [
+      "analytics",
+      "consumer_research"
+    ],
+    "responsibilities": [
+      "Define metric definitions and produce accurate campaign reporting.",
+      "Analyze existing research, interview findings and competitive evidence."
+    ],
+    "default_permissions": [
+      "data.review"
+    ]
+  },
+  {
+    "role_id": "attribution",
+    "department_id": "D13",
+    "title": "Marketing Measurement Analyst",
+    "headcount": 10,
+    "core_skills": [
+      "attribution",
+      "analytics"
+    ],
+    "responsibilities": [
+      "Design experiments and explain attribution assumptions and limitations.",
+      "Define metric definitions and produce accurate campaign reporting."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "data_engineer",
+    "department_id": "D13",
+    "title": "Data Engineer",
+    "headcount": 10,
+    "core_skills": [
+      "data_engineering",
+      "integration"
+    ],
+    "responsibilities": [
+      "Build documented data pipelines and validate source completeness.",
+      "Connect approved systems and monitor data exchange failures."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "tech_head",
+    "department_id": "D14",
+    "title": "Head of Marketing Technology",
+    "headcount": 1,
+    "core_skills": [
+      "solution_design",
+      "web_development"
+    ],
+    "responsibilities": [
+      "Translate marketing needs into technical specifications and estimates.",
+      "Build campaign pages and integrations from approved specifications."
+    ],
+    "default_permissions": [
+      "technology.review"
+    ]
+  },
+  {
+    "role_id": "solution",
+    "department_id": "D14",
+    "title": "Solutions Architect",
+    "headcount": 4,
+    "core_skills": [
+      "solution_design",
+      "ux_design"
+    ],
+    "responsibilities": [
+      "Translate marketing needs into technical specifications and estimates.",
+      "Design user flows, wireframes and accessible interface layouts."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "developer",
+    "department_id": "D14",
+    "title": "Software Engineer",
+    "headcount": 20,
+    "core_skills": [
+      "web_development",
+      "integration"
+    ],
+    "responsibilities": [
+      "Build campaign pages and integrations from approved specifications.",
+      "Connect approved systems and monitor data exchange failures."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "qa",
+    "department_id": "D14",
+    "title": "QA Engineer",
+    "headcount": 6,
+    "core_skills": [
+      "qa_testing",
+      "quality_review"
+    ],
+    "responsibilities": [
+      "Test functionality, tracking, browser behavior and accessibility requirements.",
+      "Approve creative quality, brand consistency and final asset specifications."
+    ],
+    "default_permissions": [
+      "technology.review"
+    ]
+  },
+  {
+    "role_id": "integration",
+    "department_id": "D14",
+    "title": "Integration Engineer",
+    "headcount": 4,
+    "core_skills": [
+      "integration",
+      "data_engineering"
+    ],
+    "responsibilities": [
+      "Connect approved systems and monitor data exchange failures.",
+      "Build documented data pipelines and validate source completeness."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "finance_head",
+    "department_id": "D15",
+    "title": "Finance Director",
+    "headcount": 1,
+    "core_skills": [
+      "finance",
+      "procurement"
+    ],
+    "responsibilities": [
+      "Prepare job estimates, track WIP and reconcile costs and invoicing support.",
+      "Compare qualified vendors and prepare purchase orders for approval."
+    ],
+    "default_permissions": [
+      "budget.approve",
+      "invoice.issue"
+    ]
+  },
+  {
+    "role_id": "accountant",
+    "department_id": "D15",
+    "title": "Project Accountant",
+    "headcount": 19,
+    "core_skills": [
+      "finance",
+      "analytics"
+    ],
+    "responsibilities": [
+      "Prepare job estimates, track WIP and reconcile costs and invoicing support.",
+      "Define metric definitions and produce accurate campaign reporting."
+    ],
+    "default_permissions": [
+      "budget.approve",
+      "invoice.issue"
+    ]
+  },
+  {
+    "role_id": "procurement",
+    "department_id": "D15",
+    "title": "Procurement Specialist",
+    "headcount": 10,
+    "core_skills": [
+      "procurement",
+      "vendor_management"
+    ],
+    "responsibilities": [
+      "Compare qualified vendors and prepare purchase orders for approval.",
+      "Manage vendor scope, insurance documents, deliverables and deadlines."
+    ],
+    "default_permissions": [
+      "purchase.prepare"
+    ]
+  },
+  {
+    "role_id": "people_head",
+    "department_id": "D16",
+    "title": "Head of People Operations",
+    "headcount": 1,
+    "core_skills": [
+      "hr_operations",
+      "administration"
+    ],
+    "responsibilities": [
+      "Support recruiting, onboarding, employee services and staffing records.",
+      "Coordinate offices, facilities, travel and workplace vendors."
+    ],
+    "default_permissions": [
+      "personnel.manage"
+    ]
+  },
+  {
+    "role_id": "hr",
+    "department_id": "D16",
+    "title": "People Operations Specialist",
+    "headcount": 24,
+    "core_skills": [
+      "hr_operations",
+      "resource_planning"
+    ],
+    "responsibilities": [
+      "Support recruiting, onboarding, employee services and staffing records.",
+      "Match staffing requests to skills, authorization and bookable capacity."
+    ],
+    "default_permissions": [
+      "personnel.manage"
+    ]
+  },
+  {
+    "role_id": "admin",
+    "department_id": "D16",
+    "title": "Workplace Coordinator",
+    "headcount": 20,
+    "core_skills": [
+      "administration",
+      "vendor_management"
+    ],
+    "responsibilities": [
+      "Coordinate offices, facilities, travel and workplace vendors.",
+      "Manage vendor scope, insurance documents, deliverables and deadlines."
+    ],
+    "default_permissions": []
+  },
+  {
+    "role_id": "it",
+    "department_id": "D16",
+    "title": "IT Support Engineer",
+    "headcount": 10,
+    "core_skills": [
+      "it_support",
+      "integration"
+    ],
+    "responsibilities": [
+      "Provision approved access and resolve device or software incidents.",
+      "Connect approved systems and monitor data exchange failures."
+    ],
+    "default_permissions": [
+      "it.provision"
+    ]
+  },
+  {
+    "role_id": "legal_head",
+    "department_id": "D17",
+    "title": "Head of Legal & Business Affairs",
+    "headcount": 1,
+    "core_skills": [
+      "contract_review",
+      "ip_compliance",
+      "data_privacy"
+    ],
+    "responsibilities": [
+      "Review MSAs, SOWs, changes, usage rights and commercial obligations.",
+      "Review claim support, creative usage rights and endorsement disclosures.",
+      "Review data collection, permissions, retention and approved use."
+    ],
+    "default_permissions": [
+      "legal.approve"
+    ]
+  },
+  {
+    "role_id": "legal",
+    "department_id": "D17",
+    "title": "Commercial Contracts Counsel",
+    "headcount": 5,
+    "core_skills": [
+      "contract_review",
+      "ip_compliance"
+    ],
+    "responsibilities": [
+      "Review MSAs, SOWs, changes, usage rights and commercial obligations.",
+      "Review claim support, creative usage rights and endorsement disclosures."
+    ],
+    "default_permissions": [
+      "legal.approve"
+    ]
+  },
+  {
+    "role_id": "compliance",
+    "department_id": "D17",
+    "title": "Advertising & Privacy Counsel",
+    "headcount": 4,
+    "core_skills": [
+      "ip_compliance",
+      "data_privacy"
+    ],
+    "responsibilities": [
+      "Review claim support, creative usage rights and endorsement disclosures.",
+      "Review data collection, permissions, retention and approved use."
+    ],
+    "default_permissions": [
+      "legal.approve"
+    ]
+  }
+]

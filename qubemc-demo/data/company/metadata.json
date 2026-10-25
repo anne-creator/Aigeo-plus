@@ -1,0 +1,39 @@
+{
+  "schema_version": "2.0.0-us",
+  "dataset_id": "bridgewell-us-agency-1000-en-v2",
+  "company_name": "Bridgewell Creative (Fictional)",
+  "locale": "en-US",
+  "is_synthetic": true,
+  "seed": 20261026,
+  "timezone": "America/Los_Angeles",
+  "currency": "USD",
+  "reference_time": "2026-10-26T09:00:00-07:00",
+  "horizon_start": "2026-10-26",
+  "horizon_end": "2026-11-08",
+  "slot_minutes": 30,
+  "offices": [
+    "San Francisco, CA",
+    "Los Angeles, CA",
+    "Seattle, WA"
+  ],
+  "assumptions": [
+    "A fictional, West Coast-based integrated agency. All three offices use Pacific Time.",
+    "Stable employee, team, project and skill IDs are retained. Names and business labels are new English-language synthetic data.",
+    "USD fees and loaded labor costs are synthetic assumptions, not market salary estimates or currency conversions.",
+    "Local wall times are rebased for the US simulation. IANA timezone rules handle the November 1 daylight-saving transition.",
+    "Candidate windows are deliberate demo coverage fixtures, not a representative workforce sample.",
+    "The integrated campaign benchmark compresses a normal multiweek engagement into ten business days; use the narrative workflow for realistic elapsed planning times."
+  ],
+  "runtime": {
+    "clock_mode": "simulation",
+    "live_dispatch_enabled": false,
+    "discord_requires_identity_mapping": true,
+    "acceptance_handshake_required": false,
+    "ranking_source": "local_model_at_runtime; fixtures_are_reference_only"
+  },
+  "migration": {
+    "employee_ids_unchanged": true,
+    "currency_fields": "All _cny fields replaced by _usd; values reparameterized.",
+    "date_policy": "Local dates retained, timestamps rebuilt with America/Los_Angeles; do not parse PT as a fixed UTC offset."
+  }
+}

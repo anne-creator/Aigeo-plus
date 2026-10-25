@@ -1,7 +1,15 @@
-export type Person = { id: string; name: string; role: string; initials: string; department: string; skills: string[]; availableHours: number; color: string };
+export type Person = { id: string; name: string; role: string; initials: string; department: string; skills: string[]; availableHours: number; color: string; departmentId?: string; skillLevels?: Partial<Record<string, number>>; permissions?: string[]; availabilityDate?: string; timezone?: string };
 export type Task = { id: string; title: string; ownerId: string; due: string; status: 'ready' | 'working' | 'attention'; commitment?: string };
 export type ProjectInput = { id: string; title: string; brief: string; deadline: string; file: string; assets: string[] };
-export type CompanyInput = { people: Person[]; departments: string[] };
+export type CompanyInput = {
+  people: Person[];
+  departments: string[];
+  source?: {
+    datasetId: string; companyName: string; isSynthetic: boolean;
+    referenceTime: string; referenceDate: string; timezone: string;
+    directory: string; resources: Record<string, string>;
+  };
+};
 export type Issue = { taskId: string; title: string; detail: string; question: string };
 export type Message = { id: string; author: 'agent' | 'worker'; personId?: string; text: string; time: string };
 export type Phase = 'idle' | 'planning' | 'assigned' | 'monitoring' | 'analyzing' | 'notifying' | 'awaiting' | 'interpreting' | 'resumed';

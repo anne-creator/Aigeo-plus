@@ -7,7 +7,11 @@ Single local React + TypeScript + Vite frontend. Future backend / local model in
 - `src/main.tsx`: factual English dashboard, two presentation moments, secondary development controls.
 - `src/state.ts`: shared input / event types, state transitions, persistence recovery and event deduplication.
 - `src/agent.ts`: replaceable AgentAdapter, development fixtures, explicit unavailable-live handling.
-- `src/data.ts`: preloaded project input and 1,000 synthetic employees across 17 departments.
+- `src/data.ts`: project fixture and imported company input; `src/company-data.json` is a compact, checksum-derived frontend projection.
+- `data/company/`: ten original company JSON files, import manifest and provenance; 1,000 employee records, dated capacity, calendars and bookings for future model integration.
+- `scripts/import_company.py`: validates source checksums, unique IDs, department counts and dated capacity, then regenerates imports; never executes package scripts.
+- `src/data.test.ts`: import fidelity, capacity, counts and source-hash regression checks.
+- `vite.config.ts`: React integration and a separately cached company-data chunk.
 - `src/style.css`: responsive dark / cyan presentation UI, reduced-motion support, system fonts.
 - `src/state.test.ts`: meaningful state and persistence regression tests.
 - `README.md`: startup, walkthrough and local integration contract.
@@ -24,7 +28,7 @@ Local storage persists the snapshot and selected adapter mode. Interrupted opera
 
 ## Data Stats Change
 
-One preloaded launch brief, three assets, 17 department names and 1,000 deterministic synthetic employee records. Three example assignments are fixture data only. Actual input, team rules and model details remain pending.
+Company input replaced by Anne’s provided Bridgewell Creative dataset, ID bridgewell-us-agency-1000-en-v2. 1,000 employees, 17 departments, 72 role types, 99 teams, 14,000 calendars, 14,000 capacity rows, 30,625 bookings. Original JSON files are preserved with SHA-256 verification. Skills, permissions and reference-day (2026-10-26) free hours are projected for the frontend; full data remains local. Development assignments now reference EMP-0349 / Taylor Reed, EMP-0329 / Alex Morgan and EMP-0218 / Jordan Brooks. Source provenance remains synthetic; imported six-step / reassignment workflows are not adopted. Project brief and model details remain pending.
 
 ## Feature Specs
 
@@ -37,8 +41,10 @@ One preloaded launch brief, three assets, 17 department names and 1,000 determin
 
 ## Validation
 
-Three state tests pass: stale / duplicate event protection; reply gating and owner preservation; persistence and interrupted-run recovery. Strict TypeScript / production build pass. Browser walkthrough verified start, assignments, stage skip, issue notification, waiting through refresh, worker reply, resumed state, reset and unavailable local runtime errors. Desktop visual inspection confirms no promotional subtitles and a visible primary action.
+Six tests pass (three data import checks plus three state tests): stale / duplicate event protection; reply gating and owner preservation; persistence and interrupted-run recovery. Strict TypeScript / production build pass. Browser walkthrough verified start, assignments, stage skip, issue notification, waiting through refresh, worker reply, resumed state, reset and unavailable local runtime errors. Desktop visual inspection confirms no promotional subtitles and a visible primary action.
 
 ## Maintenance Log
 
 - 2026-10-25: Implemented local dashboard and adapter boundary; synchronized Google Doc with original structure and appended prior draft. Real local model and Discord integration remain pending.
+
+- 2026-10-25: Imported provided company records, capacities and local schedules. UI counts derive from the dataset; date labels use its reference time. Dataset-specific storage prevents stale invented employee IDs. No UI redesign or new workflow.

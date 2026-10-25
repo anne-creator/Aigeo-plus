@@ -1,0 +1,65 @@
+{
+  "dataset_id": "bridgewell-us-agency-1000-en-v2",
+  "source_folder": "ai-ceo-us-agency-1000-en",
+  "files": [
+    {
+      "path": "metadata.json",
+      "sha256": "9981b43cd181d1150ef8ac255260cd2668fb381c789956e96a105042a0e71404",
+      "bytes": 1777
+    },
+    {
+      "path": "employees.json",
+      "sha256": "0d38cad969ab1474c2530f74c13054d79f898478ef568a56938dde5a52168354",
+      "bytes": 1811120
+    },
+    {
+      "path": "departments.json",
+      "sha256": "6ce88a8050da6f835623a0070bbaffa33ea8f036eb3446822e6295c9b9e39332",
+      "bytes": 2312
+    },
+    {
+      "path": "skills.json",
+      "sha256": "cca18c62329034f3b53268fa67e5095f6c7852caf1865eb16e111965c9dfaaea",
+      "bytes": 8612
+    },
+    {
+      "path": "roles.json",
+      "sha256": "f6cce55fca3fe4275a742a6c4050b7b986af46d49861f333ffe0e8df6e8694b7",
+      "bytes": 32083
+    },
+    {
+      "path": "teams.json",
+      "sha256": "571e6c0646b899a688e3a58f10a9dce7e48d3875ebb0f5d582345970351e3953",
+      "bytes": 35928
+    },
+    {
+      "path": "daily_capacity.json",
+      "sha256": "6ab4ba3a4b69b42361edd29d9ceeb0d68f12772944b78843720aaca71887c741",
+      "bytes": 4939548
+    },
+    {
+      "path": "calendars.json",
+      "sha256": "63f75125ab429bd75fd47f484e140aae6f93a12e72a06a2fb61b5232877ce1eb",
+      "bytes": 4680659
+    },
+    {
+      "path": "bookings.json",
+      "sha256": "6438081be63af374a194da778fe468bd1b2e080d5ce61d238a1e743c3e49a10d",
+      "bytes": 9779488
+    },
+    {
+      "path": "discord_identity_mapping.json",
+      "sha256": "7ef543b4f33a3bb45abb6705deeb2ac79bfd8e2be7f33d92df912a36020cf629",
+      "bytes": 1135
+    }
+  ],
+  "counts": {
+    "employees": 1000,
+    "departments": 17,
+    "roles": 72,
+    "teams": 99,
+    "calendar_days": 14000,
+    "capacity_rows": 14000,
+    "bookings": 30625
+  }
+}

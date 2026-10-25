@@ -1,0 +1,104 @@
+[
+  {
+    "department_id": "D01",
+    "name": "Executive Leadership",
+    "headcount": 10,
+    "head_employee_id": "EMP-0001"
+  },
+  {
+    "department_id": "D02",
+    "name": "Business Development & Growth",
+    "headcount": 30,
+    "head_employee_id": "EMP-0011"
+  },
+  {
+    "department_id": "D03",
+    "name": "Client Services",
+    "headcount": 90,
+    "head_employee_id": "EMP-0041"
+  },
+  {
+    "department_id": "D04",
+    "name": "Project Management & Resource Operations",
+    "headcount": 115,
+    "head_employee_id": "EMP-0131"
+  },
+  {
+    "department_id": "D05",
+    "name": "Strategy & Consumer Insights",
+    "headcount": 60,
+    "head_employee_id": "EMP-0246"
+  },
+  {
+    "department_id": "D06",
+    "name": "Creative & Brand Design",
+    "headcount": 135,
+    "head_employee_id": "EMP-0306"
+  },
+  {
+    "department_id": "D07",
+    "name": "Content Production & Studio",
+    "headcount": 100,
+    "head_employee_id": "EMP-0441"
+  },
+  {
+    "department_id": "D08",
+    "name": "Media Planning & Performance",
+    "headcount": 115,
+    "head_employee_id": "EMP-0541"
+  },
+  {
+    "department_id": "D09",
+    "name": "Social & Influencer Marketing",
+    "headcount": 80,
+    "head_employee_id": "EMP-0656"
+  },
+  {
+    "department_id": "D10",
+    "name": "Public Relations & Communications",
+    "headcount": 30,
+    "head_employee_id": "EMP-0736"
+  },
+  {
+    "department_id": "D11",
+    "name": "Commerce & CRM",
+    "headcount": 35,
+    "head_employee_id": "EMP-0766"
+  },
+  {
+    "department_id": "D12",
+    "name": "Experiential & Events",
+    "headcount": 30,
+    "head_employee_id": "EMP-0801"
+  },
+  {
+    "department_id": "D13",
+    "name": "Marketing Analytics & Measurement",
+    "headcount": 40,
+    "head_employee_id": "EMP-0831"
+  },
+  {
+    "department_id": "D14",
+    "name": "Marketing Technology & Engineering",
+    "headcount": 35,
+    "head_employee_id": "EMP-0871"
+  },
+  {
+    "department_id": "D15",
+    "name": "Finance & Procurement",
+    "headcount": 30,
+    "head_employee_id": "EMP-0906"
+  },
+  {
+    "department_id": "D16",
+    "name": "People Operations, Workplace & IT",
+    "headcount": 55,
+    "head_employee_id": "EMP-0936"
+  },
+  {
+    "department_id": "D17",
+    "name": "Legal & Business Affairs",
+    "headcount": 10,
+    "head_employee_id": "EMP-0991"
+  }
+]

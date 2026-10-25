@@ -1,4 +1,5 @@
 import type { AgentEvent, CompanyInput, ProjectInput, Snapshot } from './state';
+import { company, demoOwners } from './data';
 export interface AgentAdapter {
   mode: 'development' | 'live';
   subscribe?(onEvent: (event: AgentEvent) => void): () => void;
@@ -24,20 +25,23 @@ export const mockAgent: AgentAdapter = {
     yield { ...base(runId), type: 'progress', label: 'Putting the right team together…' };
     await pause(1400, signal);
     yield { ...base(runId), type: 'planned', tasks: [
-      { id: 'copy', title: 'Social copy', ownerId: 'maya', due: '1:00 PM', status: 'ready' },
-      { id: 'visual', title: 'Key visual', ownerId: 'alex', due: '3:00 PM', status: 'ready' },
-      { id: 'lead', title: 'Project coordination', ownerId: 'jordan', due: '4:00 PM', status: 'ready' },
+      { id: 'copy', title: 'Social copy', ownerId: demoOwners.copy, due: '1:00 PM', status: 'ready' },
+      { id: 'visual', title: 'Key visual', ownerId: demoOwners.visual, due: '3:00 PM', status: 'ready' },
+      { id: 'lead', title: 'Project coordination', ownerId: demoOwners.lead, due: '4:00 PM', status: 'ready' },
     ] };
   },
   async *check({ state }, signal) {
+    const task = state.tasks.find(t => t.id === 'visual');
+    const owner = company.people.find(p => p.id === task?.ownerId);
+    if (!owner) throw new Error('The task owner is not in the imported employee directory.');
     yield { ...base(state.runId), type: 'progress', label: 'Checking the latest update…' };
     await pause(1100, signal);
     yield { ...base(state.runId), type: 'issue', issue: { taskId: 'visual', title: 'Product photography delayed', detail: 'Product photography is arriving late. The 3 PM visual is at risk.', question: 'Can you use the approved product render for the first draft and keep the 3 PM delivery?' } };
     await pause(900, signal);
-    yield { ...base(state.runId), type: 'sent', message: { id: crypto.randomUUID(), author: 'agent', text: 'Alex, product photography is delayed. Can you use the approved product render for the first draft and keep the 3 PM delivery?', time: time() } };
+    yield { ...base(state.runId), type: 'sent', message: { id: crypto.randomUUID(), author: 'agent', text: `${owner.name.split(' ')[0]}, product photography is delayed. Can you use the approved product render for the first draft and keep the 3 PM delivery?`, time: time() } };
   },
   async *receiveDecision({ state, text }, signal) {
-    yield { ...base(state.runId), type: 'reply', message: { id: crypto.randomUUID(), author: 'worker', personId: 'alex', text, time: time() } };
+    yield { ...base(state.runId), type: 'reply', message: { id: crypto.randomUUID(), author: 'worker', personId: state.tasks.find(t => t.id === state.issue?.taskId)?.ownerId, text, time: time() } };
     await pause(900, signal);
     yield { ...base(state.runId), type: 'resolved', commitment: 'First draft with approved render · 3:00 PM', nextCheckIn: '2:30 PM' };
   },

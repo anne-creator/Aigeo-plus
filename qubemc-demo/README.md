@@ -23,7 +23,9 @@ All current model results and Discord messages are development fixtures. There i
 
 ## Local Agent connection
 
-`src/agent.ts` exports the `AgentAdapter` interface. `src/data.ts` holds the replaceable project and company inputs, including 1,000 deterministic synthetic employees. The mocked three-person team is an example only, not a selection algorithm.
+`src/agent.ts` exports the `AgentAdapter` interface. `src/data.ts` holds the project fixture and imported company input. The company now comes from Anne’s provided Bridgewell Creative dataset: 1,000 employees, 17 departments, 72 roles and 99 teams. `src/company-data.json` is the compact frontend projection; complete source records and schedules are retained in `data/company/`. Stable employee IDs replace the previous generated employees. The source explicitly labels its data synthetic. The mocked three-person assignments (Taylor Reed, Alex Morgan and Jordan Brooks) remain development examples, not model selections.
+
+Availability refers to October 26, 2026, the source reference day, in America/Los_Angeles. Remaining daily capacity is not task-window feasibility. `CompanyInput.source.resources` supplies local source paths for later model integration. The storage key includes dataset ID, so sessions containing the old invented employee IDs do not overwrite this dataset. See `data/company/README.md` for provenance and import instructions.
 
 Implement the adapter in the same project when the local runtime details are provided. Install it as `window.qubemcAgent` before the app mounts; set `mode: 'live'`. The **Use local runtime** control selects that adapter; a missing runtime produces a visible error and never falls back to mock.
 
