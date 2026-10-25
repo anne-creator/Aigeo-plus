@@ -4,7 +4,7 @@ These helpers capture the inference-proxy repair and Discord setup tested on the
 
 ## Persistent inference proxies
 
-The local vLLM server listens on the Spark's Tailscale address at port 8000. `cofloor-vllm-proxy.py` forwards loopback port 18000 to that server. `COFLOOR_VLLM_HOST` and `COFLOOR_VLLM_PORT` can override the upstream in the service environment.
+The local vLLM server listens on the Spark's Tailscale address at port 8000. `cofloor-vllm-proxy.py` forwards loopback port 18000 to that server. The upstream is pinned in source to `100.89.121.112:8000`; it cannot be changed to a cloud host through environment variables.
 
 `cofloor-nemoclaw-proxy.py` runs NVIDIA's installed authenticated proxy using the existing token, backend address, and port under `~/.nemoclaw`. It reads credentials without printing them. This proxy is needed between OpenShell and the loopback endpoint; losing it causes HTTP 503 through `inference.local` even while vLLM remains healthy. The default Node path matches the tested installation; set `NEMOCLAW_NODE` in a systemd drop-in if it differs.
 
@@ -32,7 +32,7 @@ The script loads the file through Node's environment-file parser, registers Disc
 
 The bot must be invited to the server, have Message Content Intent enabled, and have View Channels, Send Messages, and Read Message History permissions. Mention the bot in the target channel after rebuilding to verify inbound and outbound chat. Bot connectivity does not establish employee mappings or wire real Discord delivery into the current dashboard's simulated decision drawer.
 
-The three Python model test scripts also accept `MODEL_API_AUTH` from a `.env` file beside the script or in its next three parent directories. An exported environment value takes precedence, followed by the nearest nonempty file value and the legacy local credential file. These files are never uploaded by the scripts.
+The three Python model test scripts connect directly to the Spark Tailscale IP. They do not read or send gateway credentials, use environment HTTP proxies, or follow redirects.
 
 ## First public deployment
 

@@ -1,0 +1,25 @@
+{
+  "verified": true,
+  "verifiedAtUtc": "2026-10-25T22:28:10.369725+00:00",
+  "gpu": "NVIDIA GB10",
+  "container": "spark-llm",
+  "image": "spark-kit/vllm:20261016-arm64",
+  "tailscaleEndpoint": "http://100.89.121.112:8000",
+  "models": [
+    "coo-llm"
+  ],
+  "planner": {
+    "providerUrl": "https://inference.local/v1",
+    "providers": [
+      "inference"
+    ],
+    "primary": "inference/coo-llm",
+    "fallbacks": []
+  },
+  "hostProxyBackend": "http://localhost:18000",
+  "localCompletedRequestsBefore": 187.0,
+  "localCompletedRequestsAfter": 188.0,
+  "nonceRoundTrip": true,
+  "agentProvider": "inference",
+  "agentModel": "coo-llm"
+}

@@ -2,8 +2,13 @@
 const fs = require('node:fs');
 const source = '/sandbox/.openclaw/openclaw.json';
 const config = JSON.parse(fs.readFileSync(source, 'utf8'));
+const provider = config.models?.providers?.inference;
+if (provider?.baseUrl !== 'https://inference.local/v1') throw new Error('Expected the OpenShell local inference route.');
+config.models.providers = {inference:provider};
+config.agents.defaults.model = {primary:'inference/coo-llm',fallbacks:[]};
+config.agents.entries = {main:{model:{primary:'inference/coo-llm',fallbacks:[]}}};
 config.tools = {profile:'minimal',deny:['*']};
-config.agents.defaults.models = {...config.agents.defaults.models,
+config.agents.defaults.models = {
   'inference/coo-llm': {params:{temperature:0.2,maxTokens:4096,chat_template_kwargs:{enable_thinking:false}}}};
 config.agents.defaults.skipBootstrap = true;
 config.agents.defaults.thinkingDefault = 'off';

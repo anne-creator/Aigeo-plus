@@ -1,9 +1,8 @@
 import asyncio
-import os
 
 async def handle(reader, writer):
     try:
-        upstream_reader, upstream_writer = await asyncio.open_connection(os.environ.get("COFLOOR_VLLM_HOST", "100.89.121.112"), int(os.environ.get("COFLOOR_VLLM_PORT", "8000")))
+        upstream_reader, upstream_writer = await asyncio.open_connection("100.89.121.112", 8000)
         async def copy(source, destination):
             try:
                 while chunk := await source.read(65536):

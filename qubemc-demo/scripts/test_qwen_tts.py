@@ -2,42 +2,21 @@
 """Generate a WAV file with Qwen TTS."""
 
 import argparse
-import base64
 import io
 import json
-import os
 import sys
 import time
 import wave
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlsplit
-from urllib.request import Request, urlopen
-
-
-def model_api_credential() -> str:
-    if credential := os.environ.get("MODEL_API_AUTH"):
-        return credential
-    for directory in Path(__file__).resolve().parents[:4]:
-        dotenv = directory / ".env"
-        if not dotenv.is_file():
-            continue
-        for line in dotenv.read_text().splitlines():
-            key, separator, value = line.partition("=")
-            if separator and key.strip() == "MODEL_API_AUTH":
-                value = value.strip()
-                if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-                    value = value[1:-1]
-                if value:
-                    return value
-    credential_file = Path.home() / ".config/builderbase/model-api-credentials"
-    return credential_file.read_text().strip() if credential_file.exists() else ""
+from urllib.request import Request
+from local_model_http import open_local_model
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("text", nargs="?", default="The local Qwen speech system is ready.")
-    parser.add_argument("--url", default="https://models.qubemc.com/tts/v1/audio/speech")
+    parser.add_argument("--url", default="http://100.89.121.112:8004/v1/audio/speech")
     parser.add_argument("--voice", default="Ryan", choices=("Ryan", "Aiden", "Vivian", "Serena", "Ono_Anna", "Sohee"))
     parser.add_argument("--output", type=Path, default=Path("qwen-test.wav"))
     args = parser.parse_args()
@@ -49,12 +28,6 @@ def main() -> int:
         "response_format": "wav",
     }
     headers = {"Content-Type": "application/json", "User-Agent": "curl/8.5.0"}
-    if urlsplit(args.url).hostname == "models.qubemc.com":
-        credential = model_api_credential()
-        if not credential:
-            print("Missing model API credential: set MODEL_API_AUTH, add it to .env, or create ~/.config/builderbase/model-api-credentials", file=sys.stderr)
-            return 1
-        headers["Authorization"] = "Basic " + base64.b64encode(credential.encode()).decode()
     request = Request(
         args.url,
         data=json.dumps(body).encode("utf-8"),
@@ -63,7 +36,7 @@ def main() -> int:
 
     started = time.perf_counter()
     try:
-        with urlopen(request, timeout=180) as response:
+        with open_local_model(request, service="tts", timeout=180) as response:
             audio = response.read()
     except HTTPError as exc:
         print(f"HTTP {exc.code}: {exc.read().decode('utf-8', errors='replace')}", file=sys.stderr)
