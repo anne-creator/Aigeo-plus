@@ -117,3 +117,18 @@ test('Discord receipt and applied confirmation narration are saved atomically af
   assert.deepEqual((await invoke(f,'state',{runId:'discord-narration'})).narrationEvents,applied.narrationEvents);
  }finally{f.close();for(const key of keys){if(previous[key]===undefined)delete process.env[key];else process.env[key]=previous[key];}}
 });
+
+test('repaired drafts are revalidated against availability before owner selection',async()=>{
+ let repairs=0,selected=0;
+ const f=fixture({call:async(prompt,payload)=>{
+  if(prompt.includes('Read the complete brief'))return {tasks:structuredClone(drafts).map(t=>({...t,hours:4}))};
+  if(prompt.includes('Repair the previous')){
+   repairs++;assert.match(payload.validationError,/feasible|window|duration/i);
+   assert.equal(payload.requiredImageOwner.id,'EMP-0329');
+   return {tasks:structuredClone(drafts).map(t=>repairs===1?{...t,hours:4}:t)};
+  }
+  if(prompt.includes('Choose one project manager')){selected++;return {projectOwnerId:payload.managers[0].id,assignments:payload.pools.map(p=>({taskId:p.taskId,ownerId:p.candidates.find(c=>c.id!==payload.managers[0].id).id}))};}
+  throw Error('unexpected call');
+ }});
+ try{const result=await invoke(f,'plan',input('repair'));assert.equal(repairs,2);assert.equal(selected,1);assert.equal(result.tasks.find(t=>t.id==='image').ownerId,'EMP-0329');}finally{f.close();}
+});

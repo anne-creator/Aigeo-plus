@@ -119,11 +119,22 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
       const productionWindows=[{skill:'social_copy',level:3,hours:1,start:'13:30',end:'14:30'},{skill:'graphic_design',level:4,hours:2,start:'13:00',end:'15:00'}];
       const feasibleProductionWindows=productionWindows.map(w=>({...w,eligibleCount:pool({...w,start:stamp(w.start),end:stamp(w.end)},{reservations:[],leave:[]}).length}));
       const draft=await call(`${policy} Read the complete brief for product facts and deliverables only. Create ONLY production execution tasks (for example writing copy/alt text and designing the launch image). NEVER create review, approval, publishing, archive, or coordination tasks; the project manager is selected separately. Ignore the old eight-node workflow. Return {"tasks":[{"id":"unique ID","title":"execution task","requirements":"specific brief","outputs":["deliverable"],"dependencies":[],"skill":"existing skill_id","level":3,"hours":1,"start":"09:00","end":"16:00"}]}. Plan only work needed to prepare the X launch package, including copy and image; do not execute release. All windows on Oct 26, 2026 PT; finish by 16:00. Use realistic template-adaptation durations, stagger dependencies, allow copy/design overlap. Prefer the supplied feasibleProductionWindows; only request skills and levels that have actual available staff. Avoid unnecessary supporting tasks. The launch-image task must use a window within 13:00–15:00 PT, as specified in the supplied scenario. Return tasks only, no owners yet.`,{document:draftDocument,skills,feasibleProductionWindows,businessDate:day,timezone:zone},signal);
-      let specs;
-      try { specs=specsFrom(draft);if(specs.some(s=>!pool(s,{reservations:[],leave:[]}).length))throw new Error('No feasible employees in one of the proposed windows or skill levels. Use feasibleProductionWindows.'); }
-      catch(error) {
-        const repaired=await call(`${policy} Repair the previous task proposal to satisfy the validation error. Return the SAME tasks JSON schema with id,title,requirements,outputs,dependencies,skill,level,hours,start,end. Skill must exactly match an existing skill_id. level is a JSON integer 3..5; hours is a JSON number 0.25..4. Windows use HH:mm from 09:00 to 16:00 on the business date. Remove any approval/review/publishing/archive tasks. Include copy and launch-image production; the image task window must be within 13:00–15:00 PT.`,{previousProposal:draft,validationError:error.message,skills,feasibleProductionWindows},signal);
-        specs=specsFrom(repaired);
+      const validateDraft = proposal => {
+        const parsed=specsFrom(proposal);
+        const image=parsed.find(s=>['graphic_design','brand_design'].includes(s.skill));
+        for(const spec of parsed){
+          const eligible=pool(spec,{reservations:[],leave:[]}).filter(p=>spec.id!==image.id||p.id===alexId);
+          if(!eligible.length)throw new Error(`No feasible employee for ${spec.title}: skill=${spec.skill}, level=${spec.level}, hours=${spec.hours}, window=${spec.start} to ${spec.end}${spec.id===image.id?'; the launch image must be feasible for Alex Morgan':''}. Use the supplied feasibleProductionWindows.`);
+        }
+        return parsed;
+      };
+      let specs,proposal=draft;
+      for(let attempt=0;attempt<3;attempt++){
+        try{specs=validateDraft(proposal);break;}
+        catch(error){
+          if(attempt===2)throw error;
+          proposal=await call(`${policy} Repair the previous task proposal to satisfy the validation error. Return the SAME tasks JSON schema with id,title,requirements,outputs,dependencies,skill,level,hours,start,end. Skill must exactly match an existing skill_id. level is a JSON integer 3..5; hours is a JSON number 0.25..4. Windows use HH:mm from 09:00 to 16:00 on the business date. Remove any approval/review/publishing/archive tasks. Include copy and launch-image production. Use the supplied feasibleProductionWindows with their exact skills, levels, hours and times; combine related deliverables within these execution tasks. The image task must remain eligible for the required image owner.`,{previousProposal:proposal,validationError:error.message,skills,feasibleProductionWindows,requiredImageOwner:{id:alexId,name:byId.get(alexId).name,skills:byId.get(alexId).skills}},signal);
+        }
       }
       const run={...(liveDiscord()?{transport:'discord'}:{}),version:3,workflowMode,channelId,eventIds:[],runId,source:'live',projectOwnerId:'',tasks:[],specs,reservations:[],assignmentHistory:[],leave:[],messages:[],activity:[],injection:{status:'waiting'},decisionIds:[]};
       const managerSpec={id:'project-owner',skill:'project_management',level:3,permission:'project.dispatch',start:stamp('09:00'),end:stamp('16:00'),hours:0.5};
