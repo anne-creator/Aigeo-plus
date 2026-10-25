@@ -48,9 +48,18 @@ export const mockAgent: AgentAdapter = {
 };
 // No protocol is assumed. A future local adapter implements AgentAdapter.
 // Choosing live without an injected runtime fails explicitly; it never falls back to mock.
-declare global { interface Window { qubemcAgent?: AgentAdapter } }
+declare global {
+  interface Window {
+    cofloorAgent?: AgentAdapter;
+    /** @deprecated Install new integrations as window.cofloorAgent. */
+    qubemcAgent?: AgentAdapter;
+  }
+}
+const liveAdapter = () => window.cofloorAgent ?? window.qubemcAgent;
+export const hasLiveAdapter = () => liveAdapter()?.mode === 'live';
 export function getAdapter(live: boolean): AgentAdapter {
   if (!live) return mockAgent;
-  if (window.qubemcAgent?.mode !== 'live') throw new Error('Local Agent is not connected. Add the local runtime adapter before starting a live run.');
-  return window.qubemcAgent;
+  const adapter = liveAdapter();
+  if (adapter?.mode !== 'live') throw new Error('Local Agent is not connected. Add the local runtime adapter before starting a live run.');
+  return adapter;
 }

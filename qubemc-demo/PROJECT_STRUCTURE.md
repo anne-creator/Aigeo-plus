@@ -1,4 +1,4 @@
-# Project Structure
+# CoFloor Project Structure
 
 ## Project Structure
 
@@ -37,12 +37,15 @@ Company input replaced by Anne’s provided Bridgewell Creative dataset, ID brid
 - Skip to execution → inject development issue → notification → wait for worker decision → update commitment and next checkpoint.
 - All development events marked mock; live mode never silently falls back to fixtures.
 - No reassignment or final delivery / acceptance workflow in P0.
+- CoFloor service name in the page title, navigation, Agent messages, footer and npm metadata. New runtime integrations use `window.cofloorAgent`; the legacy alias and storage namespace remain compatible. Logo candidates await Anne’s review; the header currently uses a text wordmark.
 - White background with cyan actions; factual text only. Removed promotional subtitles and file explanation labels.
 - Google Doc updated in original Requirements / Technical Requirements / Frontend prompt structure; preceding draft retained in full as final appendix.
 
 ## Validation
 
 Six tests pass (three data import checks plus three state tests): stale / duplicate event protection; reply gating and owner preservation; persistence and interrupted-run recovery. Strict TypeScript / production build pass. Browser walkthrough verified start, assignments, stage skip, issue notification, waiting through refresh, worker reply, resumed state, reset and unavailable local runtime errors. Desktop visual inspection confirms no promotional subtitles and a visible primary action.
+
+CoFloor rename validation: all six existing tests and strict TypeScript / production build pass. Browser inspection confirms the CoFloor page title, navigation and footer. Adapter checks confirm development mode, explicit missing-runtime errors, the legacy alias and CoFloor adapter precedence.
 
 ## Maintenance Log
 
@@ -51,3 +54,5 @@ Six tests pass (three data import checks plus three state tests): stale / duplic
 - 2026-10-25: Imported provided company records, capacities and local schedules. UI counts derive from the dataset; date labels use its reference time. Dataset-specific storage prevents stale invented employee IDs. No UI redesign or new workflow.
 
 - 2026-10-25: Changed current dashboard to white backgrounds at Anne’s request. No historical white UI exists in the available Git commits; layout, employee inputs and Agent integration boundaries are preserved.
+
+- 2026-10-25: Renamed the service and npm package to CoFloor, added a repository landing README, and retained existing runtime integrations and saved sessions. Historical source directory remains `qubemc-demo/`. Logo review is separate from this rename.

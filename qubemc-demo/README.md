@@ -1,4 +1,4 @@
-# QubeMC
+# CoFloor
 
 Local English dashboard for two moments: project planning / assignment, and issue detection / worker decision. White background, cyan accents, factual labels.
 
@@ -27,7 +27,9 @@ All current model results and Discord messages are development fixtures. There i
 
 Availability refers to October 26, 2026, the source reference day, in America/Los_Angeles. Remaining daily capacity is not task-window feasibility. `CompanyInput.source.resources` supplies local source paths for later model integration. The storage key includes dataset ID, so sessions containing the old invented employee IDs do not overwrite this dataset. See `data/company/README.md` for provenance and import instructions.
 
-Implement the adapter in the same project when the local runtime details are provided. Install it as `window.qubemcAgent` before the app mounts; set `mode: 'live'`. The **Use local runtime** control selects that adapter; a missing runtime produces a visible error and never falls back to mock.
+Implement the adapter in the same project when the local runtime details are provided. Install it as `window.cofloorAgent` before the app mounts; set `mode: 'live'`. The **Use local runtime** control selects that adapter; a missing runtime produces a visible error and never falls back to mock.
+
+Existing integrations using `window.qubemcAgent` remain supported; `window.cofloorAgent` takes precedence. Existing browser storage keys are retained to preserve saved project state and runtime selection. The source directory remains `qubemc-demo/` for compatibility with current local workflows. The new logo is pending Anne’s review; the dashboard uses the CoFloor wordmark.
 
 - `start({ project, company, runId }, signal)` yields `progress` and `planned` events from real inference.
 - `check({ project, company, state, observation }, signal)` consumes current runtime state; `observation` is empty in live mode. It yields `issue`, then `sent` only after actual transport success. Live **Check latest project state** calls this method.
