@@ -1,0 +1,13 @@
+[Unit]
+Description=NemoClaw authenticated local inference proxy
+After=cofloor-vllm-proxy.service
+Requires=cofloor-vllm-proxy.service
+
+[Service]
+ExecStart=/usr/bin/python3 %h/.local/lib/cofloor/cofloor-nemoclaw-proxy.py
+Restart=on-failure
+RestartSec=3
+UMask=0077
+
+[Install]
+WantedBy=default.target
