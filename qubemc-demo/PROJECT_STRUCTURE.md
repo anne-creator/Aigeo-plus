@@ -1,5 +1,10 @@
 # CoFloor Project Structure
 
+## Collapsed voice controls (2026-10-25)
+
+- `src/VoiceNarration.tsx` and `src/voice.css` replace the always-visible narration bar with a 36px speaker icon at the upper right. Controls start collapsed; clicking toggles the transcript, mute, activation and retry controls. Outside clicks and Escape dismiss the panel, with Escape restoring trigger focus. The icon reflects muted, active and unavailable audio states. Narration playback and project state are unchanged.
+- Validation: TypeScript/production build passed; local browser verified collapsed startup, click-to-expand and Escape-to-collapse. No project allocation or speech request was triggered.
+
 ## Visible start panel and explicit allocation (2026-10-25)
 
 This section supersedes earlier hidden-startup and immediate-reset-allocation notes.
