@@ -8,7 +8,7 @@ import { boardMiddleware } from './board.mjs';
 import { nemoclawMiddleware } from './nemoclaw-discord.mjs';
 import { faceMiddleware } from './face.mjs';
 const dist = fileURLToPath(new URL('../dist/', import.meta.url));
-const types = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml' };
+const types = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml', '.mp4':'video/mp4', '.webm':'video/webm', '.m4a':'audio/mp4' };
 const server = createServer((req,res)=>speechMiddleware(req,res,()=>modelMiddleware(req,res,()=>boardMiddleware(req,res,()=>nemoclawMiddleware(req,res,()=>faceMiddleware(req,res,async()=>{
   if (!['GET','HEAD'].includes(req.method)) {res.writeHead(405);return res.end();}
   try {

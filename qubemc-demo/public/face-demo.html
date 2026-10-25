@@ -16,6 +16,10 @@
   #results{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
   .result{padding:10px 14px;border:1px solid #496b59;border-radius:10px;background:#263e34}
   .unknown{background:#3e3026;border-color:#796044}small{color:#a9beb5}
+  [hidden]{display:none!important}
+  #success{margin-top:24px;padding:24px;border:1px solid #496b59;border-radius:16px;background:#192925}
+  #success video{display:block;width:100%;border-radius:12px;aspect-ratio:16/9;background:#101b1a}
+  #success h2{margin-top:0}#success .controls{margin-bottom:0}
 </style>
 </head>
 <body><main>
@@ -30,74 +34,14 @@
 <p id="status" role="status">Checking Spark face service…</p>
 <div class="stage"><video id="video" playsinline muted></video><canvas id="canvas"></canvas></div>
 <div id="results" aria-live="polite"></div>
+<section id="success" hidden aria-labelledby="match-title">
+  <h2 id="match-title"></h2>
+  <p id="match-status" role="status"></p>
+  <video id="success-film" muted playsinline preload="none" aria-label="Five-second recognition celebration"></video>
+  <p><small>Illustrative avatar animation. The character is not reconstructed from your face.</small></p>
+  <div class="controls"><a href="/">Continue to dashboard</a><button id="scan-again" class="secondary">Scan again</button></div>
+</section>
 <p><small>A name is a visual match, not proof of identity. Unmatched faces appear as unknown.</small></p>
 </main>
-<script>
-const video=document.getElementById('video'),canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d');
-const status=document.getElementById('status'),results=document.getElementById('results');
-const start=document.getElementById('start'),stop=document.getElementById('stop');
-const names={anne:'Anne',max:'Max',selina:'Selina',unknown:'Unknown'};
-let stream=null,timer=null,busy=false;
-async function health(){
-  try{
-    const r=await fetch('/api/face/status'),data=await r.json();
-    if(!r.ok||!data.ready)throw Error(data.error||'No enrolled faces');
-    const count=Object.values(data.enrolled).reduce((a,b)=>a+b,0);
-    status.textContent='Ready · '+Object.keys(data.enrolled).length+' teammates · '+count+' enrollment photos';
-  }catch(e){status.textContent=e.message||'Face service unavailable';}
-}
-function show(data){
-  results.replaceChildren();
-  for(const face of data.faces){
-    const [x,y,w,h]=face.box,unknown=face.label==='unknown',title=(names[face.label]||face.label)+' · '+face.score.toFixed(2);
-    ctx.strokeStyle=unknown?'#efaa72':'#91e1c1';ctx.lineWidth=Math.max(3,canvas.width/180);ctx.strokeRect(x,y,w,h);
-    ctx.font='bold '+Math.max(18,canvas.width/32)+'px system-ui';
-    const top=Math.max(28,y);
-    ctx.fillStyle=unknown?'#efaa72':'#91e1c1';ctx.fillRect(x,top-28,ctx.measureText(title).width+16,30);
-    ctx.fillStyle='#10211b';ctx.fillText(title,x+8,top-6);
-    const chip=document.createElement('div');chip.className='result'+(unknown?' unknown':'');chip.textContent=title;results.append(chip);
-  }
-  status.textContent=data.faces.length?data.faces.length+' face'+(data.faces.length===1?'':'s')+' detected':'No face detected — face the camera and improve the light';
-}
-async function analyze(){
-  if(busy)return;busy=true;
-  try{
-    const r=await fetch('/api/face/recognize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:canvas.toDataURL('image/jpeg',0.82)})});
-    const data=await r.json();if(!r.ok)throw Error(data.error||'Recognition failed');show(data);
-  }catch(e){status.textContent=e.message||'Recognition failed';}finally{busy=false;}
-}
-async function scan(){
-  if(!stream)return;
-  if(!busy&&video.videoWidth){
-    canvas.width=Math.min(video.videoWidth,960);
-    canvas.height=Math.round(canvas.width*video.videoHeight/video.videoWidth);
-    ctx.drawImage(video,0,0,canvas.width,canvas.height);
-    await analyze();
-  }
-  if(stream)timer=setTimeout(scan,1200);
-}
-function stopCamera(){
-  clearTimeout(timer);timer=null;stream?.getTracks().forEach(track=>track.stop());
-  stream=null;video.srcObject=null;start.disabled=false;stop.disabled=true;
-}
-start.addEventListener('click',async()=>{
-  try{
-    stopCamera();
-    stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:960},facingMode:'user'},audio:false});
-    video.srcObject=stream;await video.play();start.disabled=true;stop.disabled=false;status.textContent='Camera started';void scan();
-  }catch(e){status.textContent='Camera unavailable: '+(e.message||e);}
-});
-stop.addEventListener('click',()=>{stopCamera();status.textContent='Camera stopped';});
-document.getElementById('upload').addEventListener('change',async event=>{
-  const file=event.target.files?.[0];if(!file)return;stopCamera();
-  const url=URL.createObjectURL(file);
-  try{
-    const image=new Image();await new Promise((ok,fail)=>{image.onload=ok;image.onerror=fail;image.src=url;});
-    canvas.width=Math.min(image.naturalWidth,960);canvas.height=Math.round(canvas.width*image.naturalHeight/image.naturalWidth);
-    ctx.drawImage(image,0,0,canvas.width,canvas.height);await analyze();
-  }catch(e){status.textContent='Could not read photo: '+(e.message||e);}
-  finally{URL.revokeObjectURL(url);event.target.value='';}
-});
-window.addEventListener('beforeunload',stopCamera);void health();
-</script>
+<script type="module" src="/face-demo.js"></script>
 </body></html>

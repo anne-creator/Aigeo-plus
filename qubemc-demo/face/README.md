@@ -70,3 +70,23 @@ The default cosine threshold is 0.45 with a 0.05 gap required between the top
 two labels. These are demo settings calibrated against the three available
 teammates and should be retested with independent camera frames. A visual match
 is not suitable for access control because this demo has no liveness check.
+
+## Recognition success animation
+
+The face page plays the supplied five-second silent Avatar Forge video only after
+`/api/face/recognize` returns exactly one recognized face. Unknown or multiple
+faces keep scanning. A match stops and releases the camera, shows the actual
+recognized name, and offers Continue to dashboard or Scan again. Scan again
+clears the match; late responses from a cancelled scan are ignored. Reduced
+motion and video failures show the completed match without blocking navigation.
+The animated character remains illustrative, not a reconstruction or login grant.
+
+`npm run build` and `npm run dev` stage the video from the repository's
+`assets/cofloor-avatar-forge-5s` directory automatically. Deploy from the full
+repository layout so that the assets directory remains beside `qubemc-demo`.
+
+The WebM rendition uses the same supplied silent video at 960×540 for browser
+compatibility; MP4 remains the fallback. To repeat the UI regression checks,
+start the built app on port 5174 and run `node scripts/test_face_animation.cjs`
+with Playwright installed (or set `PLAYWRIGHT_MODULE` to its module path).
+These checks use controlled face responses; live recognition is verified separately.
