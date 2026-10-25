@@ -101,7 +101,7 @@ function App() {
   const [teamOpen, setTeamOpen] = useState(false);
   const [scenePlaying, setScenePlaying] = useState(true);
   const [ambientScene, setAmbientScene] = useState(false);
-  const [dashboardOpen, setDashboardOpen] = useState(true);
+  const [dashboardOpen, setDashboardOpen] = useState(false);
   const [readyRun, setReadyRun] = useState('');
   const [entryRun, setEntryRun] = useState('');
   const revealedRun = useRef('');
@@ -202,7 +202,7 @@ function App() {
     voice.reset();
     setControls(false); setSelectedId(null); setActivity(false); setDecisionOpen(false); setReplyText('');
     setHydratedRun(''); setReadyRun(''); setEntryRun(''); revealedRun.current = '';
-    setDocumentOpen(false); setTeamOpen(false); setDashboardOpen(true);
+    setDocumentOpen(false); setTeamOpen(false); setDashboardOpen(false);
     const url = new URL(window.location.href);
     url.searchParams.delete('run'); window.history.replaceState(null, '', url);
     dispatch({ type: 'reset' });

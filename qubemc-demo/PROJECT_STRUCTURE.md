@@ -1,5 +1,13 @@
 # CoFloor Project Structure
 
+## Hidden Dashboard by default (2026-10-25)
+
+This supersedes the visible-startup and visible-reset presentation below.
+
+- `src/main.tsx` initializes `dashboardOpen` to false and resets it to false. Opening or refreshing the base URL shows the building with the lower panel hidden; reveal it before clicking **Start project**. Start remains explicit. Valid allocation/shared-run entry still reveals the project once after arrival.
+- `src/dashboard-gesture.ts` retains background wheel handling: with macOS natural scrolling, two fingers up produces positive deltaY and shows the panel; two fingers down produces negative deltaY and hides it. Existing 60px threshold, 250ms idle rearm, panel/dialog scroll exclusions and Dashboard button access remain. No API, data or dependency changes.
+- Validation: 77 offline tests and TypeScript/production build passed. Local browser verified hidden load/refresh, positive background wheel show, negative background wheel hide and hidden Reset. No live allocation or speech generation was triggered.
+
 ## Collapsed voice controls (2026-10-25)
 
 - `src/VoiceNarration.tsx` and `src/voice.css` replace the always-visible narration bar with a 36px speaker icon at the upper right. Controls start collapsed; clicking toggles the transcript, mute, activation and retry controls. Outside clicks and Escape dismiss the panel, with Escape restoring trigger focus. The icon reflects muted, active and unavailable audio states. Narration playback and project state are unchanged.
@@ -42,7 +50,7 @@ This section supersedes earlier descriptions of the source document as a single-
 - **Runtime limit:** The real Spark Qwen smoke request timed out connecting to `100.89.121.112:8004`; no WAV was produced, so actual voice quality and generation latency are not certified. Live Alex/manager replies and deployment remain follow-up validation. No online publication or live Discord message was performed.
 
 
-The base URL opens the Dashboard launch panel on every page load. The header Dashboard button or navigation can hide or show it; expanded state is not restored after refresh.
+The base URL keeps the Dashboard launch panel hidden on every page load. A background swipe up (macOS natural scrolling), the header Dashboard button or navigation can reveal it; a background swipe down hides it. Expanded state is not restored after refresh.
 
 Background wheel shortcut (`src/dashboard-gesture.ts`): standard trackpad/mouse wheel events drive the same `dashboardOpen` state. Positive vertical delta shows the panel and negative hides it after 60 normalized pixels (16px/line, viewport height/page); physical swipe direction follows system scrolling settings. One command per burst, rearmed after 250ms idle. Dashboard, board, header/navigation, settings, interactive controls and open dialogs retain native scrolling; horizontal/modified/pinch bursts cannot trigger or leak into the background. The app-shell effect removes its listener and idle timer on unmount. No backend or mobile touch gesture changes. `src/dashboard-gesture.test.ts` covers thresholds, units, direction, jitter, inertia, exclusions, idle reset and cleanup.
 

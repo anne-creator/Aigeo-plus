@@ -27,6 +27,7 @@ export class DashboardWheelGesture {
     this.distance += pixels;
     if (Math.abs(this.distance) < THRESHOLD) return { capture: true, open: null };
     this.consumed = true;
+    // macOS natural scrolling: fingers up produces positive deltaY (show), down negative (hide).
     return { capture: true, open: this.distance > 0 };
   }
 }
