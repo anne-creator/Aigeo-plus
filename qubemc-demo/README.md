@@ -1,5 +1,7 @@
 # CoFloor
 
+The Dashboard panel starts collapsed on every page load. Click the header Dashboard button or navigation to open it; expanded state is not restored after refresh.
+
 Startup is click-gated: opening or refreshing the Dashboard begins idle and does not restore/start an active run or inject facts. Only **Start project** initiates allocation. Once clicked, automatic execution and the five-second injection work normally. Explicit **Reset project** still starts a new allocation. Saved server runs remain audit history. This supersedes earlier auto-resume-on-refresh notes.
 
 For the persistent NemoClaw inference proxies and Discord setup from the Spark's local `.env`, see [Spark runtime helpers](deploy/spark/README.md).

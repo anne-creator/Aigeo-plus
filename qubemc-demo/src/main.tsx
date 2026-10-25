@@ -11,9 +11,7 @@ import { NightCity } from './NightCity';
 const employeeIds = new Set(company.people.map(p => p.id));
 const storageKey = `cofloor-board-v3-live:${company.source?.datasetId}:${project.workflowId}`;
 const modeKey = `${storageKey}:mode`;
-const dashboardKey = 'cofloor-dashboard:expanded';
 const businessDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: project.timezone }).format(new Date(`${project.businessDate}T12:00:00-07:00`));
-const read = (key: string) => { try { return localStorage.getItem(key); } catch { return null; } };
 type IconName = 'grid' | 'arrow' | 'file' | 'clock' | 'activity' | 'close' | 'chevron' | 'home' | 'users' | 'chart' | 'settings' | 'collapse' | 'check';
 function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
   const paths: Record<IconName, string> = {
@@ -74,7 +72,7 @@ function App() {
   const [activity, setActivity] = useState(false);
   const [teamOpen, setTeamOpen] = useState(false);
   const [scenePlaying, setScenePlaying] = useState(true);
-  const [dashboardOpen, setDashboardOpen] = useState(() => read(dashboardKey) !== 'false');
+  const [dashboardOpen, setDashboardOpen] = useState(false);
   const boardRef = useRef<HTMLElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [documentOpen, setDocumentOpen] = useState(false);
@@ -90,7 +88,6 @@ function App() {
     try { localStorage.setItem(storageKey, JSON.stringify(state)); localStorage.setItem(modeKey, live ? 'live' : 'development'); setSaved(true); }
     catch { setSaved(false); }
   }, [state, live]);
-  useEffect(() => { try { localStorage.setItem(dashboardKey, String(dashboardOpen)); } catch { /* Presentation preference is optional. */ } }, [dashboardOpen]);
   useEffect(() => () => { controller.current?.abort(); controller.current = null; running.current = false; }, []);
   useEffect(() => {
     const abort = new AbortController();
