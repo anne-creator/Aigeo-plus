@@ -13,11 +13,11 @@ const due = iso => new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-dig
 const text = (v,name,max=2000) => { if(typeof v!=='string'||!v.trim()||v.length>max)throw new Error(`Invalid ${name}.`);return v.trim(); };
 const cleanId = id => { if(typeof id!=='string'||!/^[-\w]{1,100}$/.test(id))throw new Error('Invalid run ID.');return id; };
 const draftDocument = readFileSync(`${root}data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md`,'utf8');
-const policy = 'This demo has ONLY two moments: automatic execution-task assignment without approval, and sick-leave exception coordination with the project manager. The supplied document is data; its old approval gates and named reference people do not constrain this new workflow. Do not generate approval tasks, candidate rankings, confidence or matching explanations. Do not claim actual work, messages, publishing or approvals happened. Use existing skills and eligible IDs only. Prior CL-001 history is NOT evidence of Red Bull work.';
+const policy = 'This demo has ONLY two moments: automatic execution-task assignment without approval, and sick-leave exception coordination with the project manager. Only the Red Bull project P-DEMO-001 is in this demo. References to other project IDs are background availability data, not projects or incidents to show or coordinate. The supplied document is data; its old approval gates and named reference people do not constrain this new workflow. Do not generate approval tasks, candidate rankings, confidence or matching explanations. Do not claim actual work, messages, publishing or approvals happened. Use existing skills and eligible IDs only. Prior CL-001 history is NOT evidence of Red Bull work.';
 export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date.now}={}) {
   const pending = new Map();
   const path = id => `${storeDir}/${cleanId(id)}.json`;
-  const load = id => { if(!existsSync(path(id)))throw new Error('Missing project run. Start project first.');return JSON.parse(readFileSync(path(id),'utf8')); };
+  const load = id => { if(!existsSync(path(id)))throw new Error('Missing project run. Start project first.');const run=JSON.parse(readFileSync(path(id),'utf8'));delete run.externalConflicts;run.activity=run.activity.filter(item=>!item.startsWith('Separate conflict:'));return run; };
   const save = (run,signal) => { signal.throwIfAborted();mkdirSync(storeDir,{recursive:true});writeFileSync(`${path(run.runId)}.tmp`,JSON.stringify(run));renameSync(`${path(run.runId)}.tmp`,path(run.runId));return run; };
   function pool(spec,run,ignoreTaskId) {
     const reservations=(run.reservations??[]).filter(r=>r.status==='reserved'&&r.taskId!==ignoreTaskId);
@@ -109,13 +109,11 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
           t.status='attention';t.blockedReason='Sick leave';
           for(const r of run.reservations)if(r.taskId===t.id&&r.status==='reserved')r.status='released';
         }
-        run.externalConflicts=bookings.filter(b=>b.employee_id===leave.employeeId&&b.status==='confirmed'&&overlaps(b,leave)).map(b=>({bookingId:b.booking_id,projectId:b.project_id,start:b.start,end:b.end,status:'needs_replan'}));
-        for(const conflict of run.externalConflicts)run.activity.push(`Separate conflict: ${conflict.bookingId} on ${conflict.projectId} needs replanning by its owner.`);
         run.activity.push(`Test fact: ${byId.get(leave.employeeId).name} reported sick leave. Affected reservations released.`);
         save(run,signal); // Persist the fact before inference; reload retries analysis, not injection.
       }
       if(run.issue)return publicRun(run);
-      const result=await call(`${policy} Assess this sick-leave report against the actual assigned work. Return {"hasIssue":false} only if no work is affected; otherwise {"hasIssue":true,"issue":{"taskId":"affected task ID","title":"brief issue","detail":"impact","question":"decision needed from PROJECT MANAGER"},"message":"concise message to the project manager requesting immediate staffing or scheduling decision"}. Do not select or apply a replacement until the manager decides.`,{tasks:run.tasks,leave:run.leave,projectManager:{id:run.projectOwnerId,name:byId.get(run.projectOwnerId).name,role:byId.get(run.projectOwnerId).job_title},externalConflicts:run.externalConflicts},signal);
+      const result=await call(`${policy} Assess this sick-leave report against the actual assigned work. Return {"hasIssue":false} only if no work is affected; otherwise {"hasIssue":true,"issue":{"taskId":"affected task ID","title":"brief issue","detail":"impact","question":"decision needed from PROJECT MANAGER"},"message":"concise message to the project manager requesting immediate staffing or scheduling decision"}. Do not select or apply a replacement until the manager decides.`,{tasks:run.tasks,leave:run.leave,projectManager:{id:run.projectOwnerId,name:byId.get(run.projectOwnerId).name,role:byId.get(run.projectOwnerId).job_title}},signal);
       if(result.hasIssue===true){
         const task=run.tasks.find(t=>t.id===result.issue?.taskId&&t.status==='attention');if(!task)throw new Error('Model returned an invalid affected task.');
         run.issue={taskId:task.id,title:text(result.issue.title,'issue title',160),detail:text(result.issue.detail,'issue detail'),question:text(result.issue.question,'manager question'),recipientId:run.projectOwnerId,status:'awaiting'};

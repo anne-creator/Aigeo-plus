@@ -10,7 +10,7 @@ export type BoardRun = {
   enteredAt:number;injection:{status:'scheduled'|'injected'|'analyzed';dueAt:number;fact?:{employeeId:string;taskId:string;start:string;end:string}};
   reservations:Reservation[];leave:{employeeId:string;start:string;end:string}[];
   messages:{id:string;author:'agent'|'manager'|'employee';actorId:string;text:string;delivery:'simulated'|'test_input'|'injected_fact'}[];
-  activity:string[];externalConflicts?:{bookingId:string;projectId:string;status:string}[];issue?:{taskId:string;title:string;detail:string;question:string;recipientId:string;status:'awaiting'|'resolved'};nextCheckIn?:string;
+  activity:string[];issue?:{taskId:string;title:string;detail:string;question:string;recipientId:string;status:'awaiting'|'resolved'};nextCheckIn?:string;
 };
 export type BoardState = Omit<Partial<BoardRun>,'phase'> & {version:3;runId:string;phase:'idle'|'planning'|'active';tasks:BoardTask[];activity:string[];messages:BoardRun['messages'];seen:string[];label:string;error?:string;operation:'idle'|'setup'|'checking'|'deciding'};
 export const initialBoard:BoardState={version:3,runId:'',phase:'idle',tasks:[],activity:[],messages:[],seen:[],label:'',operation:'idle'};
@@ -51,7 +51,7 @@ export function boardReducer(s:BoardState,a:BoardAction):BoardState{
 }
 export function restoreBoard(raw:string|null,ids:ReadonlySet<string>):BoardState{
   try{if(!raw)return {...initialBoard};const s=JSON.parse(raw) as BoardState;if(s.version!==3||typeof s.runId!=='string')return {...initialBoard};
-    if(s.phase==='active'){validateRun({...s,phase:'in_project'} as BoardRun,ids);return {...s,operation:'idle',error:undefined};}
+    if(s.phase==='active'){validateRun({...s,phase:'in_project'} as BoardRun,ids);const {externalConflicts,...current}=s as BoardState & {externalConflicts?:unknown};return {...current,activity:current.activity.filter(item=>!item.startsWith('Separate conflict:')),operation:'idle',error:undefined};}
     if(s.phase==='planning')return {...initialBoard,runId:s.runId,phase:'planning',error:'Setup was interrupted. Reset to start a new allocation.',operation:'idle'};
     return {...initialBoard};
   }catch{return {...initialBoard};}
