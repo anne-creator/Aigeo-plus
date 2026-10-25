@@ -1,5 +1,7 @@
 # CoFloor Project Structure
 
+Task cards, dependencies, details, activity and model messages display task text and employee names. Internal IDs remain in state/API/audit data; presentation resolves saved model text too. The original Markdown download remains unchanged.
+
 ## Live two-moment workflow (2026-10-25)
 
 This section supersedes the earlier reference-intake and approval-workflow notes.

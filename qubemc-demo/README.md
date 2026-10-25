@@ -1,5 +1,7 @@
 # CoFloor
 
+Task cards, dependencies, details, activity and model messages display task text and employee names. Internal IDs remain in state/API/audit data; presentation resolves saved model text too. The original Markdown download remains unchanged.
+
 ## Current demo: live setup and sick-leave decision
 
 **Start project** uses the configured live model to read the preloaded Red Bull document, generate production tasks and select eligible staff plus a project manager. No approval task or human assignment confirmation is required. Valid assignments enter **In project** immediately. Original document approval gates and reference people are historical scenario data; the current two-moment application workflow takes precedence.
@@ -120,6 +122,8 @@ Browser automation was blocked by the browser's URL security policy during this 
 The remote NemoClaw routes and Discord bridge remain available alongside the current two-moment model demo. `/api/board/plan` is the earlier two-task approval intake; the current Dashboard uses `/api/model/plan` with run-scoped live setup.
 
 # CoFloor
+
+Task cards, dependencies, details, activity and model messages display task text and employee names. Internal IDs remain in state/API/audit data; presentation resolves saved model text too. The original Markdown download remains unchanged.
 
 CoFloor is a Red Bull X launch coordination demo. The board starts with two tasks: RB-01 (launch outline) and RB-02 (direction approval). RB-02 depends on RB-01. The scenario and Bridgewell Creative directory are fictional; the business date is October 26, 2026 (America/Los_Angeles).
 
