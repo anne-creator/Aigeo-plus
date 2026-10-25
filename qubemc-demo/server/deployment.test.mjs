@@ -59,7 +59,7 @@ test('real Alex reply is authenticated, scoped to the intake message, and delive
   let calls=0,sent=0;
   const make=(id,author,target,content=ALEX_LEAVE_TEXT)=>({id,author:{id:author},content,message_reference:{message_id:target},timestamp:'2026-10-25T22:00:00Z'});
   const command=async args=>{
-   if(args[0]==='send'){sent++;const text=args[args.indexOf('--message')+1];assert.match(text,/<@575848990005002241>/);assert.match(text,/Waiting for Alex/);assert.doesNotMatch(text,/Decision recorded/);return {payload:{messageId:'100'}};}
+   if(args[0]==='send'){sent++;const text=args[args.indexOf('--message')+1];assert.match(text,/<@575848990005002241>/);assert.match(text,/Project team assigned/);assert.match(text,/Image: Alex Morgan; due 3:00 PM/);assert.doesNotMatch(text,/sick leave|reassign|Waiting for Alex|reply directly|Decision recorded/i);assert.equal(text.includes(ALEX_LEAVE_TEXT),false);return {payload:{messageId:'100'}};}
    return {payload:{messages:[make('101','123456789012345678','100'),make('102','575848990005002241','other'),make('103','575848990005002241','100','I am not taking sick leave.'),make('104','575848990005002241','100')]}};
   };
   const receiveEvent=async input=>{calls++;assert.equal(input.event.actorId,'EMP-0329');assert.equal(input.event.id,'discord-104');assert.equal(input.event.text,ALEX_LEAVE_TEXT);assert.equal(input.event.reportedAt,'2026-10-26T10:32:00-07:00');run.injection.status='analyzed';run.messages.push({id:input.event.id,author:'employee',text:input.event.text});return run;};
