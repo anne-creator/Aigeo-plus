@@ -208,15 +208,15 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
       if(next.confirmation.source!=='pending_discord')narrateApplied(next);
       return publicRun(save(next,signal));
     }
-    if(action==='state') {
-      if (liveDiscord()) await syncDiscord(run, {command:discordCommand,save:r=>save(r,signal),reload:()=>load(runId),decide:async (data,receipt)=>{await perform('decision',data,signal,receipt);return load(runId);},receiveEvent:async data=>{await perform('event',data,signal);return load(runId);}});
+    if(action==='state'||action==='sync') {
+      if (liveDiscord()) await syncDiscord(run, {command:action==='sync'?async args=>args[0]==='read'?input.batch:(discordCommand??(await import('./nemoclaw-discord.mjs')).openclawMessage)(args):discordCommand,save:r=>save(r,signal),reload:()=>load(runId),decide:async (data,receipt)=>{await perform('decision',data,signal,receipt);return load(runId);},receiveEvent:async data=>{await perform('event',data,signal);return load(runId);}});
       return publicRun(load(runId));
     }
     throw new Error('Unknown project operation.');
   }
   return {pool,load,async analyze(action,input,signal){
     const id=cleanId(input.runId);const key=`${id}:${action}`;
-    if(action==='state' && [...pending.keys()].some(k=>k.startsWith(`${id}:`)))return publicRun(load(id));
+    if((action==='state'||action==='sync') && [...pending.keys()].some(k=>k.startsWith(`${id}:`)))return publicRun(load(id));
 
     const existing=pending.get(key);
     if(existing){

@@ -178,9 +178,10 @@ function App() {
     const timer = setInterval(() => { if (!running.current) void operation('state'); }, 5000);
     return () => clearInterval(timer);
   }, [started, hydratedRun, state.runId]);
-  async function start() {
+  async function start(resume = false) {
     if (!runtimeReady || running.current) return;
-    const runId = crypto.randomUUID(), abort = new AbortController();
+    const runId = resume && state.runId ? state.runId : crypto.randomUUID(), abort = new AbortController();
+    const pendingUrl = new URL(window.location.href); pendingUrl.searchParams.set('run',runId); window.history.replaceState(null,'',pendingUrl);
     running.current = true; controller.current = abort; setControls(false); setSelectedId(null); setActivity(false); setDecisionOpen(false); setReplyText(''); setHydratedRun('');
     setDashboardOpen(false); setReadyRun(''); setEntryRun(runId); setDocumentOpen(false); setTeamOpen(false);
     voice.start(runId);
@@ -241,7 +242,7 @@ function App() {
       <div className="assignment-content" role={state.error ? 'alert' : 'status'} aria-live="polite">
         <span className="allocation-eyebrow">{project.title}</span>
         <h1>{restoring ? (state.error ? 'Project unavailable' : 'Opening project') : state.error ? 'Assignment paused' : 'Assigning your team'}</h1>
-        {state.error ? <><p className="allocation-error">{labels.text(state.error)}</p><button className="primary-button" disabled={state.operation !== 'idle'} onClick={() => restoring ? void operation('state') : void start()}>Retry<Icon name="arrow"/></button></> : <><p>{restoring ? 'Loading tasks · Syncing updates' : 'Generating tasks · Matching owners'}</p><span className="allocation-loading"><span className="spinner"/>{restoring ? 'Syncing project' : 'Agent working'}</span></>}
+        {state.error ? <><p className="allocation-error">{labels.text(state.error)}</p><button className="primary-button" disabled={state.operation !== 'idle'} onClick={() => void start(true)}>Retry<Icon name="arrow"/></button></> : <><p>{restoring ? 'Loading tasks · Syncing updates' : 'Generating tasks · Matching owners'}</p><span className="allocation-loading"><span className="spinner"/>{restoring ? 'Syncing project' : 'Agent working'}</span></>}
       </div>
     </section>}
     <main className={`dashboard focus-dashboard ${started ? 'project-dashboard' : 'global-dashboard'}`} id="dashboard-panel" hidden={!dashboardVisible} aria-label={started ? 'Project dashboard' : 'Global dashboard'}>
