@@ -8,6 +8,8 @@ For the persistent NemoClaw inference proxies and Discord setup from the Spark's
 
 Task cards, dependencies, details, activity and model messages display task text and employee names. Internal IDs remain in state/API/audit data; presentation resolves saved model text too. The original Markdown download remains unchanged.
 
+The backdrop now follows the project: headquarters before setup, a single office floor after a successful live allocation. The imported tower, office artwork and pixel characters come from Anne's supplied `cofloor-deploy` package. Actual owner IDs, task states, leave and assignment versions drive the visual handoffs. Unknown mappings or rendering failures fall back to decorative walking; **Project settings → Ambient animation** lets you exercise that fallback. Animations do not advance work or simulate approvals. Pause the background from the header, or hide Dashboard to see the whole scene.
+
 ## Current demo: live setup and sick-leave decision
 
 **Start project** uses the configured live model to read the preloaded Red Bull document, generate production tasks and select eligible staff plus a project manager. No approval task or human assignment confirmation is required. Valid assignments enter **In project** immediately. Original document approval gates and reference people are historical scenario data; the current two-moment application workflow takes precedence.
