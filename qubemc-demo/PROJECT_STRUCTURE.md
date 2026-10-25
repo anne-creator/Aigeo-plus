@@ -1,5 +1,11 @@
 # CoFloor Project Structure
 
+## CoFloor brand icon (2026-10-25)
+
+- `public/logo_cofloor-app-icon.svg` is Anne's supplied SVG, copied unchanged from `logo_cofloor-app-icon.svg`. The header displays it at the existing responsive logo dimensions; the previous green circle/grid styling is removed so the SVG retains its own shape and colors.
+- Dashboard and face-recognition page favicons share this asset. No API, workflow or company-data changes.
+- Validation: TypeScript/production build passed; XML parsing and byte comparisons confirm the source and built SVG match Anne's original, and both built pages reference the icon.
+
 ## Expanded launch asset brief (2026-10-25)
 
 This section supersedes earlier descriptions of the source document as a single-post or fixed eight-node brief. The current brief requests one fictional X launch package: messaging/direction, teaser/launch/follow-up copy, three template-based visuals and editable sources, image-specific alt text, FAQ/reply drafts and a manifest-based handoff. Each category has inputs and acceptance criteria; dependency and timing guidance retains the 4 p.m. deadline and 1–3 p.m. primary-image window. The Alex scenario describes explicit manager confirmation of a versioned proposal, with no predetermined replacement.

@@ -16,3 +16,6 @@
 *.[iI][cC][oO]
 *.[iI][mM][gG]
 *.[sS][vV][gG]
+
+# Version the approved CoFloor brand asset.
+!/qubemc-demo/public/logo_cofloor-app-icon.svg
