@@ -4,9 +4,9 @@ import {allowedRequest} from './origin.mjs';
 import {syncDiscord,ALEX_LEAVE_TEXT} from './project-discord.mjs';
 import {messageId,messagesOf} from './nemoclaw-discord.mjs';
 test('tunnel accepts only configured host and matching origin',()=>{
- process.env.COFLOOR_PUBLIC_ORIGIN='https://cofloor.qubemc.com';
- assert.equal(allowedRequest({headers:{host:'cofloor.qubemc.com',origin:'https://cofloor.qubemc.com'}}),true);
- assert.equal(allowedRequest({headers:{host:'cofloor.qubemc.com',origin:'https://evil.example'}}),false);
+ process.env.COFLOOR_PUBLIC_ORIGIN='https://dashboard.example.test';
+ assert.equal(allowedRequest({headers:{host:'dashboard.example.test',origin:'https://dashboard.example.test'}}),true);
+ assert.equal(allowedRequest({headers:{host:'dashboard.example.test',origin:'https://evil.example'}}),false);
  assert.equal(allowedRequest({headers:{host:'evil.example'}}),false);
  delete process.env.COFLOOR_PUBLIC_ORIGIN;
 });

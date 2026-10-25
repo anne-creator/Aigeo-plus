@@ -1,5 +1,12 @@
 # CoFloor
 
+## Local inference for submission review
+
+All model execution runs on the DGX Spark. Inference clients use its private
+Tailscale IP, **100.89.121.112**, not the public UI tunnel. See
+[the local-inference review guide](deploy/spark/LOCAL_INFERENCE.md) for source
+entry points and a reproducible, credential-free evidence command.
+
 ## First Spark deployment
 
 Public UI: **https://cofloor.qubemc.com**. Frontend, backend, NemoClaw and model
@@ -100,7 +107,7 @@ Local English dashboard for project planning / assignment and issue detection / 
 
 ## Run with the deployed model
 
-Use Node 22+ (tested with Node 24). Copy `.env.example` to `.env.local` and configure `MODEL_API_AUTH` locally. This machine is already configured. The credential stays on the server; never put it in `src/`, a `VITE_` variable, or Git.
+Use Node 22+ (tested with Node 24). Copy `.env.example` to `.env.local`. NemoClaw is the default inference harness; direct diagnostics explicitly select `COFLOOR_INFERENCE=local` and use the Spark Tailscale endpoint. No public-gateway credential is required.
 
 ```sh
 npm ci
@@ -116,7 +123,7 @@ npm start
 
 The built local service binds to `127.0.0.1:5173`. The Vite middleware in development and `server/start.mjs` in production use the same model implementation. No separate backend deployment is needed. A static `dist/` host alone cannot run model inference.
 
-Model configuration: `https://models.qubemc.com/llm/v1/chat/completions`, model `coo-llm`, Basic authentication, matching the repository's `scripts/test_llm.py`. `MODEL_ENABLE_THINKING=true` enables longer model reasoning if desired; the default direct-answer setting reduces demo latency ([NVIDIA model guidance](https://www.nvidia.com/en-us/ai-data-science/foundation-models/nemotron/llm-info/)). The service only consumes final answer content and never sends reasoning to the UI.
+Local model endpoint: `http://100.89.121.112:8000/v1/chat/completions`, model `coo-llm`, matching `scripts/test_llm.py`. This is the GPU-serving container on the Spark; public inference endpoints and redirects are rejected. `MODEL_ENABLE_THINKING=true` enables longer model reasoning if desired; the default direct-answer setting reduces demo latency ([NVIDIA model guidance](https://www.nvidia.com/en-us/ai-data-science/foundation-models/nemotron/llm-info/)). The service only consumes final answer content and never sends reasoning to the UI.
 
 ## Demo and current parallel UI work
 
@@ -131,7 +138,7 @@ The following steps describe the original two-moment UI, not the concurrently au
 5. Select **••• → Inject delayed photography**. This inserts an observation; the model decides whether it is a risk and writes the question. The UI marks the subsequent notification **DISCORD DEMO**. No actual Discord message is sent.
 6. In **•••**, edit **Test worker reply** and select **Simulate worker reply**. The actual model interprets the test text. An unresolved blocker remains waiting; only a concrete acceptable commitment resumes the task. Checkpoint times come from the model's interpretation, not fixed UI text.
 
-Discord remains a simulated transport. The API credential supplied for the model does not grant Discord access. Model mode and Discord delivery are labeled separately. External real-transport adapters may still be installed as `window.cofloorAgent` (`window.qubemcAgent` is retained for compatibility).
+This historical UI used simulated transport; the current Discord transport uses NemoClaw-owned credentials. Model mode and Discord delivery are labeled separately. External real-transport adapters may still be installed as `window.cofloorAgent` (`window.qubemcAgent` is retained for compatibility).
 
 Mock mode remains available for offline UI work. Do not enable it silently on model failure.
 
@@ -153,7 +160,7 @@ npm run build
 node scripts/test_model_flow.mjs
 ```
 
-The first two commands are offline checks. `test_model_flow.mjs` is an opt-in real-model integration test against the running local service: planning, an evidence-free check, an injected risk, an unresolved reply and an accepted commitment. `COFLOOR_URL` overrides the local service URL. It sends synthetic data through the configured endpoint; it does not contact Discord. The supplied `scripts/test_llm.py` can also test the provider using `MODEL_API_AUTH` in its environment or its documented local credential file.
+The first two commands are offline checks. `test_model_flow.mjs` is an opt-in real-model integration test against the running local service: planning, an evidence-free check, an injected risk, an unresolved reply and an accepted commitment. `COFLOOR_URL` overrides the local service URL. It sends synthetic data through the configured endpoint; it does not contact Discord. The supplied `scripts/test_llm.py` can also test the provider directly over the private Tailscale network without a gateway credential.
 
 Browser automation was blocked by the browser's URL security policy during this change; use a manual page refresh to load and verify the new mode in the live viewer.
 
@@ -190,7 +197,7 @@ For the built local service, run `npm run build && npm start`. Both servers bind
 
 Follow the [NemoClaw quickstart](https://docs.nvidia.com/nemoclaw/latest/user-guide/openclaw/get-started/quickstart) to install NemoClaw with OpenClaw and create a sandbox named `cofloor`. The Spark's existing `coo-llm` vLLM service is intended as the inference endpoint. Follow NVIDIA's [OpenAI-compatible endpoint guide](https://docs.nvidia.com/nemoclaw/latest/user-guide/openclaw/inference/custom-endpoints/set-up-openai-compatible-endpoint): use a loopback-bound endpoint and select `NEMOCLAW_PROVIDER=custom`, `NEMOCLAW_ENDPOINT_URL=http://localhost:18000/v1`, `NEMOCLAW_MODEL=coo-llm`, `NEMOCLAW_COMPATIBLE_AUTH_MODE=none`, and `NEMOCLAW_VLLM_PORT=18000`. The existing vLLM listener is bound to the Tailscale address on port 8000, so a loopback-only proxy to that listener is needed before onboarding. Verify `/v1/models`, streaming, and tool calling on the proxy first. Do not expose the no-auth proxy beyond loopback.
 
-The bridge invokes `nemoclaw cofloor exec -- openclaw agent exec --local-model-lean ... --json` for planning and `openclaw message send` inside the same sandbox for Discord. It can run on the Spark with a local CLI, or from this laptop over SSH. For laptop use, copy `.env.example` to `.env.local` and set `NEMOCLAW_SSH_TARGET=dell@100.89.121.112`. SSH key auth is preferred. For an existing control socket, set `NEMOCLAW_SSH_CONTROL_PATH` to its path. `NEMOCLAW_SANDBOX` defaults to `cofloor`. The legacy `MODEL_API_AUTH` setting only supports the older three-task model API; it is not used by the Red Bull board's NemoClaw planning path.
+The bridge invokes `nemoclaw cofloor exec -- openclaw agent exec --local-model-lean ... --json` for planning and `openclaw message send` inside the same sandbox for Discord. It can run on the Spark with a local CLI, or from this laptop over SSH. For laptop use, copy `.env.example` to `.env.local` and set `NEMOCLAW_SSH_TARGET=dell@100.89.121.112`. SSH key auth is preferred. For an existing control socket, set `NEMOCLAW_SSH_CONTROL_PATH` to its path. `NEMOCLAW_SANDBOX` defaults to `cofloor`. The legacy `MODEL_API_AUTH` setting is unused. There is no cloud-provider fallback.
 
 ## Discord setup
 

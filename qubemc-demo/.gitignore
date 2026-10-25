@@ -8,3 +8,6 @@ dist/
 !.env.example
 
 .cofloor-runs/
+
+__pycache__/
+*.pyc

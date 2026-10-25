@@ -1,6 +1,7 @@
+import {localModelUrl, SPARK_LLM_URL, inferenceMode} from './local-inference.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { candidatePools, validatePlan, parseModelJson, analyze, modelMiddleware } from './model.mjs';
+import { candidatePools, validatePlan, parseModelJson, analyze, modelMiddleware, chatJson } from './model.mjs';
 const pools = candidatePools();
 const plan = { tasks:pools.map(p=>({id:p.id,title:p.deliverable,ownerId:p.candidates[0].id})) };
 test('staff pools meet skill, permission, clearance and contiguous booking constraints',()=>{
@@ -38,4 +39,23 @@ test('document setup requires a run ID before inference',async()=>{
   let called=false;
   await assert.rejects(analyze('plan',{project:{workflowId:'RED-BULL-X-LAUNCH-V1',document:{content:'Document'}}},new AbortController().signal,async()=>{called=true;return {}}),/Missing run ID/);
   assert.equal(called,false);
+});
+
+test('inference endpoints reject public hosts, credentials and alternate routes',()=>{
+ assert.equal(localModelUrl(),SPARK_LLM_URL);
+ for(const url of ['https://cloud.example/v1/chat/completions','http://100.89.121.112.evil.example:8000/v1/chat/completions','http://user:secret@100.89.121.112:8000/v1/chat/completions','http://100.89.121.112:8001/v1/chat/completions',SPARK_LLM_URL+'?redirect=cloud'])assert.throws(()=>localModelUrl(url),/local Spark/);
+ const previous=process.env.COFLOOR_INFERENCE;
+ try{delete process.env.COFLOOR_INFERENCE;assert.equal(inferenceMode(),'nemoclaw');process.env.COFLOOR_INFERENCE='cloud';assert.throws(()=>inferenceMode(),/mode/);}finally{if(previous===undefined)delete process.env.COFLOOR_INFERENCE;else process.env.COFLOOR_INFERENCE=previous;}
+});
+test('explicit direct mode uses Tailscale without gateway credentials or redirect fallback',async()=>{
+ const previous={mode:process.env.COFLOOR_INFERENCE,url:process.env.MODEL_API_URL};
+ try{
+  process.env.COFLOOR_INFERENCE='local';delete process.env.MODEL_API_URL;
+  const result=await chatJson('Return JSON',{},new AbortController().signal,async(url,options)=>{
+   assert.equal(url,SPARK_LLM_URL);assert.equal(options.redirect,'error');assert.equal(options.headers.Authorization,undefined);
+   return new Response('data: '+JSON.stringify({choices:[{delta:{content:'{"local":true}'},finish_reason:'stop'}]})+'\n\ndata: [DONE]\n');
+  });assert.deepEqual(result,{local:true});
+  process.env.MODEL_API_URL='https://cloud.example/v1/chat/completions';
+  await assert.rejects(chatJson('Return JSON',{},new AbortController().signal,()=>{throw Error('must not fetch');}),/local Spark/);
+ }finally{for(const [key,value] of [['COFLOOR_INFERENCE',previous.mode],['MODEL_API_URL',previous.url]]){if(value===undefined)delete process.env[key];else process.env[key]=value;}}
 });
