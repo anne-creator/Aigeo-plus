@@ -1,4 +1,4 @@
-import { selectOwnersWithDecision } from './decision.mjs';
+import { selectOwnersWithDecision, selectReassignmentWithDecision } from './decision.mjs';
 import { createPlanJobs } from './plan-jobs.mjs';
 import { pollDiscordRuns } from './discord-poll.mjs';
 import { localModelUrl, inferenceMode } from './local-inference.mjs';
@@ -126,7 +126,7 @@ let coordinator;
 export async function analyze(action, input, signal, call = chatJson) {
   if (input.runId) {
     const { createCoordinator } = await import('./project.mjs');
-    coordinator ??= createCoordinator({call:chatJson,cache:true,selectOwners:async(payload,signal)=>{const {runNemoClawDecision}=await import('./nemoclaw-discord.mjs');return selectOwnersWithDecision(payload,signal,runNemoClawDecision);}});
+    coordinator ??= createCoordinator({call:chatJson,cache:true,selectReassignment:async(payload,signal,validate)=>{const {runNemoClawDecision}=await import('./nemoclaw-discord.mjs');return selectReassignmentWithDecision(payload,signal,runNemoClawDecision,validate);},selectOwners:async(payload,signal)=>{const {runNemoClawDecision}=await import('./nemoclaw-discord.mjs');return selectOwnersWithDecision(payload,signal,runNemoClawDecision);}});
     return coordinator.analyze(action,input,signal);
   }
   if (input.project?.workflowId || input.project?.document) throw new Error('Missing run ID for project setup.');
@@ -196,7 +196,7 @@ export function modelMiddleware(req, res, next) {
 // Resume pending coordination after process restart, even when no browser is open.
 let workerBusy = false;
 setInterval(async () => {
-  if (workerBusy || process.env.COFLOOR_DISCORD !== 'live') return;
+  if (workerBusy || process.env.COFLOOR_DISABLE_BACKGROUND_WORKER === '1' || process.env.COFLOOR_DISCORD !== 'live') return;
   workerBusy = true;
   try {
     const runs=readdirSync(resolve(root,'.cofloor-runs')).filter(name=>name.endsWith('.json')).map(name=>JSON.parse(readFileSync(resolve(root,'.cofloor-runs',name),'utf8'))).filter(run=>run.workflowMode==='discord-confirm-v1');
