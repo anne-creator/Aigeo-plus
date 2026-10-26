@@ -24,6 +24,7 @@ export async function syncDiscord(run, {save, decide, receiveEvent, reload, comm
       run.messages.push({id:`${run.runId}-intake`,kind:'intake',author:'agent',actorId:'cofloor',channelId:run.channelId,text:`Project team assigned.\n${assignments}`,delivery:'pending_transport'});
       save(run);
     }
+    async function flushPending(){
     for (const item of run.messages.filter(m => m.author === 'agent' && ['simulated','pending_transport'].includes(m.delivery))) {
       // Mark before sending: an ambiguous crash must not silently duplicate a notification.
       item.delivery = 'sending'; save(run);
@@ -35,6 +36,8 @@ export async function syncDiscord(run, {save, decide, receiveEvent, reload, comm
       item.proposalVersion = run.proposal?.version; item.delivery = 'sent';
       run.discordAfter ||= item.discordMessageId; narrateDelivery(run,item); save(run);
     }
+    }
+    await flushPending();
     if ((run.issue?.status === 'awaiting' || run.injection?.status === 'waiting') && run.discordAfter) {
       const result = await command(['read','--channel','discord','--target',`channel:${channel}`,'--after',run.discordAfter,'--limit','100','--json']);
       const messages = messagesOf(result).filter(m => /^\d+$/.test(m.id) && BigInt(m.id) > BigInt(run.discordAfter)).sort((a,b)=>BigInt(a.id)<BigInt(b.id)?-1:1);
@@ -56,6 +59,8 @@ export async function syncDiscord(run, {save, decide, receiveEvent, reload, comm
         if(run.issue?.status==='resolved')break;
       }
     }
+    // Deliver newly created proposals/confirmations in this same poll cycle.
+    await flushPending();
     delete run.discordError; save(run);
   } catch { if (reload) run = reload(); run.discordError = 'Discord delivery or reply processing failed. Check the channel and retry. A sending receipt requires inspection before resending.'; narrate(run, `discord-error:${run.proposal?.version??0}`, 'delivery_error', 'Discord communication needs attention. Please check the project group; I cannot yet verify message delivery or reply processing.', {proposalVersion:run.proposal?.version}); save(run); }
   return run;
