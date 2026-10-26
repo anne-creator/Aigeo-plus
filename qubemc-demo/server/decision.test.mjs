@@ -40,3 +40,13 @@ test('reassignment D1 chooses only prevalidated plans and supports explicit revi
  const empty=await selectReassignmentWithDecision({...input,alternatives:[{taskId:'a',candidates:[]}]},new AbortController().signal,()=>assert.fail('must not invoke model'),validate);
  assert.equal(empty.feasible,false);
 });
+
+
+test('initial reassignment offers valid replacements without an unsupported review escape',async()=>{
+ const {selectReassignmentWithDecision}=await import('./decision.mjs');
+ const input={tasks:[{id:'image',title:'Image'}],leave:[],alternatives:[{taskId:'image',candidates:[{id:'replacement',start:'2026-10-26T20:00:00Z',end:'2026-10-26T22:00:00Z'}]}]};
+ await selectReassignmentWithDecision(input,new AbortController().signal,async body=>{
+  assert.equal(body.questions.reassignment.criteria.needs_review,undefined);
+  return {result:{model:'coo-decision',answers:{reassignment:{type:'choice',choice:'plan_0'}}},inferenceMs:1};
+ },()=>{});
+});
