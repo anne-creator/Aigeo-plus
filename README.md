@@ -1,22 +1,78 @@
+![CoFloor — a digital office for people and AI agents](thumbnail2.png)
+
 # CoFloor
 
-An AI project coordination dashboard with a four-column Kanban board, direct employee assignments, task details and project activity.
+**A local AI-powered digital office where people and AI agents coordinate projects together.**
 
-The current scenario is the fictional Red Bull Citrus Edition X launch. Start project reads the original brief, generates execution tasks and assigns staff plus a project manager. Alex's actual reply in the configured Discord group reports the scenario sick leave; the model proposes replacements, and the manager must confirm the current proposal before reassignment is applied. There is no automatic leave timer.
+A project brief becomes a staffed task board. When someone becomes unavailable, CoFloor proposes a concrete replacement plan in Discord and waits for the project manager to confirm. The dashboard, voice updates, and animated office keep the team informed as the plan changes.
 
-English progress narration uses the local Qwen Ryan voice for allocation, Alex's blocker, the concrete AI proposal, verified Discord confirmation and resumed coordination. The browser provides mute, text updates and voice retry; speech failure does not stop project work.
+Built for the Dell × NVIDIA AI Hackathon. The frontend, backend, agent harness, and model services run on a **Dell Pro Max with GB10**. Model inference stays on the machine.
 
-## Run locally
+## See the workflow
+
+Our demo uses a fictional Red Bull Citrus Edition launch and a synthetic company directory.
+
+1. **Start the project.** Nemotron interprets the brief and creates tasks. D1 selects from eligible staff; the backend checks skills, permissions, availability, and scheduling constraints. Alex Morgan is the demo's designated image creator.
+2. **Bring the team together.** NemoClaw posts the assignments to the real Discord project channel. The dashboard shows owners, deadlines, and dependencies.
+3. **Handle a real reply.** The person playing Alex replies to the assignment message with a sick-leave report. CoFloor identifies the affected work and uses D1 through NemoClaw to select a validated replacement plan.
+4. **Keep the manager in control.** CoFloor posts the proposed changes and mentions the manager. Only the configured manager's direct confirmation of the current proposal applies the reassignment.
+5. **Keep everyone informed.** The board updates and local Qwen TTS narrates project milestones. Duplicate messages do not apply the same change twice.
+
+The leave event comes from Discord, not a timer. Employee acceptance replies are not fabricated. This demo coordinates work; it does not generate or publish the campaign assets.
+
+## One machine, several specialists
+
+| Component | Role |
+| --- | --- |
+| React + TypeScript | Animated office, task board, project activity, and voice controls |
+| Node.js backend | Validates assignments, persists runs, coordinates jobs, and enforces confirmation rules |
+| NVIDIA NemoClaw + OpenShell | Agent harness, sandbox, local inference routing, and Discord transport |
+| Nemotron via vLLM | Reads the brief and generates the project plan, with speculative decoding |
+| D1 decision model | Selects eligible owners and validated reassignment plans |
+| Qwen TTS | Generates spoken project updates locally |
+| OpenCV YuNet + SFace | Optional teammate face-recognition welcome demo |
+
+```mermaid
+flowchart LR
+    Browser[Browser dashboard] <--> App[CoFloor backend on GB10]
+    App <--> Harness[NemoClaw / OpenShell]
+    Harness --> LLM[Local Nemotron / vLLM]
+    Harness --> D1[Local D1]
+    Harness <--> Discord[Discord project channel]
+    App --> TTS[Local Qwen TTS]
+    App --> Face[Local face recognition]
+```
+
+Model calls use private Spark endpoints, with no cloud model fallback. Discord carries project messages; an optional Cloudflare tunnel exposes the UI. Neither provides model inference. See the [local-inference review guide](qubemc-demo/deploy/spark/LOCAL_INFERENCE.md) for code paths and verification.
+
+Repeated project starts can reuse a cached plan after eligibility is revalidated. Reassignments are evaluated afresh. The allocation animation stays visible for at least five seconds, even when the cache returns immediately.
+
+## Run the app
+
+Use **Node.js 22+** and clone the full repository, including `assets/`.
 
 ```sh
-cd qubemc-demo
+git clone https://github.com/anne-creator/Aigeo-plus.git
+cd Aigeo-plus/qubemc-demo
 npm ci
+cp .env.example .env.local
 npm run dev
 ```
 
-The source directory keeps its existing name for compatibility. The service and npm package are named **CoFloor**.
+Open the local URL printed by Vite. These commands start the web app; live project allocation also requires the local model services and a configured NemoClaw sandbox. Real Discord interaction requires a bot and two configured user accounts. Follow the [app setup guide](qubemc-demo/README.md) to connect them.
 
-## Validate
+**Demo availability:** the hackathon's public tunnel was temporary. There is no permanent hosted demo; the UI and model services require the Spark to be running.
+
+## Explore the project
+
+- [App setup and development](qubemc-demo/README.md)
+- [Spark runtime and deployment helpers](qubemc-demo/deploy/spark/README.md)
+- [Local-inference verification](qubemc-demo/deploy/spark/LOCAL_INFERENCE.md)
+- [Face recognition setup](qubemc-demo/face/README.md)
+- [Demo project brief](qubemc-demo/data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md)
+- [Synthetic company data](qubemc-demo/data/company/README.md)
+
+## Check the code
 
 ```sh
 cd qubemc-demo
@@ -25,4 +81,6 @@ npm run test:board
 npm run build
 ```
 
-See [the app README](qubemc-demo/README.md) for the board and Agent contract, [project structure](qubemc-demo/PROJECT_STRUCTURE.md) for module details, and [the original project requirements](qubemc-demo/data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md). Real inference drives setup, exception analysis and decision interpretation. Initial assignment is automatic; sick-leave reassignment requires the authenticated manager’s confirmation in Discord. See the app README for voice runtime requirements and verification limitations.
+Offline checks cover assignment constraints, cached allocations, reassignment, Discord identity and reply validation, duplicate handling, and UI state. Live integration needs the configured Spark services; offline tests alone do not establish live connectivity.
+
+The face-recognition experience is a welcome demo, not production authentication or liveness verification. The company, employees, and campaign scenario are fictional test data.
