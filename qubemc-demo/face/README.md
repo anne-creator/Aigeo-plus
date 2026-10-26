@@ -74,8 +74,10 @@ is not suitable for access control because this demo has no liveness check.
 ## Recognition success animation
 
 The face page plays the supplied five-second silent Avatar Forge video only after
-`/api/face/recognize` returns exactly one recognized face. Unknown or multiple
-faces keep scanning. A match stops and releases the camera and freezes the exact
+`/api/face/recognize` recognizes Anne, Max or Selina. Any of the three
+starts the same transition, including a trained teammate in a group frame.
+Frames with no trained match keep scanning. If several teammates match, the
+first trained match supplies the welcome name. A match stops and releases the camera and freezes the exact
 recognized canvas frame, including the match box, for one second. The frozen
 frame then expands from its exact on-screen position to fill the browser
 viewport over 700 ms, blending into the supplied video when playback starts.
@@ -97,3 +99,6 @@ compatibility; MP4 remains the fallback. To repeat the UI regression checks,
 start the built app on port 5174 and run `node scripts/test_face_animation.cjs`
 with Playwright installed (or set `PLAYWRIGHT_MODULE` to its module path).
 These checks use controlled face responses; live recognition is verified separately.
+
+Deploy `face-demo.html` and `face-demo.js` together. The versioned script URL
+bypasses Cloudflare’s four-hour cache of the previous welcome-card script.
