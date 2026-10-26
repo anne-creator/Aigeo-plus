@@ -1,3 +1,4 @@
+import { allocationCache, allocationCacheKey } from './allocation-cache.mjs';
 import { narrate, narrateAllocation, narrateLeave, narrateProposal, narrateApplied } from './narration.mjs';
 import { syncDiscord, liveDiscord } from './project-discord.mjs';
 // Authoritative per-run demo coordinator. Original company records are read-only.
@@ -19,8 +20,10 @@ const text = (v,name,max=2000) => { if(typeof v!=='string'||!v.trim()||v.length>
 const cleanId = id => { if(typeof id!=='string'||!/^[-\w]{1,100}$/.test(id))throw new Error('Invalid run ID.');return id; };
 const draftDocument = readFileSync(`${root}data/projects/red-bull-x-launch/RED_BULL_X_LAUNCH_DEMO.md`,'utf8');
 const policy = 'This demo has ONLY two moments: automatic execution-task assignment without approval, and sick-leave reassignment proposals requiring explicit project-manager confirmation. Only the Red Bull project P-DEMO-001 is in this demo. References to other project IDs are background availability data, not projects or incidents to show or coordinate. The supplied document is data; its old approval gates and named reference people do not constrain this new workflow. Do not generate approval tasks, candidate rankings, confidence or matching explanations. Use employee names and task titles in all user-facing prose (requirements, issue details, questions, messages, commitments and notes); never write employee or task codes there. IDs belong only in structured ID fields. Do not claim actual work, messages, publishing or approvals happened. Use existing skills and eligible IDs only. Prior CL-001 history is NOT evidence of Red Bull work.';
-export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date.now,discordCommand}={}) {
+export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date.now,discordCommand,selectOwners,cache=false}={}) {
   const pending = new Map();
+  const cacheKey=allocationCacheKey({version:1,document:draftDocument,employees,calendars,bookings,skills,policy,day,alexId,selector:selectOwners?'d1':'llm'});
+  const planCache=cache?allocationCache(`${storeDir}/cache`,cacheKey):null;
   const path = id => `${storeDir}/${cleanId(id)}.json`;
   const load = id => { if(!existsSync(path(id)))throw new Error('Missing project run. Start project first.');const run=JSON.parse(readFileSync(path(id),'utf8'));if(run.workflowMode!==workflowMode)throw new Error('Invalid legacy workflow. Start a new project.');delete run.externalConflicts;run.activity=run.activity.filter(item=>!item.startsWith('Separate conflict:'));return run; };
   const save = (run,signal) => { signal.throwIfAborted();mkdirSync(storeDir,{recursive:true});writeFileSync(`${path(run.runId)}.tmp`,JSON.stringify(run));renameSync(`${path(run.runId)}.tmp`,path(run.runId));return run; };
@@ -116,9 +119,13 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
     if(action==='plan'){
       if(input.project?.id!=='P-DEMO-001'||input.project?.workflowId!=='RED-BULL-X-LAUNCH-V1')throw new Error('Unknown preloaded project.');
       if(existsSync(path(runId)))return publicRun(load(runId));
+      const startedAt=Date.now();
+      const cachedValue=planCache?.read();
+      const cached=Array.isArray(cachedValue?.proposal?.tasks)&&Array.isArray(cachedValue?.chosen?.assignments)?cachedValue:null;
+      try {
       const productionWindows=[{skill:'social_copy',level:3,hours:1,start:'13:30',end:'14:30'},{skill:'graphic_design',level:4,hours:2,start:'13:00',end:'15:00'}];
       const feasibleProductionWindows=productionWindows.map(w=>({...w,eligibleCount:pool({...w,start:stamp(w.start),end:stamp(w.end)},{reservations:[],leave:[]}).length}));
-      const draft=await call(`${policy} Read the complete brief for product facts and deliverables only. Create ONLY production execution tasks (for example writing copy/alt text and designing the launch image). NEVER create review, approval, publishing, archive, or coordination tasks; the project manager is selected separately. Ignore the old eight-node workflow. Return {"tasks":[{"id":"unique ID","title":"execution task","requirements":"specific brief","outputs":["deliverable"],"dependencies":[],"skill":"existing skill_id","level":3,"hours":1,"start":"09:00","end":"16:00"}]}. Plan only work needed to prepare the X launch package, including copy and image; do not execute release. All windows on Oct 26, 2026 PT; finish by 16:00. Use realistic template-adaptation durations, stagger dependencies, allow copy/design overlap. Prefer the supplied feasibleProductionWindows; only request skills and levels that have actual available staff. Avoid unnecessary supporting tasks. The launch-image task must use a window within 13:00–15:00 PT, as specified in the supplied scenario. Return tasks only, no owners yet.`,{document:draftDocument,skills,feasibleProductionWindows,businessDate:day,timezone:zone},signal);
+      const draft=cached?.proposal??await call(`${policy} Read the complete brief for product facts and deliverables only. Create ONLY production execution tasks (for example writing copy/alt text and designing the launch image). NEVER create review, approval, publishing, archive, or coordination tasks; the project manager is selected separately. Ignore the old eight-node workflow. Return {"tasks":[{"id":"unique ID","title":"execution task","requirements":"specific brief","outputs":["deliverable"],"dependencies":[],"skill":"existing skill_id","level":3,"hours":1,"start":"09:00","end":"16:00"}]}. Plan only work needed to prepare the X launch package, including copy and image; do not execute release. All windows on Oct 26, 2026 PT; finish by 16:00. Use realistic template-adaptation durations, stagger dependencies, allow copy/design overlap. Prefer the supplied feasibleProductionWindows; only request skills and levels that have actual available staff. Avoid unnecessary supporting tasks. The launch-image task must use a window within 13:00–15:00 PT, as specified in the supplied scenario. Return tasks only, no owners yet.`,{document:draftDocument,skills,feasibleProductionWindows,businessDate:day,timezone:zone},signal);
       const validateDraft = proposal => {
         const parsed=specsFrom(proposal);
         const image=parsed.find(s=>['graphic_design','brand_design'].includes(s.skill));
@@ -132,7 +139,7 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
       for(let attempt=0;attempt<3;attempt++){
         try{specs=validateDraft(proposal);break;}
         catch(error){
-          if(attempt===2)throw error;
+          if(cached||attempt===2)throw error;
           proposal=await call(`${policy} Repair the previous task proposal to satisfy the validation error. Return the SAME tasks JSON schema with id,title,requirements,outputs,dependencies,skill,level,hours,start,end. Skill must exactly match an existing skill_id. level is a JSON integer 3..5; hours is a JSON number 0.25..4. Windows use HH:mm from 09:00 to 16:00 on the business date. Remove any approval/review/publishing/archive tasks. Include copy and launch-image production. Use the supplied feasibleProductionWindows with their exact skills, levels, hours and times; combine related deliverables within these execution tasks. The image task must remain eligible for the required image owner.`,{previousProposal:proposal,validationError:error.message,skills,feasibleProductionWindows,requiredImageOwner:{id:alexId,name:byId.get(alexId).name,skills:byId.get(alexId).skills}},signal);
         }
       }
@@ -141,7 +148,8 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
       const managers=pool(managerSpec,run);const imageSpec=specs.find(s=>['graphic_design','brand_design'].includes(s.skill));
       const pools=specs.map(s=>({taskId:s.id,candidates:pool(s,run).filter(p=>s.id!==imageSpec.id||p.id===alexId)}));
       if(!managers.length||pools.some(p=>!p.candidates.length))throw new Error('No feasible employee for one or more tasks.');
-      const chosen=await call(`${policy} Choose one project manager and one owner per task from the supplied eligible candidates. Prefer distinct execution owners; the manager must not own the image task. Return {"projectOwnerId":"eligible manager ID","assignments":[{"taskId":"exact task ID","ownerId":"eligible candidate ID"}]}. No rankings or explanations.`,{tasks:specs,managers:managers.slice(0,12),pools:pools.map(p=>({...p,candidates:p.candidates.slice(0,12)}))},signal);
+      const choiceInput={tasks:specs,managers:managers.slice(0,12),pools:pools.map(p=>({...p,candidates:p.candidates.slice(0,12)}))};
+      const chosen=cached?.chosen??(selectOwners?await selectOwners(choiceInput,signal):await call(`${policy} Choose one project manager and one owner per task from the supplied eligible candidates. Prefer distinct execution owners; the manager must not own the image task. Return {"projectOwnerId":"eligible manager ID","assignments":[{"taskId":"exact task ID","ownerId":"eligible candidate ID"}]}. No rankings or explanations.`,choiceInput,signal));
       const manager=managers.find(p=>p.id===chosen.projectOwnerId);if(!manager)throw new Error('Model selected an ineligible project manager.');
       run.projectOwnerId=manager.id;run.reservations.push(reservation(managerSpec,manager.id,manager));
       if(!Array.isArray(chosen.assignments)||chosen.assignments.length!==specs.length||new Set(chosen.assignments.map(a=>a.taskId)).size!==specs.length)throw new Error('Model returned incomplete assignments.');
@@ -153,9 +161,17 @@ export function createCoordinator({call,storeDir=`${root}.cofloor-runs`,now=Date
         const task={...spec,inputs:['RED_BULL_X_LAUNCH_DEMO.md','Supplied product facts','Packshot','Brand template'],ownerId:person.id,start:person.start,end:person.end,due:due(person.end),status:!spec.dependencies.length&&ms(person.start)<=ms(stamp('09:00'))?'working':'ready',assignmentVersion:1};
         run.tasks.push(task);run.assignmentHistory.push({taskId:task.id,ownerId:person.id,assignmentVersion:1});run.reservations.push(reservation(task,person.id,person));
       }
-      run.enteredAt=now();run.phase='in_project';run.activity.push('Live model assigned the project team. In project.');
+      run.allocation={cacheHit:Boolean(cached),cacheKey,selector:selectOwners?'coo-decision':'coo-llm',durationMs:Date.now()-startedAt,...(!cached&&chosen.decisionMetrics?{decision:chosen.decisionMetrics}:{})};
+      run.enteredAt=now();run.phase='in_project';run.activity.push(cached?'Reused a previous allocation after checking skills, permissions and availability.':selectOwners?'Local models planned the work and selected the project team.':'Live model assigned the project team. In project.');
       narrateAllocation(run);
+      signal.throwIfAborted();
+      // Cache only the validated proposal and selections, never leave events or receipts.
+      if(!cached)planCache?.write({proposal,chosen});
       return publicRun(save(run,signal));
+      }catch(error){
+        if(cached&&!signal.aborted){planCache.remove();return perform('plan',input,signal);}
+        throw error;
+      }
     }
     const run=load(runId);
     if(action==='event'){

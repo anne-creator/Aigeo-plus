@@ -77,6 +77,21 @@ export async function runNemoClawAgent(prompt, runId, signal, runner = runFile) 
   return text;
 }
 
+// A bounded native tool call inside NemoClaw; no direct-host or cloud fallback.
+export async function runNemoClawDecision(body, signal, runner = runFile) {
+  if(body?.model!=='coo-decision'||JSON.stringify(body).length>150000)throw new Error('Invalid local decision request.');
+  const script = `const body=JSON.parse(process.argv[1]);const start=Date.now();
+    fetch('http://100.89.121.112:8001/v1/systemone',{method:'POST',redirect:'error',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(30000)})
+    .then(async response=>{if(!response.ok)throw Error('Local decision HTTP '+response.status);const result=await response.json();console.log(JSON.stringify({result,inferenceMs:Date.now()-start}));})
+    .catch(()=>{console.error('Local decision request failed');process.exitCode=1;});`;
+  const {sandbox,sshTarget,sshControlPath}=nemoclawSettings();
+  const command=['nemoclaw',sandbox,'exec','--','node','-e',script,JSON.stringify(body)];
+  let stdout;
+  try{({stdout}=await runner(sshTarget?'ssh':'nemoclaw',sshTarget?sshArgs(sshTarget,sshControlPath,command):command.slice(1),{timeout:45000,signal,maxBuffer:1024*1024,env:{...process.env,NEMOCLAW_DISABLE_TELEMETRY:'1'}}));}
+  catch{throw Error('Model decision request failed inside NemoClaw. Check the local D1 policy and service.');}
+  try{return JSON.parse(stdout);}catch{throw Error('Model returned unreadable decision output.');}
+}
+
 export function messageId(result) {
   const id = result?.payload?.result?.messageId ?? result?.payload?.messageId ?? result?.id ?? result?.messageId ?? result?.message_id ?? result?.message?.id ?? result?.result?.id ?? result?.result?.messageId;
   if (!/^\d+$/.test(String(id ?? ''))) throw new Error('NemoClaw did not confirm a Discord message ID.');

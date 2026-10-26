@@ -150,3 +150,16 @@ Regression coverage: `npm test` includes durable-job recovery and batched pollin
 acknowledgement, same-ID Retry, and reload during allocation in Playwright. Set
 `TEST_RUN_FIXTURE` to a representative saved run JSON and `TEST_BASE_URL` to a
 local built server; its model routes are mocked and it sends no Discord messages.
+
+### D1 owner selection and validated allocation cache
+
+Run `python3 deploy/spark/enable-decision-policy.py` on the Spark with
+`openshell` on PATH before deploying the D1 integration. This updates the existing
+sandbox policy live, allowing Node to POST only to the Spark's private D1
+endpoint. It requires no sandbox rebuild, model restart or desktop logout.
+
+Keep `.cofloor-runs/cache/` with the saved run/job directories on deployment.
+The cache is invalidated by changed source facts and revalidated before reuse.
+For a fresh run, Nemotron creates the tasks and local D1 selects eligible owners;
+for an identical validated cached project, neither model is called again.
+NemoClaw remains the harness for uncached model work and all Discord transport.
