@@ -249,3 +249,10 @@ npm run build
 ```
 
 The tests cover the intake contract, eligibility boundary, NemoClaw command shape, and fail-closed Discord configuration. A live end-to-end test needs the running NemoClaw sandbox, the local vLLM route, and a configured Discord bot.
+
+Starting or retrying an allocation keeps the normal allocation animation visible
+for at least five seconds. Cached results are computed immediately and show
+“Your team is ready” during the remaining presentation time; longer allocations
+transition as soon as they finish, without an additional five-second delay.
+Errors are shown immediately. D1, cache behavior, and backend execution timings
+are unchanged. Opening an already saved project does not repeat this start delay.
