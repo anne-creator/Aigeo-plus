@@ -117,3 +117,46 @@ test('Discord receipt and applied confirmation narration are saved atomically af
   assert.deepEqual((await invoke(f,'state',{runId:'discord-narration'})).narrationEvents,applied.narrationEvents);
  }finally{f.close();for(const key of keys){if(previous[key]===undefined)delete process.env[key];else process.env[key]=previous[key];}}
 });
+
+test('repaired drafts are revalidated against availability before owner selection',async()=>{
+ let repairs=0,selected=0;
+ const f=fixture({call:async(prompt,payload)=>{
+  if(prompt.includes('Read the complete brief'))return {tasks:structuredClone(drafts).map(t=>({...t,hours:4}))};
+  if(prompt.includes('Repair the previous')){
+   repairs++;assert.match(payload.validationError,/feasible|window|duration/i);
+   assert.equal(payload.requiredImageOwner.id,'EMP-0329');
+   return {tasks:structuredClone(drafts).map(t=>repairs===1?{...t,hours:4}:t)};
+  }
+  if(prompt.includes('Choose one project manager')){selected++;return {projectOwnerId:payload.managers[0].id,assignments:payload.pools.map(p=>({taskId:p.taskId,ownerId:p.candidates.find(c=>c.id!==payload.managers[0].id).id}))};}
+  throw Error('unexpected call');
+ }});
+ try{const result=await invoke(f,'plan',input('repair'));assert.equal(repairs,2);assert.equal(selected,1);assert.equal(result.tasks.find(t=>t.id==='image').ownerId,'EMP-0329');}finally{f.close();}
+});
+
+test('validated cache skips both models but creates clean independent runs',async()=>{
+ let plans=0,decisions=0;
+ const call=async()=>{plans++;return {tasks:structuredClone(drafts)};};
+ const choose=async payload=>{decisions++;return {projectOwnerId:payload.managers[0].id,assignments:payload.pools.map(p=>({taskId:p.taskId,ownerId:p.candidates.find(c=>c.id!==payload.managers[0].id).id}))};};
+ const f=fixture({cache:true,call,selectOwners:choose});
+ try{
+  const first=await invoke(f,'plan',input('cold'));assert.equal(first.allocation.cacheHit,false);
+  const second=await invoke(f,'plan',input('warm'));assert.equal(second.allocation.cacheHit,true);assert.equal(plans,1);assert.equal(decisions,1);
+  assert.deepEqual(second.messages,[]);assert.deepEqual(second.leave,[]);assert.equal(second.confirmation,undefined);assert.equal(second.injection.status,'waiting');assert.ok(second.narrationEvents.every(e=>e.id.startsWith('warm:')));
+  const restarted=createCoordinator({storeDir:f.storeDir,cache:true,call:()=>assert.fail('cached planner invoked'),selectOwners:()=>assert.fail('cached D1 invoked')});
+  assert.equal((await restarted.analyze('plan',input('after-restart'),signal())).allocation.cacheHit,true);
+ }finally{f.close();}
+});
+
+test('cached ineligible ownership is discarded and regenerated before saving',async()=>{
+ let plans=0;
+ const f=fixture({cache:true,call:async(prompt,payload)=>{
+  if(prompt.includes('Read the complete brief')){plans++;return {tasks:structuredClone(drafts)};}
+  return {projectOwnerId:payload.managers[0].id,assignments:payload.pools.map(p=>({taskId:p.taskId,ownerId:p.candidates.find(c=>c.id!==payload.managers[0].id).id}))};
+ }});
+ try{
+  const first=await invoke(f,'plan',input('cache-valid'));
+  const {readFileSync}=await import('node:fs');const file=join(f.storeDir,'cache',first.allocation.cacheKey+'.json');
+  const entry=JSON.parse(readFileSync(file,'utf8'));entry.value.chosen.assignments[0].ownerId='not-an-employee';writeFileSync(file,JSON.stringify(entry));
+  const next=await invoke(f,'plan',input('cache-invalid'));assert.equal(next.allocation.cacheHit,false);assert.equal(plans,2);assert.ok(next.tasks.every(t=>t.ownerId!=='not-an-employee'));
+ }finally{f.close();}
+});

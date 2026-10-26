@@ -24,7 +24,8 @@ async function post<T>(action:string,input:unknown,signal:AbortSignal):Promise<T
   if(!response.ok)throw new Error(result.error??`Request failed (HTTP ${response.status}). Retry resumes the same project.`);return result;
 }
 async function waitForPlan(runId:string,signal:AbortSignal,initial?:PlanJob):Promise<BoardRun>{
-  let job=initial;
+  // Check immediately: a validated cache hit can finish before submission returns.
+  let job=initial?.status==='queued'||initial?.status==='running'?undefined:initial;
   while(true){
     signal.throwIfAborted();
     job??=await post<PlanJob>('plan-status',{runId},signal);

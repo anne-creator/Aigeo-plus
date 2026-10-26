@@ -76,3 +76,27 @@ python3 scripts/test_qwen_tts.py "Local inference on the Spark." --output /tmp/l
 ```
 
 Existing public gateway credentials are not required for any of these commands.
+
+## Fast allocation path
+
+Nemotron still interprets the brief through the NemoClaw agent. Owner selection
+uses D1's structured decision endpoint: `nemoclaw cofloor exec -- node ...`
+runs a bounded request to `http://100.89.121.112:8001/v1/systemone` inside the
+sandbox. `enable-decision-policy.py` adds only that IP, port, POST path and Node
+binary to the existing sandbox policy; it does not change the Discord gateway
+or the Nemotron inference provider. No cloud endpoint or direct-host fallback
+is used. D1 chooses among coordinator-validated candidates, and the resulting
+assignment is checked again against the reservations and forced Alex scenario.
+
+Successful task proposals and owner selections are cached under
+`.cofloor-runs/cache/`. The key includes the complete brief, staffing, calendars,
+bookings, skills, business date, policy and selector version. Cache hits rerun
+all eligibility/assignment checks. Invalid cached choices are removed and
+regenerated. Each new run has independent reservations, messages, leave events,
+confirmation state and narration IDs; those are never copied from the cache.
+
+Run `node --env-file=/home/dell/cofloor/app.env scripts/benchmark_allocation.mjs`
+on the Spark to compare cold NemoClaw/Nemotron + D1 allocation with a validated
+cache hit. It writes isolated benchmark runs and disables Discord transport.
+The output separates D1 inference time from sandbox/queue overhead and total
+allocation time. Speedups are measured for this workload, not a universal claim.

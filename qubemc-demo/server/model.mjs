@@ -1,3 +1,4 @@
+import { selectOwnersWithDecision } from './decision.mjs';
 import { createPlanJobs } from './plan-jobs.mjs';
 import { pollDiscordRuns } from './discord-poll.mjs';
 import { localModelUrl, inferenceMode } from './local-inference.mjs';
@@ -125,7 +126,7 @@ let coordinator;
 export async function analyze(action, input, signal, call = chatJson) {
   if (input.runId) {
     const { createCoordinator } = await import('./project.mjs');
-    coordinator ??= createCoordinator({call: chatJson});
+    coordinator ??= createCoordinator({call:chatJson,cache:true,selectOwners:async(payload,signal)=>{const {runNemoClawDecision}=await import('./nemoclaw-discord.mjs');return selectOwnersWithDecision(payload,signal,runNemoClawDecision);}});
     return coordinator.analyze(action,input,signal);
   }
   if (input.project?.workflowId || input.project?.document) throw new Error('Missing run ID for project setup.');
