@@ -1,3 +1,4 @@
+import { waitForAllocationAnimation } from './allocation-timing';
 import { NarrationQueue, browserVoiceDriver } from './narration';
 import type { VoiceView } from './narration';
 import { VoiceNarration } from './VoiceNarration';
@@ -93,6 +94,7 @@ function App() {
   const live = true;
   const [runtimeReady, setRuntimeReady] = useState(false);
   const [hydratedRun, setHydratedRun] = useState('');
+  const [allocationReady, setAllocationReady] = useState(false);
   const [decisionOpen, setDecisionOpen] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [saved, setSaved] = useState(true);
@@ -180,6 +182,8 @@ function App() {
   }, [started, hydratedRun, state.runId]);
   async function start(resume = false) {
     if (!runtimeReady || running.current) return;
+    const animationStartedAt = performance.now();
+    setAllocationReady(false);
     const runId = resume && state.runId ? state.runId : crypto.randomUUID(), abort = new AbortController();
     const pendingUrl = new URL(window.location.href); pendingUrl.searchParams.set('run',runId); window.history.replaceState(null,'',pendingUrl);
     running.current = true; controller.current = abort; setControls(false); setSelectedId(null); setActivity(false); setDecisionOpen(false); setReplyText(''); setHydratedRun('');
@@ -190,7 +194,11 @@ function App() {
       let receivedResult = false;
       for await (const event of getBoardAdapter().start({ project, company, runId }, abort.signal)) {
         if (abort.signal.aborted) break;
-        if (event.type === 'snapshot') { receivedResult = true; setHydratedRun(runId); const url = new URL(window.location.href); url.searchParams.set('run',runId); window.history.replaceState(null,'',url); }
+        if (event.type === 'snapshot') {
+          setAllocationReady(true);
+          await waitForAllocationAnimation(animationStartedAt, abort.signal);
+          abort.signal.throwIfAborted();
+          receivedResult = true; setHydratedRun(runId); const url = new URL(window.location.href); url.searchParams.set('run',runId); window.history.replaceState(null,'',url); }
         emit(event);
       }
       if (!receivedResult && !abort.signal.aborted) throw new Error('Agent finished without returning a project allocation.');
@@ -241,8 +249,8 @@ function App() {
       <div className="assignment-shade"/>
       <div className="assignment-content" role={state.error ? 'alert' : 'status'} aria-live="polite">
         <span className="allocation-eyebrow">{project.title}</span>
-        <h1>{restoring ? (state.error ? 'Project unavailable' : 'Opening project') : state.error ? 'Assignment paused' : 'Assigning your team'}</h1>
-        {state.error ? <><p className="allocation-error">{labels.text(state.error)}</p><button className="primary-button" disabled={state.operation !== 'idle'} onClick={() => void start(true)}>Retry<Icon name="arrow"/></button></> : <><p>{restoring ? 'Loading tasks · Syncing updates' : 'Generating tasks · Matching owners'}</p><span className="allocation-loading"><span className="spinner"/>{restoring ? 'Syncing project' : 'Agent working'}</span></>}
+        <h1>{restoring ? (state.error ? 'Project unavailable' : 'Opening project') : state.error ? 'Assignment paused' : allocationReady ? 'Your team is ready' : 'Assigning your team'}</h1>
+        {state.error ? <><p className="allocation-error">{labels.text(state.error)}</p><button className="primary-button" disabled={state.operation !== 'idle'} onClick={() => void start(true)}>Retry<Icon name="arrow"/></button></> : <><p>{restoring ? 'Loading tasks · Syncing updates' : allocationReady ? 'Preparing your workspace' : 'Generating tasks · Matching owners'}</p><span className="allocation-loading"><span className="spinner"/>{restoring ? 'Syncing project' : allocationReady ? 'Opening your project' : 'Agent working'}</span></>}
       </div>
     </section>}
     <main className={`dashboard focus-dashboard ${started ? 'project-dashboard' : 'global-dashboard'}`} id="dashboard-panel" hidden={!dashboardVisible} aria-label={started ? 'Project dashboard' : 'Global dashboard'}>
