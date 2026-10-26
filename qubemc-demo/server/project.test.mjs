@@ -160,3 +160,14 @@ test('cached ineligible ownership is discarded and regenerated before saving',as
   const next=await invoke(f,'plan',input('cache-invalid'));assert.equal(next.allocation.cacheHit,false);assert.equal(plans,2);assert.ok(next.tasks.every(t=>t.ownerId!=='not-an-employee'));
  }finally{f.close();}
 });
+
+test('D1 full mock Discord flow authenticates leave, proposes, confirms and deduplicates',async()=>{
+ const {simulateReassignmentFlow}=await import('../scripts/reassignment_flow.mjs');
+ const {selectReassignmentWithDecision}=await import('./decision.mjs');
+ const f=fixture();let decisions=0;
+ try{
+  await invoke(f,'plan',input('template'));
+  const result=await simulateReassignmentFlow({initialRun:f.service.load('template'),storeDir:join(f.storeDir,'mock'),runId:'d1-flow',call:()=>assert.fail('reassignment must not call Nemotron'),selectReassignment:(payload,signal,validate)=>selectReassignmentWithDecision(payload,signal,async()=>{decisions++;return {result:{model:'coo-decision',answers:{reassignment:{type:'choice',choice:'plan_0'}}},inferenceMs:1};},validate)});
+  assert.equal(decisions,1);assert.equal(result.mockDiscordSends,3);assert.equal(result.pollsToProposal,1);assert.equal(result.checksPassed,true);
+ }finally{f.close();}
+});
