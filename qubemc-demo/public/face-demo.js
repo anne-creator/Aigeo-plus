@@ -5,6 +5,7 @@ const success=$('success'),film=$('success-film'),frozenFrame=$('match-frame');
 const names={anne:'Anne',max:'Max',selina:'Selina',unknown:'Unknown'};
 let stream=null,timer=null,request=null,generation=0,matched=false,phase='scanning',freezeTimer=null,filmTimer=null,frameTransition=null;
 const name=label=>names[label]||label;
+const trainedLabels=new Set(['anne','max','selina']);
 function stopCamera(){
   clearTimeout(timer);timer=null;stream?.getTracks().forEach(track=>track.stop());
   stream=null;video.srcObject=null;start.disabled=false;stop.disabled=true;
@@ -82,9 +83,10 @@ function show(data){
     ctx.fillStyle='#10211b';ctx.fillText(title,x+8,top-6);
     const chip=document.createElement('div');chip.className='result'+(unknown?' unknown':'');chip.textContent=title;results.append(chip);
   }
-  // A single recognized foreground person is required; never pick an identity from a group.
-  if(data.faces.length===1&&data.faces[0].label&&data.faces[0].label!=='unknown')celebrate(data.faces[0]);
-  else status.textContent=data.faces.length>1?'Multiple faces detected — scan one person at a time':data.faces.length?'Face not recognized — try a clearer view':'No face detected — face the camera and improve the light';
+  // Any trained teammate starts the same transition, including a group frame.
+  const teammate=data.faces.find(face=>trainedLabels.has(face.label));
+  if(teammate)celebrate(teammate);
+  else status.textContent=data.faces.length?'Face not recognized — try a clearer view':'No face detected — face the camera and improve the light';
 }
 async function analyze(version){
   if(request||matched||version!==generation)return;

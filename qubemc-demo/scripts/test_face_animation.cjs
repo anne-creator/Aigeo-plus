@@ -15,7 +15,7 @@ const base = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
     await page.route('**/api/face/recognize', async r => {
       calls++;
       if (mode === 'delayed') { pending = r; return; }
-      await r.fulfill({json:{faces:mode==='multiple'?[face('anne'),face('unknown')]:[face(mode)]}});
+      await r.fulfill({json:{faces:mode==='multiple'?[face('unknown'),face('selina')]:mode==='unknown-group'?[face('unknown'),face('unknown')]:[face(mode)]}});
     });
     const open = () => page.goto(base + '/face-demo.html');
     const start = () => page.getByRole('button', {name:'Start camera',exact:true}).click();
@@ -38,8 +38,9 @@ const base = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
     await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('not recognized'));
     assert.equal(await page.locator('#success').isVisible(),false);
     await page.evaluate(()=>{window.cameraTracks=document.querySelector('#video').srcObject.getTracks();});
-    mode='multiple';
-    await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Multiple faces'));
+    mode='unknown-group';
+    await page.waitForTimeout(1500);
+    assert.ok(calls>=2,'group frame was analyzed');
     assert.equal(await page.locator('#success').isVisible(),false);
     mode='anne';await frozen();
     assert.equal(await page.getByRole('heading',{name:'Welcome, Anne'}).isVisible(),true);
@@ -65,6 +66,13 @@ const base = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
     await returned();
     assert.equal(Math.round(Number(await page.evaluate(()=>sessionStorage.getItem('completedFilmDuration')))),5);
     assert.equal(calls,afterMatch,'matching stops all further scans');
+
+    // Every trained identity, and a teammate among unknown faces, must complete the transition.
+    for(const label of ['max','selina','multiple']){
+      mode=label;await open();await start();await frozen();
+      assert.equal(await page.locator('#match-title').textContent(),`Welcome, ${label==='max'?'Max':'Selina'}`);
+      await fullViewport();await page.locator('#success.is-revealed').waitFor();await returned();
+    }
 
     await open();mode='delayed';await start();
     await page.waitForFunction(()=>document.querySelector('#status').textContent==='Camera started');
@@ -105,6 +113,6 @@ const base = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
     await page.locator('#upload').setInputFiles({name:'fixture.png',mimeType:'image/png',buffer:Buffer.from(photo,'base64')});
     await frozen();await fullViewport();await returned();
     assert.deepEqual(errors,[]);
-    console.log('PASS: unknown/group rejection, exact frame freeze, expansion from the recognized frame into full-screen video, crossfade, camera release, full desktop/mobile viewport, actual five-second playback and automatic main-page return, no repeated scans, stale response ignored, reduced motion, failed/rejected/stalled video, photo upload.');
+    console.log('PASS: unknown-only rejection, all three teammates and mixed groups, exact frame freeze, expansion from the recognized frame into full-screen video, crossfade, camera release, full desktop/mobile viewport, actual five-second playback and automatic main-page return, no repeated scans, stale response ignored, reduced motion, failed/rejected/stalled video, photo upload.');
   } finally { await browser.close(); }
 })().catch(e=>{console.error(e);process.exitCode=1});
