@@ -1,5 +1,7 @@
 ![CoFloor — a digital office for people and AI agents](thumbnail2.png)
 
+[Watch the CoFloor demo on YouTube](https://youtu.be/Tcd_jFg2rAs?si=gVCne4wAbwjFMvne)
+
 # CoFloor
 
 **A local AI-powered digital office where people and AI agents coordinate projects together.**
